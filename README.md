@@ -8,7 +8,7 @@ An agent skill that turns any approved Open Graph image into a looping `og:video
 
 ## Watch it
 
-[16-second promo (MP4)](social/promo.mp4): a still link preview, cut into layers, each layer gets a motion, and the preview moves.
+[20-second promo (MP4)](social/promo.mp4): a still link preview is cut into layers, each layer gets a motion, and on the music's drop the preview moves. Made with Remotion; music is "What About Action?" from Mixkit (free licence).
 
 ## Examples
 
@@ -98,7 +98,7 @@ og-video-preview/
 │   └── check_live.sh        # live tags, files and Range check
 ├── worker/range-worker.js   # Range / 206 support on Cloudflare Workers assets
 ├── examples/                # JoeSpeaking.com and demo.joespeaking.com
-└── social/                  # this repo's own hero, social preview and promo, made the same way
+└── social/                  # this repo's own hero, social preview and promo
 ```
 
 ## Credits
