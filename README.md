@@ -8,7 +8,7 @@ An agent skill that turns any approved Open Graph image into a looping `og:video
 
 ## Watch it
 
-[20-second promo (MP4)](social/promo.mp4): a still link preview is cut into layers, each layer gets a motion, and on the music's drop the preview moves. Made with Remotion; music is "What About Action?" from Mixkit (free licence).
+[15-second promo (MP4)](social/promo.mp4): it opens on the X post that started this, then turns an OG image into video in one prompt. Made with Remotion; music "Deep Urban" from Mixkit (free licence); sound effects from [earshot](https://github.com/Leonxlnx/earshot).
 
 ## Examples
 
