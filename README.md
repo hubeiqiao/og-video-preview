@@ -8,7 +8,7 @@ An agent skill that turns any approved Open Graph image into a looping `og:video
 
 ## Watch it
 
-[15-second promo (MP4)](social/promo.mp4): it opens on the X post that started this, then turns an OG image into video in one prompt. Made with Remotion; music "Deep Urban" from Mixkit (free licence); sound effects from [earshot](https://github.com/Leonxlnx/earshot).
+[16-second promo (MP4)](social/promo.mp4): it opens on the X post that started this (its own og:video playing), then turns an OG image into video in one prompt. Made with Remotion; music "Deep Urban" from Mixkit (free licence); sound effects from [earshot](https://github.com/Leonxlnx/earshot).
 
 ## Examples
 
