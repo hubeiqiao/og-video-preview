@@ -1,0 +1,16 @@
+{
+  "name": "og-video-preview-marketplace",
+  "owner": {
+    "name": "Joe Hu"
+  },
+  "metadata": {
+    "description": "Animated Open Graph link previews for AI coding agents"
+  },
+  "plugins": [
+    {
+      "name": "og-video-preview",
+      "source": "./",
+      "description": "Turn any approved OG image into a looping og:video that plays in link previews"
+    }
+  ]
+}

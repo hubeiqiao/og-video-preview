@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- Repo hero and GitHub social preview, 1280x640. The link preview on the right
+     is the JoeSpeaking.com example running live inside an iframe; render(t) drives both. -->
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..900&family=Geist+Mono:wght@500..700&display=block" rel="stylesheet">
+<script>window.OG = { width: 1280, height: 640 };</script>
+<style>
+* { margin:0; box-sizing:border-box; }
+html,body { width:1280px; height:640px; overflow:hidden; background:#0b0b10; }
+body { font-family:Geist, sans-serif; color:#fff; -webkit-font-smoothing:antialiased; position:relative; }
+.grid { position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+  background-size:40px 40px; mask-image:radial-gradient(ellipse at 70% 50%, #000 30%, transparent 75%); }
+.glow { position:absolute; width:720px; height:520px; left:600px; top:60px; border-radius:50%; background:rgba(56,132,255,.22); filter:blur(90px); }
+.el { position:absolute; }
+#kicker { left:72px; top:92px; font-family:'Geist Mono', monospace; font-weight:600; font-size:22px; letter-spacing:.05em; color:#8fb8ff;
+  padding:9px 16px; border:2px solid rgba(143,184,255,.4); border-radius:999px; }
+#title { left:72px; top:162px; font-weight:800; font-size:84px; line-height:1.0; letter-spacing:-.04em; }
+#title span { color:#5ea0ff; }
+#sub { left:72px; top:358px; font-size:30px; font-weight:600; letter-spacing:-.02em; color:rgba(255,255,255,.9); }
+#sub2 { left:72px; top:410px; font-size:26px; color:rgba(255,255,255,.6); }
+#tags { left:72px; top:500px; display:flex; gap:12px; }
+#tags b { font-family:'Geist Mono', monospace; font-weight:600; font-size:20px; color:rgba(255,255,255,.75); padding:8px 14px; border-radius:10px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12); }
+/* an iMessage-style link preview bubble */
+#bubble { left:690px; top:150px; width:530px; border-radius:26px; overflow:hidden; background:#26262b; box-shadow:0 30px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08); }
+#bubble .media { position:relative; width:530px; height:278px; overflow:hidden; }
+#bubble iframe { position:absolute; left:0; top:0; width:1200px; height:630px; border:0; transform:scale(.44167); transform-origin:0 0; }
+#bubble .cap { padding:14px 20px 16px; }
+#bubble .cap b { display:block; font-size:21px; font-weight:700; }
+#bubble .cap span { display:block; margin-top:4px; font-size:18px; color:rgba(255,255,255,.55); }
+#tagline { left:690px; top:104px; font-family:'Geist Mono', monospace; font-weight:600; font-size:20px; color:#8fb8ff; display:flex; align-items:center; gap:10px; }
+#dot { width:12px; height:12px; border-radius:50%; background:#ff5b5b; }
+#time { left:1080px; top:520px; font-size:18px; color:rgba(255,255,255,.4); }
+</style></head>
+<body>
+<div class="grid"></div><div class="glow"></div>
+<div class="el" id="kicker">Agent skill · Claude Code · Codex</div>
+<div class="el" id="title">Make your link<br><span>previews move.</span></div>
+<div class="el" id="sub">Approved image in. Looping og:video out.</div>
+<div class="el" id="sub2">Plays in iMessage, Safari and social cards.</div>
+<div class="el" id="tags"><b>og:video</b><b>Playwright</b><b>ffmpeg</b><b>HTTP 206</b></div>
+<div class="el" id="tagline"><i id="dot"></i>og:video, playing</div>
+<div class="el" id="bubble">
+  <div class="media"><iframe id="card" src="../examples/joespeaking-home/from-image.html"></iframe></div>
+  <div class="cap"><b>Joe Speaking: IELTS Speaking mock tests</b><span>joespeaking.com</span></div>
+</div>
+<div class="el" id="time">Delivered</div>
+<script>
+const frame = document.getElementById('card'), dot = document.getElementById('dot');
+window.ready = new Promise(resolve => {
+  frame.addEventListener('load', async () => {
+    await frame.contentWindow.ready;
+    window.render(0); window.readyDone = true; resolve();
+  });
+});
+window.render = function (t) {
+  if (frame.contentWindow && frame.contentWindow.render) frame.contentWindow.render(t);
+  dot.style.opacity = 0.55 + 0.45 * Math.cos(2 * Math.PI * t / 2); // two pulses per 4 s loop
+};
+</script>
+</body></html>

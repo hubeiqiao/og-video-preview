@@ -1,0 +1,166 @@
+<!doctype html>
+<!-- Promo film, 1920x1080, 16.5 s, silent. One approved OG image becomes a looping og:video.
+     Driven frame by frame through window.render(t); the card is the JoeSpeaking.com example. -->
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..900&family=Geist+Mono:wght@500..700&display=block" rel="stylesheet">
+<script>window.OG = { width: 1920, height: 1080 };</script>
+<style>
+* { margin:0; box-sizing:border-box; }
+html,body { width:1920px; height:1080px; overflow:hidden; background:#0b0b10; }
+body { font-family:Geist, sans-serif; color:#fff; -webkit-font-smoothing:antialiased; position:relative; }
+.grid { position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+  background-size:48px 48px; mask-image:radial-gradient(ellipse at 50% 55%, #000 35%, transparent 80%); }
+.glow { position:absolute; width:1100px; height:700px; left:410px; top:260px; border-radius:50%; background:rgba(56,132,255,.18); filter:blur(110px); }
+.el { position:absolute; will-change:transform,opacity,filter; }
+.head { left:0; width:1920px; top:84px; text-align:center; font-weight:800; font-size:76px; letter-spacing:-.035em; line-height:1.05; }
+.head span { color:#5ea0ff; }
+#stage { position:absolute; inset:0; perspective:2200px; }
+#card { position:absolute; left:0; top:0; width:1200px; height:630px; transform-origin:0 0; transform-style:preserve-3d; }
+#card iframe { position:absolute; inset:0; width:1200px; height:630px; border:0; border-radius:18px; }
+#plate { position:absolute; inset:0; border-radius:18px; background-size:1200px 630px; opacity:0; }
+#sprites { position:absolute; inset:0; transform-style:preserve-3d; }
+.sp { position:absolute; background-repeat:no-repeat; background-size:1200px 630px; opacity:0; }
+.box { position:absolute; border:4px dashed #5ea0ff; border-radius:10px; opacity:0; }
+.box i { position:absolute; left:-4px; top:-46px; font-family:'Geist Mono', monospace; font-style:normal; font-weight:600; font-size:24px;
+  color:#0b0b10; background:#5ea0ff; padding:4px 12px; border-radius:8px; white-space:nowrap; }
+#cap { position:absolute; left:0; top:630px; width:1200px; height:132px; padding:22px 34px; background:#26262b; border-radius:0 0 34px 34px; transform-origin:0 0; }
+#cap b { display:block; font-size:38px; font-weight:700; }
+#cap span { display:block; margin-top:6px; font-size:31px; color:rgba(255,255,255,.55); }
+#bubbleBg { position:absolute; border-radius:34px; background:#26262b; box-shadow:0 40px 100px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08); }
+#pill { font-family:'Geist Mono', monospace; font-weight:600; font-size:30px; padding:10px 20px; border-radius:999px; display:flex; align-items:center; gap:14px; }
+#pill i { width:16px; height:16px; border-radius:50%; display:block; }
+#end { left:0; top:0; width:1920px; height:1080px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:30px; }
+#end h1 { font-size:120px; font-weight:800; letter-spacing:-.045em; }
+#end h1 span { color:#5ea0ff; }
+#end p { font-size:40px; color:rgba(255,255,255,.75); font-weight:500; }
+#end code { font-family:'Geist Mono', monospace; font-size:38px; color:#cfe0ff; background:rgba(94,160,255,.12); border:2px solid rgba(94,160,255,.4); padding:16px 28px; border-radius:16px; }
+#end small { font-size:28px; color:rgba(255,255,255,.5); }
+</style></head>
+<body>
+<div class="grid"></div><div class="glow"></div>
+<div class="el head" id="h1">Most link previews are <span>a still image.</span></div>
+<div class="el head" id="h2">Approve the image. <span>It becomes layers.</span></div>
+<div class="el head" id="h3">Each layer gets <span>its own motion.</span></div>
+<div class="el head" id="h4">Frame 0 is your image. <span>Then it moves.</span></div>
+<div class="el head" id="h5">Now your link previews <span>move.</span></div>
+<div class="el" id="pill"><i></i><span></span></div>
+<div id="stage">
+  <div id="bubbleBg"></div>
+  <div id="card">
+    <iframe id="frame" src="../examples/joespeaking-home/from-image.html"></iframe>
+    <div id="plate"></div>
+    <div id="sprites"></div>
+    <div id="cap"><b>Joe Speaking: IELTS Speaking mock tests</b><span>joespeaking.com</span></div>
+  </div>
+</div>
+<div class="el" id="end">
+  <h1>OG Video <span>Preview</span></h1>
+  <p>An open-source agent skill. Any approved OG image, now moving.</p>
+  <code>npx skills add hubeiqiao/og-video-preview</code>
+  <small>Inspired by @pfista on X</small>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const clamp = x => Math.max(0, Math.min(1, x));
+const eOut = x => 1 - Math.pow(1 - x, 4);
+const eInOut = x => x < .5 ? 8 * x ** 4 : 1 - Math.pow(-2 * x + 2, 4) / 2;
+const spring = (x, k = 7, z = 4.2) => x >= 1 ? 1 : x <= 0 ? 0 : 1 - Math.exp(-z * x) * Math.cos(k * x);
+const P = (t, a, d) => clamp((t - a) / d);
+const lerp = (a, b, p) => a + (b - a) * p;
+const ROLE_SAY = { rise: 'rise', pop: 'pop', spin: 'spin', stamp: 'stamp', wipe: 'wipe', slide: 'slide', fade: 'fade' };
+
+let OGC, sprites = [], boxes = [];
+const frame = $('frame');
+window.ready = new Promise(resolve => {
+  frame.addEventListener('load', async () => {
+    await frame.contentWindow.ready;
+    OGC = frame.contentWindow.OG;
+    const src = '../examples/joespeaking-home/' + OGC.image;
+    $('plate').style.backgroundImage = `url("${src}")`;
+    OGC.layers.forEach(l => {
+      const [x, y, w, h] = l.box;
+      const s = document.createElement('div'); s.className = 'sp';
+      Object.assign(s.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', backgroundImage: `url("${src}")`, backgroundPosition: `${-x}px ${-y}px` });
+      $('sprites').appendChild(s); sprites.push(s);
+      const b = document.createElement('div'); b.className = 'box';
+      Object.assign(b.style, { left: x - 6 + 'px', top: y - 6 + 'px', width: w + 12 + 'px', height: h + 12 + 'px' });
+      b.innerHTML = `<i>${ROLE_SAY[l.role] || l.role}</i>`;
+      $('sprites').appendChild(b); boxes.push(b);
+    });
+    window.render(0); window.readyDone = true; resolve();
+  });
+});
+
+// card placements: in the chat bubble, and large in the middle
+const CHAT = { x: 600, y: 300, s: 0.6 }, BIG = { x: 360, y: 300, s: 1 };
+function place(a, b, p, extra = '') {
+  const x = lerp(a.x, b.x, p), y = lerp(a.y, b.y, p), s = lerp(a.s, b.s, p);
+  $('card').style.transform = `translate(${x}px,${y}px) scale(${s}) ${extra}`;
+  return { x, y, s };
+}
+function head(id, t, a, b) { // headline in for [a, b)
+  const el = $(id), pin = P(t, a, 0.45), pout = P(t, b - 0.3, 0.3), s = spring(pin);
+  el.style.opacity = Math.min(clamp(pin * 3), 1 - pout);
+  el.style.transform = `translateY(${40 * (1 - s) - 20 * pout}px)`;
+  el.style.filter = pin < 1 ? `blur(${4 * (1 - pin)}px)` : 'none';
+}
+function pill(t, on, text, color, dot) {
+  const el = $('pill'); el.style.opacity = on; el.style.background = color.bg; el.style.color = color.fg;
+  el.querySelector('span').textContent = text; el.querySelector('i').style.background = dot;
+}
+
+window.render = function (t) {
+  const fw = frame.contentWindow;
+  head('h1', t, 0.2, 2.8); head('h2', t, 2.8, 5.6); head('h3', t, 5.6, 7.6); head('h4', t, 7.6, 11.6); head('h5', t, 11.6, 14.2);
+
+  // card path: chat -> big (2.6-3.4) ... big -> chat (11.4-12.2)
+  const toBig = eInOut(P(t, 2.6, 0.8)), toChat = eInOut(P(t, 11.4, 0.8));
+  const enter = spring(P(t, 0.15, 0.7));
+  let pos;
+  // 3D tilt for the exploded view
+  const ex = eInOut(P(t, 5.5, 0.8)) * (1 - eInOut(P(t, 7.0, 0.6)));
+  const tilt = `translate(600px,315px) rotateX(${12 * ex}deg) rotateY(${-20 * ex}deg) scale(${1 - 0.16 * ex}) translate(-600px,-315px)`;
+  if (t < 11.4) pos = place(CHAT, BIG, toBig, tilt); else pos = place(BIG, CHAT, toChat);
+  $('card').style.opacity = clamp(P(t, 0.15, 0.3) * 3) * (1 - P(t, 14.1, 0.3));
+  if (t < 1) $('card').style.transform += ` translateY(${60 * (1 - enter)}px)`;
+
+  // chat bubble background and caption follow the card in chat state
+  const chatness = t < 11.4 ? 1 - toBig : toChat;
+  $('cap').style.opacity = chatness;
+  const bb = $('bubbleBg');
+  Object.assign(bb.style, { left: pos.x + 'px', top: pos.y + 'px', width: 1200 * pos.s + 'px', height: (630 + 132) * pos.s + 'px', opacity: chatness * $('card').style.opacity });
+
+  // what the card shows
+  const layered = t >= 3.2 && t < 7.6;
+  frame.style.opacity = layered ? 0 : 1;
+  $('plate').style.opacity = layered ? 0.28 : 0;
+  sprites.forEach((s, i) => {
+    s.style.opacity = layered ? 1 : 0;
+    const z = 34 * (i + 1) * ex, dx = 14 * (i % 2 ? 1 : -1) * ex;
+    s.style.transform = `translate3d(${dx}px,0,${z}px)`;
+  });
+  boxes.forEach((b, i) => {
+    const p = P(t, 3.4 + i * 0.16, 0.35), out = P(t, 7.1, 0.4);
+    b.style.opacity = layered ? clamp(p * 3) * (1 - out) : 0;
+    const z = 34 * (i + 1) * ex, dx = 14 * (i % 2 ? 1 : -1) * ex;
+    b.style.transform = `translate3d(${dx}px,0,${z}px) scale(${0.9 + 0.1 * spring(p)})`;
+  });
+  // the real animation: still until 7.6, loops from 7.6 (its own 4 s loop), keeps looping in the chat
+  if (fw && fw.render) fw.render(t < 7.6 ? 0 : (t - 7.6) % 4);
+
+  // status pill above the card
+  const pe = $('pill');
+  const still = t < 2.6, moving = t >= 11.9 && t < 14.2;
+  const pillOn = still ? clamp(P(t, 0.6, 0.4)) * (1 - P(t, 2.3, 0.3)) : moving ? clamp(P(t, 11.9, 0.4)) * (1 - P(t, 13.9, 0.3)) : 0;
+  pill(t, pillOn, moving ? 'og:video  playing' : 'og:image  still',
+    moving ? { bg: 'rgba(94,160,255,.16)', fg: '#cfe0ff' } : { bg: 'rgba(255,255,255,.08)', fg: 'rgba(255,255,255,.7)' },
+    moving ? (Math.cos(2 * Math.PI * t) > 0 ? '#ff5b5b' : '#ff9b9b') : 'rgba(255,255,255,.4)');
+  pe.style.left = (CHAT.x) + 'px'; pe.style.top = (CHAT.y - 76) + 'px';
+
+  // end card
+  const e = P(t, 14.3, 0.6), es = spring(e);
+  $('end').style.opacity = clamp(e * 2.5);
+  $('end').style.transform = `translateY(${50 * (1 - es)}px)`;
+};
+</script>
+</body></html>

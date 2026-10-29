@@ -1,0 +1,113 @@
+<!doctype html>
+<!--
+  Turns an approved, finished OG image into a looping animation.
+  Each layer is a rectangle cut from the image itself, so frame 0 is pixel-identical
+  to the approved card. Under the layers sits a "plate": the card with those
+  rectangles removed, so layers can leave and come back.
+  Configure in layers.js next to this file (window.OG), then capture with
+  scripts/render_frames.py. Roles: rise | pop | spin | stamp | wipe | slide | fade.
+-->
+<html><head><meta charset="utf-8">
+<script src="layers.js"></script>
+<style>
+* { margin:0; box-sizing:border-box; }
+html,body { overflow:hidden; background:#000; }
+#stage { position:relative; }
+#plate { position:absolute; left:0; top:0; }
+.mask { position:absolute; overflow:hidden; }
+.mask.open { overflow:visible; }
+.el { position:absolute; left:0; top:0; background-repeat:no-repeat; will-change:transform,opacity,filter,clip-path; }
+</style></head>
+<body>
+<div id="stage"><canvas id="plate"></canvas></div>
+<script>
+const C = window.OG, W = C.width, H = C.height, T = C.loop || 4;
+const stage = document.getElementById('stage'), plate = document.getElementById('plate');
+document.documentElement.style.width = document.body.style.width = stage.style.width = W + 'px';
+document.documentElement.style.height = document.body.style.height = stage.style.height = H + 'px';
+
+const clamp = x => Math.max(0, Math.min(1, x));
+const eOut = x => 1 - Math.pow(1 - x, 4);
+const eIn = x => x * x * x;
+const spring = (x, k = 7, z = 4.2) => x >= 1 ? 1 : x <= 0 ? 0 : 1 - Math.exp(-z * x) * Math.cos(k * x);
+const P = (t, a, d) => clamp((t - a) / d);
+
+let layers = [];
+window.ready = new Promise(resolve => {
+  const img = new Image();
+  img.onload = () => { build(img); window.render(0); window.readyDone = true; resolve(); };
+  img.onerror = () => { throw new Error('could not load ' + C.image); };
+  img.src = C.image;
+});
+
+function build(img) {
+  plate.width = W; plate.height = H;
+  const g = plate.getContext('2d');
+  const mode = (C.plate && C.plate.mode) || 'fill';
+  if (mode === 'image') {
+    // a clean background supplied by the designer: best for busy backgrounds
+    const p = new Image(); p.src = C.plate.src; p.onload = () => g.drawImage(p, 0, 0, W, H);
+  } else {
+    g.drawImage(img, 0, 0, W, H);
+    if (mode === 'blur') {
+      g.filter = 'blur(28px) brightness(0.92)'; g.drawImage(img, 0, 0, W, H); g.filter = 'none';
+    } else {
+      // fill each layer's rectangle with the average colour of a thin ring around it
+      const data = g.getImageData(0, 0, W, H).data;
+      for (const l of C.layers) {
+        const [x, y, w, h] = l.box; let r = 0, gg = 0, b = 0, n = 0;
+        const sample = (sx, sy) => { if (sx < 0 || sy < 0 || sx >= W || sy >= H) return; const i = (sy * W + sx) * 4; r += data[i]; gg += data[i + 1]; b += data[i + 2]; n++; };
+        for (let sx = x - 3; sx < x + w + 3; sx += 2) { sample(sx, y - 3); sample(sx, y + h + 2); }
+        for (let sy = y - 3; sy < y + h + 3; sy += 2) { sample(x - 3, sy); sample(x + w + 2, sy); }
+        g.fillStyle = n ? `rgb(${r / n | 0},${gg / n | 0},${b / n | 0})` : '#000';
+        g.fillRect(x, y, w, h);
+      }
+    }
+  }
+  C.layers.forEach((l, i) => {
+    const [x, y, w, h] = l.box;
+    const mask = document.createElement('div');
+    // rising layers come up out of their own box; everything else may move freely
+    mask.className = 'mask' + (l.role === 'rise' ? '' : ' open');
+    Object.assign(mask.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' });
+    const el = document.createElement('div');
+    el.className = 'el'; el.id = l.id || 'layer' + (i + 1);
+    Object.assign(el.style, { width: w + 'px', height: h + 'px', backgroundImage: `url("${C.image}")`,
+      backgroundSize: `${W}px ${H}px`, backgroundPosition: `${-x}px ${-y}px` });
+    mask.appendChild(el); stage.appendChild(mask);
+    layers.push({ ...l, el, at: l.at ?? 0.32 + i * (C.stagger ?? 0.13) });
+  });
+}
+
+function css(el, { o = 1, x = 0, y = 0, s = 1, r = 0, b = 0, clip = null, glow = 0 } = {}) {
+  el.style.opacity = o;
+  el.style.transform = `translate(${x}px,${y}px) rotate(${r}deg) scale(${s})`;
+  const f = []; if (b > 0.05) f.push(`blur(${b}px)`); if (glow > 0.02) f.push(`drop-shadow(0 0 ${30 * glow}px rgba(255,220,120,${0.9 * glow}))`);
+  el.style.filter = f.length ? f.join(' ') : 'none';
+  el.style.clipPath = clip || 'none';
+}
+
+const EXIT = 0.30;
+window.render = function (t) {
+  const ph = 2 * Math.PI * t / T, float = Math.sin(ph) * 5; // periodic in T: seamless loop
+  layers.forEach((l, i) => {
+    const el = l.el, floats = l.role === 'spin' || l.role === 'stamp';
+    if (t < EXIT) { // everything streaks out to the left, staggered
+      const e = eIn(P(t, i * 0.02, 0.2));
+      return css(el, { o: 1 - e, x: -140 * e, y: floats ? float : 0, b: 10 * e });
+    }
+    const p = P(t, l.at, l.role === 'wipe' ? 0.55 : 0.5), s = spring(p), fy = floats ? float : 0;
+    switch (l.role) {
+      case 'rise': return css(el, { y: (l.box[3] + 10) * (1 - s), r: 4 * (1 - s), b: p < 1 ? 4 * (1 - p) : 0 });
+      case 'pop': return css(el, { o: clamp(p * 5), s: 0.3 + 0.7 * s, b: p < 1 ? 3 * (1 - p) : 0 });
+      case 'spin': { const sp = spring(P(t, l.at, 0.6), 8, 4.5); return css(el, { o: clamp(p * 5), s: 0.2 + 0.8 * sp, r: -25 * (1 - sp), y: fy }); }
+      case 'stamp': { const sp = spring(p, 9, 5), f = P(t, l.at + 0.12, 0.4);
+        return css(el, { o: clamp(p * 6), s: 1.6 - 0.6 * sp, r: 8 * (1 - sp), y: fy, glow: f > 0 && f < 1 ? 1 - f : 0 }); }
+      case 'wipe': { const e = eOut(p); return css(el, { clip: `inset(0 ${100 - 100 * e}% 0 0)` }); }
+      case 'slide': return css(el, { o: eOut(p), x: -80 * (1 - s) });
+      default: return css(el, { o: eOut(p), y: 20 * (1 - eOut(p)) });
+    }
+  });
+};
+</script>
+</body></html>
