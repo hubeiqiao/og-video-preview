@@ -47,7 +47,7 @@ Then ask your agent: *"Use /og-video-preview to make my og:image move."*
 
 | | |
 |---|---|
-| **Element-aware motion** | Twelve element kinds, each with its own entrance, exit, idle movement and accent, on one set of easing curves and damped springs |
+| **Element-aware motion** | Twelve element kinds, each with its own entrance, exit, idle movement and accent, on one set of easing curves and damped springs. Accents differ from card to card (a sweep, hopping letters, a star, a coin flip, a swing), and a fine background texture moves as one surface |
 | **Works from the finished image** | Any PNG or JPG, made in Figma, Canva or code (route A), or a configurable HTML card (route B) |
 | **Clean cut-outs** | Each element owns its exact pixels; the background behind it is refilled, and visuals that cannot be refilled cleanly move in place instead of leaving |
 | **Seamless 4 s loops at 60 fps** | Every idle, accent and camera move is exactly zero at the loop point |

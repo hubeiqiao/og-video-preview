@@ -725,6 +725,27 @@ def main():
         layers = [L for L in layers if not (L["kind"] in TEXT_KINDS and L["box"][3] < 44 and not confirmed(L))]
         texts = [L for L in layers if L["kind"] in TEXT_KINDS]
 
+    # a fine line pattern over the card (a wave grid, a guilloche, contour lines) shows only where its lines are dark
+    # enough, as scattered pieces: many pieces of thin, colourless line, spread wide, are that texture. They stay in
+    # the plate, which the template moves as one surface, so the pattern never flies apart
+    def texture_piece(L):
+        if L["kind"] in TEXT_KINDS or not L["own"].sum():
+            return False
+        o = L["own"]
+        kept = cv2.morphologyEx(o, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
+        sat = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)[..., 1][o > 0]
+        # faint against its paper: UI icons and fine type are thin and colourless too, but they stand out
+        return kept.sum() < 0.15 * o.sum() and np.median(sat) < 40 and np.median(dist(img[o > 0], B[o > 0])) < 130
+    pieces = [L for L in layers if texture_piece(L)]
+    texture = False
+    if len(pieces) >= 5:
+        cx = [L["box"][0] + L["box"][2] / 2 for L in pieces]; cy = [L["box"][1] + L["box"][3] / 2 for L in pieces]
+        if max(cx) - min(cx) > 0.5 * W and max(cy) - min(cy) > 0.5 * H:
+            texture = True
+            layers = [L for L in layers if L not in pieces]
+            texts = [L for L in layers if L["kind"] in TEXT_KINDS]
+            print(f"texture: {len(pieces)} pieces of a fine line pattern stay in the plate and move as one surface")
+
     # lines of one block read as one: a line between headline lines of the same size is headline too
     for _ in range(2):
         for L in texts:
@@ -803,7 +824,7 @@ def main():
     config = {
         "image": "card.jpg", "layerImage": "layers.png", "cuts": "cuts/", "glyphs": "glyphs.png",
         "width": W, "height": H, "loop": 4.0,
-        "style": a.style, "energy": a.energy, "cleanPlate": bool(a.plate),
+        "style": a.style, "energy": a.energy, "cleanPlate": bool(a.plate), "texture": texture,
         "paper": "#%02x%02x%02x" % tuple(int(v) for v in mode_colour(np.concatenate([img[0], img[-1], img[:, 0], img[:, -1]]))[0]),
         # type on a large picture: refills behind it never look clean, so the card lives in place
         "background": "detailed" if any(len(b) > 4 and b[2] * b[3] > 0.45 * W * H for b in backdrops) else "flat" if flat else "graded",

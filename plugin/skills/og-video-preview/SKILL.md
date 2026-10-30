@@ -84,13 +84,13 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 
 | Kind | Enters | Leaves | Lives | Accent |
 |---|---|---|---|---|
-| `headline` | words (or letters) rise out of the line's own mask, staggered, on a spring | sinks back into the mask | stays still | light sweep through the glyphs; camera punch when the last line lands |
+| `headline` | words (or letters) rise out of the line's own mask, staggered, on a spring | sinks back into the mask | stays still | the card's choice: a light sweep through the glyphs, the letters hopping in turn, or a star opening on the last line; camera punch when the last line lands |
 | `text` | fade + 14 px rise + 3 px blur clearing, 0.42 s smooth | fade, drop, blur | | sweep if it has an accent colour |
 | `label` | wipes on left to right with a short slide | fade | | |
-| `logo` | scales up from 35 % with a spin, on a spring | shrinks and turns away | gentle bob and tilt; one full turn (living) | ring ripple |
+| `logo` | scales up from 35 % with a spin, on a spring | shrinks and turns away | gentle bob and tilt | the card's choice of one turn: flat, over in 3D like a coin, a swing that settles, or a pop with a star and a ring |
 | wordmark | unfurls out of its logo, left to right | | | sweep |
-| `pill` | pops on the spring curve (overshoot) | shrinks | a small pulse (living) | sweep |
-| `icon` | springs up from 30 % with a small turn | shrinks | bob and tilt | |
+| `pill` | pops on the spring curve (overshoot) | shrinks | a small pulse (living) | a sweep, or a light circling it |
+| `icon` | springs up from 30 % with a small turn | shrinks | bob and tilt | the same turn as the card's logo; in a crowd of more than three, small icons only pop in turn |
 | `avatar` | springs up from 50 % with a turn | shrinks and turns | float | ring ripple |
 | `photo` | opens from the middle (clip) while settling from 110 % | fade, slight shrink | slow push-in and drift | |
 | `panel` | lifts 42 px with a scale from 94 % and a clearing blur | fade, drop | float | glancing reflection |
@@ -100,6 +100,10 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 | `stroke` | draws at a pen's even pace along its long axis; an arrow (its two barbs found on the skeleton) draws from its tail to its head | undraws | redraws (living) | |
 
 **Visuals that cannot leave cleanly settle instead.** A photo, panel, illustration or avatar that sits on something other than the plain background (a photo inside a UI, a poster in a stack), or covers a fifth of the card, never exposes the plate: it leans toward the viewer (scale 103.5 % with a light blur) during the exit and springs back when its turn comes. Light then runs through its own lit parts (`light.png`: where it is brighter than the background behind it), so a print, a glint or a pale object comes alive without the soft edge of its cut showing. Shapes on the background leave and come back, and their holes are refilled from the background model, not smeared from their neighbours.
+
+**Accents differ from card to card.** Not every card gets the same light sweep: each card picks, from its own layout, one accent for its headlines, one turn for its marks and one for its pills, and every element of a kind shares it, so a card stays coherent and two cards rarely match. The same card always gets the same video. Set them in `layers.js` with `fx` (`{"headline": "sheen|hop|glint", "mark": "spin|flip|wobble|pop", "pill": "sheen|orbit", "texture": "ripple|wind|swirl"}`), or per layer with `fx` and `turn`.
+
+**Textures move as one surface.** A fine line pattern over the card (a wave grid, contour lines, a guilloche) is found as many thin, faint, colourless pieces spread across the card; they stay in the plate instead of flying apart as separate shapes (`texture` in `layers.js`), and the plate itself is warped in place: rings spreading from the headline (`ripple`), a wave passing across (`wind`) or a slow turn around the headline (`swirl`). The pattern stays calm right behind the type, and the warp is exactly zero at the loop point. Of the 103 eval cards, only ElevenLabs has one.
 
 **Camera.** On a graded or pictorial background the whole card breathes: a slow push-in of about 2 % that returns to 1 at the loop point, so background and layers move together and nothing slides against what is behind it. The headline's landing adds a short, damped punch.
 
@@ -112,7 +116,7 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 
 **Energy** (`energy`): `calm` (smaller moves, no overshoot, no accents), `lively` (default), `bold` (more overshoot, plus a flare across the card, drifting glows and sparks off the last headline word).
 
-**Overrides per layer**: `kind`, `motion` (use another kind's motion), `at` (start time in seconds), `idle` (how much it moves while it lives: 0 keeps it still, 1 is the default, up to 2; in a card that shows a change, keep the before still and let the after move). Top level: `accent` ("r,g,b" for sweeps and rings; otherwise the first saturated text colour, and white type without one gets no sweep), `loop`.
+**Overrides per layer**: `kind`, `motion` (use another kind's motion), `at` (start time in seconds), `idle` (how much it moves while it lives: 0 keeps it still, 1 is the default, up to 2; in a card that shows a change, keep the before still and let the after move). Top level: `fx` (above), `accent` ("r,g,b" for sweeps, stars and rings; otherwise the first saturated text colour, and white type without one gets no sweep), `loop`.
 
 Every extra (idle, sweeps, rings, glows, punch, liquid edges, the breathing of a graded background) is exactly zero at t = 0 and t = loop, so the loop closes on the approved card.
 
