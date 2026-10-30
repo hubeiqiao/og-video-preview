@@ -58,8 +58,11 @@ def main():
     # the background away from every element (a flat edge can still hide a vignette or a gradient),
     # so soft shadows and glows are not part of it
     near = cv2.dilate((owner > 0).astype(np.uint8), np.ones((45, 45), np.uint8))
-    if (near == 0).mean() > 0.05:
-        B = pushpull(img, near == 0)
+    # on a flat card, only pixels of the card's own colour: a scribble or a sticker left in the plate would tint the
+    # model and leave faint ghosts of every element that leaves
+    base = (near == 0) & (dist(img, B) < 30) if flat else near == 0
+    if base.mean() > 0.05:
+        B = pushpull(img, base)
     faint = dist(img, B)
     for L in cfg["layers"]:
         x, y, w, h = L["box"]

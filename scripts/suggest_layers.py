@@ -82,6 +82,30 @@ def dist(a, b):
     return np.abs(a.astype(np.float32) - np.asarray(b, np.float32)).sum(-1)
 
 
+def find_sphere(img):
+    """A big lit sphere (a planet) in the picture: (x, y, r) of a circle with a clear edge all round its visible part,
+    detail inside and a step in brightness across it, or None."""
+    g = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    s = 0.5
+    small = cv2.GaussianBlur(cv2.resize(g, None, fx=s, fy=s), (0, 0), 2)
+    c = cv2.HoughCircles(small, cv2.HOUGH_GRADIENT, dp=1.5, minDist=200, param1=60, param2=60,
+                         minRadius=int(0.35 * H * s), maxRadius=int(0.9 * H * s))
+    if c is None:
+        return None
+    edges = cv2.dilate((cv2.Canny(g, 40, 120) > 0).astype(np.uint8), np.ones((7, 7), np.uint8)) > 0
+    lap = cv2.Laplacian(g, cv2.CV_32F)
+    yy, xx = np.mgrid[0:H, 0:W]
+    for x, y, r in c[0][:3]:
+        x, y, r = x / s, y / s, r / s
+        d = np.hypot(xx - x, yy - y)
+        inside, ring, rim = d < 0.92 * r, (d > 1.04 * r) & (d < 1.15 * r), np.abs(d - r) < 3
+        if inside.sum() < 0.08 * W * H or not ring.sum():
+            continue
+        if edges[rim].mean() >= 0.85 and lap[inside].std() >= 40 and abs(float(g[inside].mean()) - float(g[ring].mean())) >= 15:
+            return int(x), int(y), int(r)
+    return None
+
+
 def background(img, tol):
     """Return (background estimate, is_flat)."""
     h, w = img.shape[:2]
@@ -472,7 +496,11 @@ def detect(img, B, tol, offset, depth, backdrops, m=None, gaps=(13, 4), region=N
             # (type, logos, buttons) become layers, found by their contrast with their surroundings
             crop = np.ascontiguousarray(img[y:y + h, x:x + w])
             med = cv2.medianBlur(crop, 31)
-            backdrops.append([x + offset[0], y + offset[1], w, h, "scene"])
+            # a big flat graphic (a bolt, a band of colour) is drawn in two or three flat colours; a photo is not
+            q = (crop[::3, ::3] // 24).reshape(-1, 3).astype(np.int32)
+            _, counts = np.unique(q[:, 0] * 10000 + q[:, 1] * 100 + q[:, 2], return_counts=True)
+            graphic = np.sort(counts)[::-1][:3].sum() > 0.85 * len(q)
+            backdrops.append([x + offset[0], y + offset[1], w, h, "graphic" if graphic else "scene"])
             lines = ocr_lines(crop) or []
             # glyphs near each read line, against that line's own surroundings
             M = np.zeros((h, w), np.uint8)
@@ -769,6 +797,25 @@ def main():
                     top_kind = max(L["kind"], M["kind"], key=rank.get)
                     L["kind"] = M["kind"] = top_kind
 
+    # a globe in the background (a planet, a lit sphere) turns as a sphere; the small bright pieces cut from its
+    # surface (city lights, a cloud) go back into it, so they turn with it
+    # only on a plain or graded card: a disc inside a picture (a medallion, a coin) is part of that picture
+    sphere = None if any(len(b) > 4 and b[4] == "scene" for b in backdrops) else find_sphere(img)
+    if sphere:
+        sx, sy, sr = sphere
+        yy, xx = np.mgrid[0:H, 0:W]
+        disc = np.hypot(xx - sx, yy - sy) < 0.95 * sr
+        big = np.zeros((H, W), bool)
+        for L in layers:
+            if L["kind"] in TEXT_KINDS or L["box"][2] * L["box"][3] > 0.05 * W * H:
+                big |= L["own"] > 0
+        if big[disc].mean() > 0.3:
+            sphere = None  # a medallion inside a picture, a disc that is an element: not a background globe
+        else:
+            layers = [L for L in layers if L["kind"] in TEXT_KINDS or not disc[min(H - 1, L["box"][1] + L["box"][3] // 2), min(W - 1, L["box"][0] + L["box"][2] // 2)]]
+            texts = [L for L in layers if L["kind"] in TEXT_KINDS]
+            print(f"sphere: a globe at ({sx}, {sy}) radius {sr} turns as one surface")
+
     # keep the biggest elements when there are too many; small leftovers stay in the plate
     if len(layers) > a.max:
         layers.sort(key=lambda L: -(L["box"][2] * L["box"][3]) * (3 if L["kind"] in TEXT_KINDS else 1))
@@ -777,6 +824,9 @@ def main():
     # reading order: rows top to bottom, left to right inside a row
     layers.sort(key=lambda L: (round((L["box"][1] + L["box"][3] / 2) / 70), L["box"][0]))
 
+    anyone = np.zeros((H, W), bool)  # every element's own pixels: they leave too, so they say nothing about the refill
+    for L in layers:
+        anyone |= L["own"] > 0
     out_layers, counts = [], {}
     for L in layers:
         k = L["kind"]
@@ -803,13 +853,23 @@ def main():
         item["ink"] = f["tone"]
         if k in TEXT_KINDS | {"pill", "shape", "logo"} and f["sat"] > 0.45 and f["val"] > 0.45:
             item["tone"] = f["tone"]  # an accent colour: sheen and glows pick it up
-        if k in {"photo", "panel", "illustration", "avatar"}:
-            ring = np.concatenate([img[max(0, y - 9):max(0, y - 4), x:x + w].reshape(-1, 3), img[y + h + 4:y + h + 9, x:x + w].reshape(-1, 3),
-                                   img[y:y + h, max(0, x - 9):max(0, x - 4)].reshape(-1, 3), img[y:y + h, x + w + 4:x + w + 9].reshape(-1, 3)])
-            rb = np.concatenate([B[max(0, y - 9):max(0, y - 4), x:x + w].reshape(-1, 3), B[y + h + 4:y + h + 9, x:x + w].reshape(-1, 3),
-                                 B[y:y + h, max(0, x - 9):max(0, x - 4)].reshape(-1, 3), B[y:y + h, x + w + 4:x + w + 9].reshape(-1, 3)])
-            on_bg = (dist(ring, rb) < a.tol * 1.4).mean() if len(ring) else 1
-            if w * h > 0.2 * W * H or on_bg < 0.75:
+        if k in TEXT_KINDS:
+            # type on a pill, a panel or a picture: its cut carries that surface, so it must not move off its line
+            own = L["own"] > 0
+            ring = (cv2.dilate(own.astype(np.uint8), np.ones((15, 15), np.uint8)) > 0) & ~own & ~anyone
+            on_bg = (dist(img[ring], B[ring]) < a.tol * 1.4).mean() if ring.sum() > 20 else 1
+            if on_bg < 0.9:
+                item["boxed"] = True
+            if on_bg < 0.75 and not L.get("scene"):
+                item["settle"] = True  # type on a scribble or a picture: its hole would be a smear, so it stays
+        else:
+            # what lies just around its own pixels, where nothing else that leaves is: if that is not the plain
+            # background (a sticker on a collage, a chair on a scribble), its hole could only be filled with a smear
+            own = L["own"] > 0
+            near = cv2.dilate(own.astype(np.uint8), np.ones((19, 19), np.uint8)) > 0
+            ring = near & ~(cv2.dilate(own.astype(np.uint8), np.ones((9, 9), np.uint8)) > 0) & ~anyone
+            on_bg = (dist(img[ring], B[ring]) < a.tol * 1.4).mean() if ring.sum() > 20 else 1
+            if (k in {"photo", "panel", "illustration", "avatar"} and w * h > 0.2 * W * H) or on_bg < 0.75:
                 item["settle"] = True  # its hole could not be filled cleanly: it moves in place
         item["why"] = L["why"]
         out_layers.append(item)
@@ -824,7 +884,9 @@ def main():
     config = {
         "image": "card.jpg", "layerImage": "layers.png", "cuts": "cuts/", "glyphs": "glyphs.png",
         "width": W, "height": H, "loop": 4.0,
-        "style": a.style, "energy": a.energy, "cleanPlate": bool(a.plate), "texture": texture,
+        "style": a.style, "energy": a.energy, "cleanPlate": bool(a.plate), "sphere": list(sphere) if sphere else None,
+        # a fine pattern, or a big flat graphic behind the type (a bolt, a band): the plate moves as one surface
+        "texture": texture or any(len(b) > 4 and b[4] == "graphic" and b[2] * b[3] > 0.45 * W * H for b in backdrops),
         "paper": "#%02x%02x%02x" % tuple(int(v) for v in mode_colour(np.concatenate([img[0], img[-1], img[:, 0], img[:, -1]]))[0]),
         # type on a large picture: refills behind it never look clean, so the card lives in place
         "background": "detailed" if any(len(b) > 4 and b[2] * b[3] > 0.45 * W * H for b in backdrops) else "flat" if flat else "graded",

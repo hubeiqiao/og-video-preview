@@ -105,6 +105,13 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 
 **Textures move as one surface.** A fine line pattern over the card (a wave grid, contour lines, a guilloche) is found as many thin, faint, colourless pieces spread across the card; they stay in the plate instead of flying apart as separate shapes (`texture` in `layers.js`), and the plate itself is warped in place: rings spreading from the headline (`ripple`), a wave passing across (`wind`) or a slow turn around the headline (`swirl`). The pattern stays calm right behind the type, and the warp is exactly zero at the loop point. Of the 103 eval cards, only ElevenLabs has one.
 
+**Special surfaces.**
+- **A big flat graphic behind the type** (a bolt, a band of colour drawn in two or three flat colours) is not a photo: the plate moves as one surface, like a texture, and white type with no accent colour takes a star on its last line.
+- **A globe** (a lit sphere on a plain card) turns about its axis and back. Each row is resampled through the sphere, so the land slides around the curve, and the turn fades toward the limb so arcs flying above it stay joined. The small bright pieces cut from its surface (city lights) go back into it. A disc inside a picture (a medallion) is left alone.
+- **A wall of logos** (eight or more small items in rows) never leaves: a pop runs across it from the headline outward, and on a dark card a band of light crosses the whole wall, lighting the logos the reading left in the plate too.
+- **A lone colourless mark on a light card** (an Apple) is revealed like a product instead of assembled: it focuses in out of a soft blur while settling from 106 %, a slow reflection slides across it, and it barely breathes.
+- **Anything sitting on something other than the plain background** (a sticker on a collage, a word on a scribble) moves in place instead of leaving, since its hole could only be filled with a smear. Letters hop only on a flat card and never inside a pill or a panel, whose surface their cut carries.
+
 **Camera.** On a graded or pictorial background the whole card breathes: a slow push-in of about 2 % that returns to 1 at the loop point, so background and layers move together and nothing slides against what is behind it. The headline's landing adds a short, damped punch.
 
 **Choreography** is automatic: elements enter in reading order (rows top to bottom, left to right), visuals arrive with the words rather than after them, small decorations ripple outward from the headline, a wordmark follows its logo, and the whole entrance is compressed to land by about 2 s of the 4 s loop. `render_frames.py` prints the plan (kind, motion, start time, accents) before capturing.

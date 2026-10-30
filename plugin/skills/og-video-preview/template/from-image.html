@@ -103,7 +103,7 @@ const FX = {
 };
 
 // ---- build ----
-let layers = [], extras = [], FOCAL = [W / 2, H / 2];
+let layers = [], extras = [], FOCAL = [W / 2, H / 2], WALL = null;
 // a busy machine can drop a request: try each image three times before giving up
 const load = (src, tries = 3) => new Promise((ok, no) => {
   const i = new Image();
@@ -113,19 +113,22 @@ const load = (src, tries = 3) => new Promise((ok, no) => {
 });
 const keep = [];  // decoded images stay referenced for the whole capture
 // every image a frame can show is loaded and decoded before the first frame is captured
-const images = [C.plate.src, C.layerImage, C.glyphs, ...(C.cuts && window.CUTS ? C.layers.filter(l => window.CUTS[l.id]).map(l => `${C.cuts}${l.id}.png`) : [])].filter(Boolean);
-window.ready = Promise.all(images.map(s => load(s))).then(imgs => { keep.push(...imgs); return imgs; }).then(([pl]) => {
+const images = [C.plate.src, C.layerImage, C.glyphs, C.sphere ? C.image : null, ...(C.cuts && window.CUTS ? C.layers.filter(l => window.CUTS[l.id]).map(l => `${C.cuts}${l.id}.png`) : [])].filter(Boolean);
+window.ready = Promise.all(images.map(s => load(s))).then(imgs => { keep.push(...imgs); return imgs; }).then(([pl, , , card]) => {
   const plate = $('plate'); plate.width = W; plate.height = H; plate.getContext('2d').drawImage(pl, 0, 0, W, H);
   build();
-  if (C.texture) textureSetup(plate);
+  if (C.texture || C.sphere || (WALL && DARK)) textureSetup(plate, C.sphere ? card : null);  // the card is in the list only with a sphere
   window.render(0); window.readyDone = true;
 });
 
 // ---- texture: a fine pattern in the background (suggest_layers.py "texture") moves as one surface, warped in place,
 // calm right behind the type. The warp is scaled by env(t), so frame 0 and the end of the loop are the plate itself.
 let TEX = null;
-function textureSetup(canvas) {
+function textureSetup(canvas, card) {
   const ctx = canvas.getContext('2d'), src = ctx.getImageData(0, 0, W, H);
+  // a turning globe samples the card itself: the plate's refills (an element's hole reaching over its limb) must not turn into view
+  let whole = null;
+  if (card) { const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'); x.drawImage(card, 0, 0, W, H); whole = x.getImageData(0, 0, W, H); }
   const head = layers.filter(l => TEXT.has(l.kind)), f = FOCAL;
   // how far from the type the pattern may move: 0 inside the type's own area, 1 well clear of it
   const calm = new Float32Array(W * H);
@@ -135,9 +138,11 @@ function textureSetup(canvas) {
     for (const [a, b, c, e] of boxes) d = Math.min(d, Math.hypot(Math.max(a - x, 0, x - c), Math.max(b - y, 0, y - e)));
     const u = clamp(d / 140); calm[y * W + x] = boxes.length ? u * u * (3 - 2 * u) : 1;
   }
-  TEX = { ctx, src, out: ctx.createImageData(W, H), calm, fx: f[0], fy: f[1], form: (C.fx || {}).texture || pick(['ripple', 'wind', 'swirl'], 4) };
+  TEX = { ctx, src, whole, out: ctx.createImageData(W, H), calm, fx: f[0], fy: f[1], form: (C.fx || {}).texture || pick(['ripple', 'wind', 'swirl'], 4) };
 }
 function textureFrame(t) {
+  if (C.sphere) return sphereFrame(t);
+  if (!C.texture) return wallFrame(t);
   const { ctx, src, out, calm, fx, fy, form } = TEX, A = 7 * ENERGY.idle * env(t);
   if (A < 0.02) { ctx.putImageData(src, 0, 0); return; }  // at rest: the plate exactly
   const s = src.data, o = out.data, ph = 2 * Math.PI * t / T, lam = 120;
@@ -157,6 +162,48 @@ function textureFrame(t) {
     for (let c = 0; c < 3; c++)
       o[q + c] = (s[p00 + c] * (1 - ax) + s[p10 + c] * ax) * (1 - ay) + (s[p01 + c] * (1 - ax) + s[p11 + c] * ax) * ay;
     o[q + 3] = 255;
+  }
+  ctx.putImageData(out, 0, 0);
+}
+// a band of light crosses the logo wall once, brightening only what is lighter than the card (the logos), plate included
+function wallFrame(t) {
+  const { ctx, src, out } = TEX, q = P(t, 0.85, 1.6);
+  if (q <= 0 || q >= 1) { ctx.putImageData(src, 0, 0); return; }
+  const s = src.data, o = out.data, [x0, y0, x1, y1] = WALL.map(Math.round), paper = lum(C.paper || '#000000');
+  const pos = x0 - 260 + (x1 - x0 + 520) * EASE.inOut(q), sig = 80, amp = 0.55 * Math.sin(Math.PI * q);
+  o.set(s);
+  for (let y = Math.max(0, y0); y < Math.min(H, y1); y++) for (let x = Math.max(0, x0); x < Math.min(W, x1); x++) {
+    const d = x + 0.35 * (y - y0) - pos;
+    if (Math.abs(d) > 3 * sig) continue;
+    const i = (y * W + x) * 4, k = clamp(((s[i] + s[i + 1] + s[i + 2]) / 3 - paper - 8) / 60);
+    if (k <= 0) continue;
+    const b = amp * Math.exp(-d * d / (2 * sig * sig)) * k;
+    for (let c = 0; c < 3; c++) o[i + c] = s[i + c] + (255 - s[i + c]) * b;
+  }
+  ctx.putImageData(out, 0, 0);
+}
+// a globe in the background (suggest_layers.py "sphere": x, y, r) turns about its axis and back: each row is resampled
+// through the sphere, so the land slides around the curve; the turn fades out toward the limb, where what flies above
+// the globe (arcs, a glow) joins what lies outside it
+function sphereFrame(t) {
+  const { ctx, src, whole, out } = TEX, [cx, cy, r] = C.sphere, th = 0.3 * ENERGY.idle * env(t);
+  if (Math.abs(th) < 1e-4) { ctx.putImageData(src, 0, 0); return; }
+  const s = (whole || src).data, o = out.data;
+  o.set(src.data);
+  const y0 = Math.max(0, Math.floor(cy - r)), y1 = Math.min(H - 1, Math.ceil(cy + r));
+  const x0 = Math.max(0, Math.floor(cx - r)), x1 = Math.min(W - 1, Math.ceil(cx + r));
+  for (let y = y0; y <= y1; y++) {
+    const ny = (y - cy) / r, cl = Math.sqrt(Math.max(0, 1 - ny * ny));
+    if (cl < 0.02) continue;
+    for (let x = x0; x <= x1; x++) {
+      const u = (x - cx) / (r * cl);
+      if (Math.abs(u) >= 1) continue;
+      const v = clamp((Math.abs(u) - 0.5) / 0.47), w = 1 - v * v * (3 - 2 * v);
+      const lon = Math.asin(u) - th * w;
+      const sx = Math.max(0, Math.min(W - 1.001, cx + r * cl * Math.sin(Math.max(-1.5698, Math.min(1.5698, lon)))));
+      const xa = Math.floor(sx), a = sx - xa, p = (y * W + xa) * 4, q = (y * W + x) * 4;
+      for (let c = 0; c < 3; c++) o[q + c] = s[p + c] * (1 - a) + s[p + 4 + c] * a;
+    }
   }
   ctx.putImageData(out, 0, 0);
 }
@@ -184,11 +231,25 @@ function build() {
   const marksN = C.layers.filter(l => ['logo', 'icon'].includes(l.kind)).length;
   const hc = FOCAL = head.length ? head.reduce((a, l) => [a[0] + l.box[0] + l.box[2] / 2, a[1] + l.box[1] + l.box[3] / 2], [0, 0]).map(v => v / head.length) : [W / 2, H / 2];
 
+  // a wall of logos (customer logos, a sponsor grid): many small items in rows. They never leave (half a grid of
+  // gaps reads as missing logos, and the ones the reading left in the plate cannot leave anyway): a pop runs across
+  // them from the headline outward while a band of light crosses the whole wall, plate included
+  const cand = C.layers.filter(l => l.kind !== 'headline' && l.box[3] < 60 && l.box[2] < 300);
+  const rows = {};
+  cand.forEach(l => { const k = Math.round((l.box[1] + l.box[3] / 2) / 40); rows[k] = (rows[k] || 0) + 1; });
+  const wall = cand.length >= 8 && Object.values(rows).filter(n => n >= 3).length >= 2 ? new Set(cand) : null;
+  if (wall) {
+    const bs = [...wall].map(l => l.box);
+    WALL = [Math.min(...bs.map(b => b[0])) - 40, Math.min(...bs.map(b => b[1])) - 30,
+            Math.max(...bs.map(b => b[0] + b[2])) + 40, H];  // to the card's foot: rows cut off by its edge belong to it
+  }
+
   C.layers.forEach((l, i) => {
     const [x, y, w, h] = l.box, area = w * h / (W * H);
     const L = { ...l, i, x, y, w, h, area, kind: l.kind || 'shape' };
     L.small = Math.max(w, h) < 150;
-    L.anchored = style === 'living' || style === 'flow';
+    L.wall = !!(wall && wall.has(l));
+    L.anchored = style === 'living' || style === 'flow' || L.wall;
     L.flow = style === 'flow';
     L.settle = !C.cleanPlate && (!!l.settle || area > 0.35);  // its hole could not be refilled cleanly: it moves in place, never leaves
     L.motion = l.motion || L.kind;
@@ -213,7 +274,10 @@ function build() {
     } else {
       // decorative blobs (large, or bleeding off the card) get a liquid edge; a centred mark is a logo and stays crisp
       const bleeds = x <= 2 || y <= 2 || x + w >= W - 2 || y + h >= H - 2;
-      L.fluid = L.kind === 'shape' && !L.small && (bleeds || area > 0.12);
+      // ...unless type sits on it (a button, a pill, a panel): its cut has holes where the type is and the type's cut
+      // carries its surface, so it holds still while it lives and its outline holds
+      L.carries = C.layers.some(o => TEXT.has(o.kind) && o.box[0] + o.box[2] / 2 > x && o.box[0] + o.box[2] / 2 < x + w && o.box[1] + o.box[3] / 2 > y && o.box[1] + o.box[3] / 2 < y + h);
+      L.fluid = L.kind === 'shape' && !L.small && (bleeds || area > 0.12) && !L.carries;
       const pad = CUT_REACH + (L.fluid ? 28 : 0);  // room for the soft edge of the cut, and for a liquid edge
       const el = document.createElement('div'); el.className = 'el';
       Object.assign(el.style, { left: x - pad + 'px', top: y - pad + 'px', width: w + 2 * pad + 'px', height: h + 2 * pad + 'px',
@@ -230,12 +294,17 @@ function build() {
     }
     // the element's accent: its card's choice for its kind, or what layers.js sets
     // one star per card: only the last headline line takes it; type over a picture stays put, so it never hops
-    const hfx = style === 'living' && FX.headline === 'hop' ? 'sheen' : FX.headline;
+    // letters hop only where their cut's rim matches what they pass over: a flat card, not inside a pill or a panel
+    const inside = C.layers.some(o => o !== l && !TEXT.has(o.kind) && o.box[2] * o.box[3] > w * h &&
+      o.box[0] <= x + w / 2 && x + w / 2 <= o.box[0] + o.box[2] && o.box[1] <= y + h / 2 && y + h / 2 <= o.box[1] + o.box[3]);
+    const hfx = FX.headline === 'hop' && (style === 'living' || C.background !== 'flat' || inside || l.boxed) ? 'sheen' : FX.headline;
     L.fx = l.fx || (L.kind === 'headline' ? (hfx === 'glint' && l !== head[head.length - 1] ? null : hfx) : L.kind === 'pill' ? FX.pill : null);
     // a crowd of small icons only pops in turn: eight spinning at once is noise
-    L.turn = ['logo', 'icon'].includes(L.kind) ? l.turn || (L.small && marksN > 3 && FX.mark !== 'wobble' ? 'pop' : FX.mark) : null;
+    L.turn = L.wall ? null : ['logo', 'icon'].includes(L.kind) ? l.turn || (L.small && marksN > 3 && FX.mark !== 'wobble' ? 'pop' : FX.mark) : null;
     // light sweep through the element's own pixels
     const lightInk = l.ink ? lum(l.ink) > 165 : false;
+    // white type with no accent colour cannot take a sweep: the last line takes the star instead
+    if (L.fx === 'sheen' && L.kind === 'headline' && lightInk && !ACCENT) L.fx = l === head[head.length - 1] ? 'glint' : null;
     // white type can only take a coloured sweep; without an accent colour it gets none
     const broad = L.kind === 'panel' || area > 0.35;  // big surfaces take a glancing reflection
     // a picture that has to stay in place comes alive with light running through it instead
@@ -276,6 +345,7 @@ function build() {
     L.dist = Math.hypot(x + w / 2 - hc[0], y + h / 2 - hc[1]);
     layers.push(L);
   });
+  if (WALL) { const ws = layers.filter(l => l.wall), m = Math.max(1, ...ws.map(l => l.dist)); ws.forEach(l => { l.wallD = l.dist / m; }); }
   schedule(style);
 
   // a lone mark (one visual on an empty card: a logo, a symbol) becomes the hero: it is cut into slices that assemble,
@@ -285,16 +355,27 @@ function build() {
   const heroL = style === 'rebuild' && marks.length === 1 && marks[0].area < 0.3 &&
     (layers.length === 1 || (layers.length === 2 && ['logo', 'icon', 'illustration', 'shape'].includes(marks[0].kind))) ? marks[0] : null;
   if (heroL) {
-    const L = heroL, el0 = L.parts[0], N = 7, pad = CUT_REACH;
+    const L = heroL, el0 = L.parts[0], pad = CUT_REACH;
     L.hero = true; L.bandsH = L.w >= L.h * 0.8;
+    // a colourless mark on a light card (an Apple, a quiet wordmark) is revealed like a product, not assembled:
+    // it focuses in out of a soft blur, a slow reflection slides across it, and it barely breathes
+    L.calm = !DARK && !L.tone;
+    const N = L.calm ? 1 : 7;
     const ew = L.w + 2 * pad, eh = L.h + 2 * pad;
     L.parts = Array.from({ length: N }, (_, k) => {
       const el = el0.cloneNode(true); el0.parentNode.insertBefore(el, el0);
       const a = (100 * k / N).toFixed(3), b = (100 * (N - k - 1) / N).toFixed(3);
-      el._band = L.bandsH ? `inset(${a}% -20% ${b}% -20%)` : `inset(-20% ${b}% -20% ${a}%)`;
+      el._band = N === 1 ? '' : L.bandsH ? `inset(${a}% -20% ${b}% -20%)` : `inset(-20% ${b}% -20% ${a}%)`;
       return el;
     });
     el0.remove();
+    if (L.calm && !L.sheen) {  // a slow, soft reflection across the mark's own pixels
+      const sh = document.createElement('div'); sh.className = 'sheen';
+      Object.assign(sh.style, { left: L.x + 'px', top: L.y + 'px', width: L.w + 'px', height: L.h + 'px', backgroundSize: '320% 100%',
+        background: 'linear-gradient(105deg, rgba(255,255,255,0) 34%, rgba(255,255,255,.72) 50%, rgba(255,255,255,0) 66%)' });
+      sh.style.backgroundSize = '320% 100%';
+      glyphMask(sh, L.x, L.y); $('top').appendChild(sh); L.sheen = sh;
+    }
     const paper = hexRgb(C.paper || '#000000').split(',').reduce((m, v) => m + +v, 0) / 3;
     const ink = L.ink ? hexRgb(L.ink).split(',').reduce((m, v) => m + +v, 0) / 3 : 255;
     const halo = document.createElement('div'); halo.className = 'glow';
@@ -405,6 +486,10 @@ function wipe(l, lo, hi) {
 // entrance: u = seconds since this part started; returns the part's state
 function enter(l, u, k) {
   const D = ENERGY.dist, z = ENERGY.z, f = ENERGY.f;
+  if (l.calm) {  // revealed: out of a soft blur, settling from 106 %, on the smooth curve
+    const e = EASE.smooth(clamp(u / 1.1));
+    return { o: EASE.smooth(clamp(u / 0.8)), s: 1.06 - 0.06 * e, b: 10 * (1 - e) };
+  }
   if (l.hero) {  // a lone mark assembles: its slices slide in from alternate sides, out of a blur, and it settles on a spring
     const v = u - k * 0.05, e2 = EASE.smooth(clamp(v / 0.6)), dir = k % 2 ? 1 : -1, s2 = spring(u, z, f * 0.9);
     const off = 70 * D * (1 - e2) * dir;
@@ -436,6 +521,7 @@ function enter(l, u, k) {
 }
 // exit: v runs 0 to 1 over the exit; softer than the entrance
 function exit(l, v, k = 0) {
+  if (l.calm) { const a = away(v); return { o: 1 - a, s: 1 + 0.03 * a, b: 8 * a }; }
   if (l.hero) { const a = away(v), dir = k % 2 ? 1 : -1;  // the slices part, alternate ways
     return l.bandsH ? { o: 1 - a, x: dir * 40 * a, b: 4 * a } : { o: 1 - a, y: dir * 40 * a, b: 4 * a }; }
   const a = away(v);
@@ -452,7 +538,10 @@ function exit(l, v, k = 0) {
 }
 // idle: movement in place; zero at t = 0 and t = T so the loop closes
 function idle(l, t, living) {
+  if (l.carries && !l.flow) return {};
   if (l.flow) return float(l, t);
+  if (l.wall) { const b = bump(t, 0.9 + 1.1 * l.wallD, 0.5); return { s: 1 + 0.08 * ENERGY.dist * b, y: -3 * b }; }
+  if (l.calm) return { s: 1 + 0.012 * ENERGY.idle * (l.idle ?? 1) * env(t) };
   if (l.hero) { const w = 2 * Math.PI * t / T, A = ENERGY.idle * (l.idle ?? 1);  // a product shot: it turns slowly in 3D and breathes
     return { ry: 10 * A * Math.sin(w), rx: 4 * A * Math.sin(2 * w), y: -4 * A * Math.sin(2 * w), s: 1 + 0.025 * A * env(t) }; }
   const A = ENERGY.idle * (living ? 1.5 : 1) * (l.idle ?? 1), ph = l.i * 1.7, E = env(t);  // idle in layers.js: 0 keeps it still
@@ -547,7 +636,7 @@ window.render = function (t) {
       tb.setAttribute('baseFrequency', (0.009 * (1 + 0.3 * Math.sin(2 * Math.PI * t / T))).toFixed(5));
     }
     if (l.sheen) {
-      const sp = P(t, fa, 0.85), vis = sp > 0 && sp < 1 && on;
+      const sp = P(t, fa, l.calm ? 1.5 : 0.85), vis = sp > 0 && sp < 1 && on;
       l.sheen.style.opacity = vis ? Math.sin(Math.PI * sp) : 0;
       l.sheen.style.backgroundPosition = `${(100 - 100 * EASE.inOut(sp)).toFixed(1)}% 0`;
     }

@@ -27,7 +27,8 @@ webp() {
 cp_ site/index.html site/textures.js "$OUT/"
 cp_ site/og/out/og.jpg "$OUT/og/og-v5.jpg"
 cp_ site/og/out/og.mp4 "$OUT/og/og-v5.mp4"
-cp_ site/media/boxes.json site/media/sites.json site/media/promo-poster.jpg site/media/joe.webp "$OUT/media/"
+# joespeaking.com's og:video as the skill now makes it (it goes live with Joe Speaking v1.2.0)
+cp_ site/media/boxes.json site/media/sites.json site/media/promo-poster.jpg site/media/joe.webp site/media/joespeaking-og.mp4 "$OUT/media/"
 cp_ site/fonts/* "$OUT/fonts/"
 cp_ eval/out/*.mp4 eval/out/*.jpg eval/results.json "$OUT/eval/"
 
