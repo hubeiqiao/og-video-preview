@@ -1,0 +1,139 @@
+<!doctype html>
+<!--
+  OG video card, 1200x630. Edit CONFIG only; the layout and motion read from it.
+  The page exposes window.render(t) (t in seconds, 0..LOOP). t = 0 is the settled card,
+  which is also the static og:image. Frames are captured by scripts/render_frames.py.
+-->
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Fragment+Mono&display=block" rel="stylesheet">
+<script>
+const CONFIG = {
+  kicker: 'Demo Night · City',            // small pill at the top; '' to hide
+  title: [['Build', 'What', 'You'], ['Wish', 'Existed']], // lines of words
+  highlightLine: 1,                        // which title line gets the accent colour (-1 for none)
+  subtitle: ['Built for me.', 'Shared with you.'], // finishes the title's thought; last phrase is accented
+  portrait: 'portrait.png',                // transparent PNG/WebP of a person or product; '' to hide
+  name: 'Your Name',                       // under the portrait
+  role: 'What you do',
+  brandIcon: 'icon.png',                   // square app/logo icon; '' to hide
+  brandName: 'Product Name',
+  colors: { accent: '#fbbf24', accentDeep: '#f59e0b', ink: '#0b0907', glowA: 'rgba(245,158,11,.30)', glowB: 'rgba(217,119,6,.18)' },
+  loop: 4.0,                               // seconds
+};
+</script>
+<style>
+* { margin:0; box-sizing:border-box; }
+html,body { width:1200px; height:630px; overflow:hidden; background:var(--ink); }
+body { font-family:'Familjen Grotesk', sans-serif; color:#fff; -webkit-font-smoothing:antialiased; font-synthesis:none; position:relative; }
+.orb { position:absolute; left:0; top:0; border-radius:50%; filter:blur(60px); }
+#g1 { width:560px; height:420px; background:var(--glowA); }
+#g2 { width:520px; height:360px; background:var(--glowB); }
+.el { position:absolute; will-change:transform,opacity,filter; }
+#kicker { left:64px; top:60px; font-family:'Fragment Mono', monospace; font-weight:400; font-size:25px; letter-spacing:.06em; color:var(--accent);
+  padding:10px 18px; border:2px solid color-mix(in srgb, var(--accent) 45%, transparent); border-radius:999px; }
+#h1 { left:64px; top:136px; font-weight:700; font-size:80px; line-height:1.0; letter-spacing:-.03em; }
+.ln { display:block; white-space:nowrap; }
+/* each word sits in its own mask so it can rise out of it */
+.m { display:inline-block; overflow:hidden; padding:6px 4px 12px; margin:-6px -4px -12px; vertical-align:top; }
+.w { display:inline-block; }
+.hl { background:linear-gradient(100deg, var(--accent) 0%, var(--accent) 40%, #fff7d6 50%, var(--accent) 60%, var(--accent) 100%);
+  background-size:300% 100%; background-position:100% 0; -webkit-background-clip:text; background-clip:text; color:transparent; }
+#sub { left:64px; top:366px; display:flex; gap:13px; white-space:nowrap; }
+.sub { display:inline-block; font-weight:700; font-size:46px; letter-spacing:-.025em; color:rgba(255,255,255,.88); }
+.sub.accent { color:var(--accent); }
+#logo { left:64px; top:508px; display:flex; align-items:center; gap:18px; font-weight:700; font-size:40px; letter-spacing:-.02em; }
+#logo img { width:66px; height:66px; border-radius:16px; }
+#ava { left:752px; top:62px; width:392px; height:392px; border-radius:50%; overflow:hidden;
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--accent) 70%, #fff), var(--accentDeep) 60%, color-mix(in srgb, var(--accentDeep) 70%, #000));
+  box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 25%, transparent), 0 30px 80px rgba(0,0,0,.6); }
+/* scale portraits to ~115% so no transparent rim shows inside the circle */
+#ava img { position:absolute; width:115%; height:115%; left:-7.5%; top:0; object-fit:contain; }
+#ring { left:752px; top:62px; width:392px; height:392px; border-radius:50%; border:4px solid var(--accent); opacity:0; }
+#name { left:752px; top:486px; width:392px; text-align:center; }
+#name b { display:block; font-weight:800; font-size:44px; letter-spacing:-.02em; }
+#name span { display:block; margin-top:6px; font-size:28px; color:rgba(255,255,255,.7); font-weight:500; }
+</style></head>
+<body>
+<div class="orb" id="g1"></div><div class="orb" id="g2"></div>
+<div class="el" id="kicker"></div>
+<div class="el" id="h1"></div>
+<div class="el" id="sub"></div>
+<div class="el" id="ring"></div>
+<div class="el" id="ava"></div>
+<div class="el" id="name"><b></b><span></span></div>
+<div class="el" id="logo"></div>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const C = CONFIG, T = C.loop;
+for (const [k, v] of Object.entries(C.colors)) document.documentElement.style.setProperty('--' + k, v);
+
+// Build the card from CONFIG.
+$('kicker').textContent = C.kicker; if (!C.kicker) $('kicker').remove();
+$('h1').innerHTML = C.title.map((line, i) => '<span class="ln">' + line.map(w =>
+  `<span class="m"><span class="w${i === C.highlightLine ? ' hl' : ''}">${esc(w)}</span></span>`).join(' ') + '</span>').join('');
+$('sub').innerHTML = C.subtitle.map((s, i) =>
+  `<span class="m"><span class="sub${i === C.subtitle.length - 1 && C.subtitle.length > 1 ? ' accent' : ''}">${esc(s)}</span></span>`).join('');
+if (C.portrait) $('ava').innerHTML = `<img src="${esc(C.portrait)}" alt="">`; else { $('ava').remove(); $('ring').remove(); $('name').remove(); }
+if ($('name')) { $('name').querySelector('b').textContent = C.name; $('name').querySelector('span').textContent = C.role; }
+$('logo').innerHTML = (C.brandIcon ? `<img src="${esc(C.brandIcon)}" alt="">` : '') + esc(C.brandName);
+if (!C.brandName && !C.brandIcon) $('logo').remove();
+
+const kicker = $('kicker'), h1 = $('h1'), sub = $('sub'), ava = $('ava'), ring = $('ring'), name = $('name'), logo = $('logo');
+const g1 = $('g1'), g2 = $('g2');
+const words = [...document.querySelectorAll('#h1 .w')], hls = [...document.querySelectorAll('.hl')];
+const subs = [...document.querySelectorAll('#sub .sub')];
+const accentRGB = (() => { const d = document.createElement('div'); d.style.color = C.colors.accent; document.body.appendChild(d);
+  const c = getComputedStyle(d).color.match(/\d+/g).slice(0, 3).join(','); d.remove(); return c; })();
+
+const clamp = x => Math.max(0, Math.min(1, x));
+const eOut = x => 1 - Math.pow(1 - x, 4);
+const eIn = x => x * x * x;
+// damped spring 0 -> 1 with overshoot
+const spring = (x, k = 7, z = 4.2) => x >= 1 ? 1 : x <= 0 ? 0 : 1 - Math.exp(-z * x) * Math.cos(k * x);
+const P = (t, a, d) => clamp((t - a) / d);
+function css(el, { o = 1, x = 0, y = 0, s = 1, r = 0, b = 0 } = {}) {
+  if (!el) return;
+  el.style.opacity = o;
+  el.style.transform = `translate(${x}px,${y}px) rotate(${r}deg) scale(${s})`;
+  el.style.filter = b > 0.05 ? `blur(${b}px)` : 'none';
+}
+// Loop seam: everything streaks out to the left, staggered, then the card rebuilds.
+const EXIT = 0.30;
+function exitOut(el, t, i) { const e = eIn(P(t, i * 0.018, 0.2)); css(el, { o: 1 - e, x: -140 * e, b: 10 * e }); }
+
+window.render = function (t) {
+  const ph = 2 * Math.PI * t / T; // ambient motion is periodic in T, so the last frame flows into the first
+  g1.style.transform = `translate(${700 + 70 * Math.cos(ph)}px,${60 + 40 * Math.sin(ph)}px)`;
+  g2.style.transform = `translate(${-80 + 60 * Math.sin(ph)}px,${-140 + 40 * Math.cos(ph)}px)`;
+  const float = Math.sin(ph) * 6;
+
+  if (t < EXIT) {
+    // masked words would clip if moved sideways, so the whole title block exits
+    exitOut(kicker, t, 0); exitOut(h1, t, 1); words.forEach(w => css(w));
+    exitOut(sub, t, 6); exitOut(ava, t, 3); exitOut(name, t, 5); exitOut(logo, t, 8);
+    if (ava) ava.style.transform += ` translateY(${float}px)`;
+    subs.forEach(d => { css(d); d.style.textShadow = ''; });
+    hls.forEach(h => h.style.backgroundPosition = '100% 0');
+    if (ring) ring.style.opacity = 0;
+    return;
+  }
+  css(h1); css(sub);
+  { const p = P(t, 0.30, 0.28); css(kicker, { o: clamp(p * 4), x: -60 * (1 - eOut(p)), b: 6 * (1 - p) }); }
+  words.forEach((w, i) => { const p = P(t, 0.36 + i * 0.055, 0.5); const s = spring(p);
+    css(w, { y: 110 * (1 - s), r: 6 * (1 - s), b: p < 1 ? 4 * (1 - p) : 0 }); });
+  { const p = P(t, 0.45, 0.6); const s = spring(p, 8, 4.5);
+    css(ava, { o: clamp(p * 5), s: 0.2 + 0.8 * s, r: -25 * (1 - s), y: float }); }
+  { const p = P(t, 0.62, 0.55); css(ring, { o: p > 0 && p < 1 ? (1 - p) * 0.9 : 0, s: 1 + 0.35 * eOut(p), y: float }); }
+  { const p = P(t, 0.85, 0.4); css(name, { o: eOut(p), y: 40 * (1 - spring(p)) }); }
+  subs.forEach((d, k) => { const p = P(t, 0.95 + k * 0.22, 0.5); const sp = spring(p);
+    css(d, { y: 70 * (1 - sp), r: 5 * (1 - sp), b: p < 1 ? 3 * (1 - p) : 0 }); });
+  { const last = subs[subs.length - 1], f = P(t, 0.95 + (subs.length - 1) * 0.22 + 0.28, 0.6);
+    if (last) last.style.textShadow = f > 0 && f < 1 ? `0 0 ${36 * (1 - f)}px rgba(${accentRGB},${0.9 * (1 - f)})` : ''; }
+  { const p = P(t, 1.30, 0.4); css(logo, { o: eOut(p), x: -80 * (1 - spring(p)) }); }
+  // a light sweep across the highlighted line once everything has landed
+  { const p = eOut(P(t, 1.75, 0.7)); hls.forEach(h => h.style.backgroundPosition = `${100 - 100 * p}% 0`); }
+};
+window.render(0);
+</script>
+</body></html>

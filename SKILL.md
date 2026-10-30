@@ -23,7 +23,7 @@ Requirements: Python 3 with `playwright`, `Pillow`, `opencv-python` and `numpy`;
 ## Route A: from the approved image
 
 ```bash
-SKILL=~/.claude/skills/og-video-preview
+SKILL=~/.claude/skills/og-video-preview   # the folder this SKILL.md is in
 mkdir -p og && cp $SKILL/template/from-image.html og/
 python3 $SKILL/scripts/suggest_layers.py approved.png og      # card.jpg, layers.js, plate.png, layers.png, glyphs.png, layers-preview.png
 python3 $SKILL/scripts/render_frames.py og/from-image.html og/frames --frames 0,20,40,60,90,150   # preview; prints the motion plan
@@ -116,7 +116,7 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 
 Every extra (idle, sweeps, rings, glows, punch, liquid edges, the breathing of a graded background) is exactly zero at t = 0 and t = loop, so the loop closes on the approved card.
 
-Tested on the OG images of 103 well-known sites in `eval/` (developer tools, venture capital firms, AI companies and technology companies) (`python3 eval/run.py` renders and scores all of them; run it after any change to the engine). Where a reading is wrong it is usually one of: a text line containing a pill or avatars, a dense UI screenshot (many small parts), stylised capitals Tesseract cannot read. Fix those with `kind` in `layers.js`.
+Tested on the OG images of 103 well-known sites in the repository's [`eval/`](https://github.com/hubeiqiao/og-video-preview/tree/main/eval) (developer tools, venture capital firms, AI companies and technology companies) (`python3 eval/run.py` renders and scores all of them; run it after any change to the engine). Where a reading is wrong it is usually one of: a text line containing a pill or avatars, a dense UI screenshot (many small parts), stylised capitals Tesseract cannot read. Fix those with `kind` in `layers.js`.
 
 ## Route B: from an HTML card
 
@@ -236,5 +236,5 @@ Sources were read on 2026-10-30; the per-app device tests are from [checkmyog](h
 | `scripts/encode.sh` | Frames to MP4 and frame-0 JPEG, with size limits |
 | `scripts/check_live.sh` | Live tags, files, https and Range check |
 | `worker/range-worker.js` | Cloudflare Worker adding Range / 206 for `.mp4` |
-| `examples/` | Worked examples (route A, living style, route B) with inputs and outputs |
-| `eval/` | 103 real OG images, `fetch.py` that downloads them, the runner that renders and scores them, and the results |
+| [`examples/`](https://github.com/hubeiqiao/og-video-preview/tree/main/examples) | Worked examples (route A, living style, route B) with inputs and outputs |
+| [`eval/`](https://github.com/hubeiqiao/og-video-preview/tree/main/eval) | 103 real OG images, `fetch.py` that downloads them, the runner that renders and scores them, and the results |

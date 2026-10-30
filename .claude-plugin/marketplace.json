@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "og-video-preview",
-      "source": "./",
+      "source": "./plugin",
       "description": "Turn any approved OG image into a looping og:video that plays in link previews"
     }
   ]

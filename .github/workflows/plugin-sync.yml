@@ -1,0 +1,17 @@
+name: Plugin folder in sync
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sh tools/sync_plugin.sh
+      - run: git diff --exit-code plugin/ || { echo "plugin/ is out of date: run sh tools/sync_plugin.sh and commit"; exit 1; }

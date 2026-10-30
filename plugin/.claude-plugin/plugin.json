@@ -3,9 +3,10 @@
   "description": "Turn any approved Open Graph image into a looping og:video that actually plays in iMessage, Safari and social link previews.",
   "version": "1.0.0",
   "author": {
-    "name": "Joe Hu"
+    "name": "Joe Hu",
+    "url": "https://hubeiqiao.com"
   },
-  "homepage": "https://github.com/hubeiqiao/og-video-preview",
+  "homepage": "https://hubeiqiao.com/og-video-preview/",
   "repository": "https://github.com/hubeiqiao/og-video-preview",
   "license": "MIT",
   "keywords": ["open-graph", "og-video", "link-preview", "social-card", "playwright", "ffmpeg"]
