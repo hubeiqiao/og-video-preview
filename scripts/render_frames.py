@@ -64,6 +64,10 @@ async def main():
             "[...document.querySelectorAll('.el')].map(e => [e.id, Math.round(e.getBoundingClientRect().right)])"
         )
         print("right edges:", ", ".join(f"{i}={r}" for i, r in edges))
+        plan = await page.evaluate("window.plan || null")
+        if plan:  # what the template chose for each element
+            for p_ in plan:
+                print(f"  {p_['id']:<14} {p_['kind']:<12} {p_['motion']:<12} {p_['style']:<8} at {p_['at']:<5} {p_['accent']}")
         for i in frames:
             await page.evaluate(f"render({i / a.fps})")
             await page.screenshot(path=os.path.join(a.out, f"f{i:04d}.png"))

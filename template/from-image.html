@@ -1,113 +1,383 @@
 <!doctype html>
 <!--
   Turns an approved, finished OG image into a looping animation.
-  Each layer is a rectangle cut from the image itself, so frame 0 is pixel-identical
-  to the approved card. Under the layers sits a "plate": the card with those
-  rectangles removed, so layers can leave and come back.
-  Configure in layers.js next to this file (window.OG), then capture with
-  scripts/render_frames.py. Roles: rise | pop | spin | stamp | wipe | slide | fade.
+
+  Every layer is cut from the approved image itself (layers.png: the card with alpha
+  around each element) and sits exactly where it was, over a clean plate (plate.png),
+  so frame 0 and the last frame are the approved card, pixel for pixel.
+
+  Motion is chosen per element from its `kind` (written by scripts/suggest_layers.py):
+  each kind has an entrance, an exit, an idle motion and an accent, all built on the
+  house motion tokens below. layers.js may override per layer: kind, motion, at, accent.
+
+  style   rebuild  quick staggered exit, then every element re-enters (default when there is text)
+          living   nothing leaves; elements move in place (default for image-only cards)
+  energy  calm | lively | bold   distance, overshoot and how many accents
+
+  Capture with scripts/render_frames.py. Open with ?play to preview in a browser.
 -->
 <html><head><meta charset="utf-8">
 <script src="layers.js"></script>
 <style>
 * { margin:0; box-sizing:border-box; }
-html,body { overflow:hidden; background:#000; }
-#stage { position:relative; }
-#plate { position:absolute; left:0; top:0; }
+html, body { overflow:hidden; background:#000; }
+#stage, #cam { position:relative; overflow:hidden; }
+#cam { transform-origin:50% 50%; }
+#plate, .abs { position:absolute; left:0; top:0; }
 .mask { position:absolute; overflow:hidden; }
-.mask.open { overflow:visible; }
-.el { position:absolute; left:0; top:0; background-repeat:no-repeat; will-change:transform,opacity,filter,clip-path; }
+.part, .el { position:absolute; background-repeat:no-repeat; will-change:transform, opacity, filter; }
+.sheen { position:absolute; pointer-events:none; opacity:0; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; }
+.ring { position:absolute; border-radius:50%; opacity:0; }
+.glow { position:absolute; border-radius:50%; opacity:0; mix-blend-mode:screen; }
+.spark { position:absolute; width:18px; height:18px; margin:-9px 0 0 -9px; opacity:0;
+  clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%); }
+#flare { position:absolute; top:-20%; height:140%; width:46%; opacity:0; mix-blend-mode:screen; }
 </style></head>
 <body>
-<div id="stage"><canvas id="plate"></canvas></div>
+<div id="stage"><div id="cam"><canvas id="plate"></canvas><div id="fx" class="abs"></div><div id="root" class="abs"></div><div id="top" class="abs"><div id="flare"></div></div></div></div>
+<svg width="0" height="0" style="position:absolute"><defs id="defs"></defs></svg>
 <script>
 const C = window.OG, W = C.width, H = C.height, T = C.loop || 4;
-const stage = document.getElementById('stage'), plate = document.getElementById('plate');
-document.documentElement.style.width = document.body.style.width = stage.style.width = W + 'px';
-document.documentElement.style.height = document.body.style.height = stage.style.height = H + 'px';
-
-const clamp = x => Math.max(0, Math.min(1, x));
-const eOut = x => 1 - Math.pow(1 - x, 4);
-const eIn = x => x * x * x;
-const spring = (x, k = 7, z = 4.2) => x >= 1 ? 1 : x <= 0 ? 0 : 1 - Math.exp(-z * x) * Math.cos(k * x);
-const P = (t, a, d) => clamp((t - a) / d);
-
-let layers = [];
-window.ready = new Promise(resolve => {
-  const img = new Image();
-  img.onload = () => { build(img); window.render(0); window.readyDone = true; resolve(); };
-  img.onerror = () => { throw new Error('could not load ' + C.image); };
-  img.src = C.image;
-});
-
-function build(img) {
-  plate.width = W; plate.height = H;
-  const g = plate.getContext('2d');
-  const mode = (C.plate && C.plate.mode) || 'fill';
-  if (mode === 'image') {
-    // a clean background supplied by the designer: best for busy backgrounds
-    const p = new Image(); p.src = C.plate.src; p.onload = () => g.drawImage(p, 0, 0, W, H);
-  } else {
-    g.drawImage(img, 0, 0, W, H);
-    if (mode === 'blur') {
-      g.filter = 'blur(28px) brightness(0.92)'; g.drawImage(img, 0, 0, W, H); g.filter = 'none';
-    } else {
-      // fill each layer's rectangle with the average colour of a thin ring around it
-      const data = g.getImageData(0, 0, W, H).data;
-      for (const l of C.layers) {
-        const [x, y, w, h] = l.box; let r = 0, gg = 0, b = 0, n = 0;
-        const sample = (sx, sy) => { if (sx < 0 || sy < 0 || sx >= W || sy >= H) return; const i = (sy * W + sx) * 4; r += data[i]; gg += data[i + 1]; b += data[i + 2]; n++; };
-        for (let sx = x - 3; sx < x + w + 3; sx += 2) { sample(sx, y - 3); sample(sx, y + h + 2); }
-        for (let sy = y - 3; sy < y + h + 3; sy += 2) { sample(x - 3, sy); sample(x + w + 2, sy); }
-        g.fillStyle = n ? `rgb(${r / n | 0},${gg / n | 0},${b / n | 0})` : '#000';
-        g.fillRect(x, y, w, h);
-      }
-    }
-  }
-  C.layers.forEach((l, i) => {
-    const [x, y, w, h] = l.box;
-    const mask = document.createElement('div');
-    // rising layers come up out of their own box; everything else may move freely
-    mask.className = 'mask' + (l.role === 'rise' ? '' : ' open');
-    Object.assign(mask.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' });
-    const el = document.createElement('div');
-    el.className = 'el'; el.id = l.id || 'layer' + (i + 1);
-    Object.assign(el.style, { width: w + 'px', height: h + 'px', backgroundImage: `url("${C.image}")`,
-      backgroundSize: `${W}px ${H}px`, backgroundPosition: `${-x}px ${-y}px` });
-    mask.appendChild(el); stage.appendChild(mask);
-    layers.push({ ...l, el, at: l.at ?? 0.32 + i * (C.stagger ?? 0.13) });
-  });
+const $ = id => document.getElementById(id);
+for (const el of [document.documentElement, document.body, $('stage'), $('cam'), $('fx'), $('root'), $('top')]) {
+  el.style.width = W + 'px'; el.style.height = H + 'px';
 }
 
-function css(el, { o = 1, x = 0, y = 0, s = 1, r = 0, b = 0, clip = null, glow = 0 } = {}) {
+// ---- house motion tokens (physical-motion-design) ----
+function bezier(x1, y1, x2, y2) {
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
+  const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  const X = t => ((ax * t + bx) * t + cx) * t, Y = t => ((ay * t + by) * t + cy) * t;
+  return x => {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    let lo = 0, hi = 1, t = x;
+    for (let i = 0; i < 40; i++) { const v = X(t); if (Math.abs(v - x) < 1e-6) break; if (v < x) lo = t; else hi = t; t = (lo + hi) / 2; }
+    return Y(t);
+  };
+}
+const EASE = {
+  smooth: bezier(0.22, 1, 0.36, 1),   // default for almost everything
+  out:    bezier(0.17, 1, 0.32, 1),   // decorative entrances
+  spring: bezier(0.35, 1.55, 0.65, 1),// pops, with overshoot
+  inOut:  bezier(0.66, 0, 0.34, 1),   // symmetric moves
+};
+const away = x => 1 - EASE.smooth(1 - x);  // exits: the smooth curve reversed, accelerating away
+const clamp = x => Math.max(0, Math.min(1, x));
+const P = (t, a, d) => clamp((t - a) / d);
+const bump = (t, a, d) => { const x = P(t, a, d); return x > 0 && x < 1 ? Math.sin(Math.PI * x) : 0; };
+// a damped spring from 0 to 1: z = damping ratio, f = natural frequency in Hz
+function spring(t, z, f) {
+  if (t <= 0) return 0;
+  const w = 2 * Math.PI * f;
+  if (z >= 1) return 1 - Math.exp(-w * t) * (1 + w * t);
+  const wd = w * Math.sqrt(1 - z * z);
+  return 1 - Math.exp(-z * w * t) * (Math.cos(wd * t) + (z * w / wd) * Math.sin(wd * t));
+}
+const ENERGY = {
+  calm:   { dist: 0.6,  z: 0.92, f: 2.0, gap: 0.085, accents: 0, idle: 0.6 },
+  lively: { dist: 1.0,  z: 0.70, f: 2.4, gap: 0.065, accents: 1, idle: 1.0 },
+  bold:   { dist: 1.35, z: 0.56, f: 2.7, gap: 0.055, accents: 2, idle: 1.4 },
+}[C.energy || 'lively'];
+const env = t => Math.sin(Math.PI * t / T) ** 2;          // 0 at both ends of the loop
+const wave = (t, k = 1, ph = 0) => Math.sin(2 * Math.PI * k * t / T + ph) - Math.sin(ph); // periodic, 0 at t = 0
+
+const TEXT = new Set(['headline', 'text', 'label']);
+const CUT_REACH = 30;  // how far make_plate.py's cut can reach past a box (dilation plus soft shadow)
+const VISUAL = new Set(['photo', 'panel', 'illustration', 'avatar']);
+const hexRgb = h => { const n = parseInt(h.slice(1), 16); return `${n >> 16 & 255},${n >> 8 & 255},${n & 255}`; };
+const ACCENT = C.accent || (C.layers.find(l => l.tone) ? hexRgb(C.layers.find(l => l.tone).tone) : null);
+
+// ---- build ----
+let layers = [], extras = [];
+const load = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => i.decode().then(() => ok(i), () => ok(i)); i.onerror = () => no(new Error('could not load ' + src)); i.src = src; });
+// every image a frame can show is loaded and decoded before the first frame is captured
+const images = [C.plate.src, C.layerImage, C.glyphs, ...(C.cuts ? C.layers.map(l => `${C.cuts}${l.id}.png`) : [])].filter(Boolean);
+window.ready = Promise.all(images.map(load)).then(([pl]) => {
+  const plate = $('plate'); plate.width = W; plate.height = H; plate.getContext('2d').drawImage(pl, 0, 0, W, H);
+  build(); window.render(0); window.readyDone = true;
+});
+
+function cutout(node, x, y, id) {
+  const src = C.cuts && id ? `${C.cuts}${id}.png` : C.layerImage;  // each layer's own pixels when cut separately
+  Object.assign(node.style, { backgroundImage: `url("${src}")`, backgroundSize: `${W}px ${H}px`, backgroundPosition: `${-x}px ${-y}px` });
+}
+function glyphMask(node, x, y) {
+  const m = `url("${C.glyphs}")`;
+  Object.assign(node.style, { webkitMaskImage: m, maskImage: m, webkitMaskSize: `${W}px ${H}px`, maskSize: `${W}px ${H}px`,
+    webkitMaskPosition: `${-x}px ${-y}px`, maskPosition: `${-x}px ${-y}px` });
+}
+
+function build() {
+  // type on a photo or a 3D scene cannot leave without showing a refill, so those cards live in place
+  const style = C.style && C.style !== 'auto' ? C.style : C.background === 'detailed' ? 'living' : 'rebuild';
+  const head = C.layers.filter(l => l.kind === 'headline');
+  const hc = head.length ? head.reduce((a, l) => [a[0] + l.box[0] + l.box[2] / 2, a[1] + l.box[1] + l.box[3] / 2], [0, 0]).map(v => v / head.length) : [W / 2, H / 2];
+
+  C.layers.forEach((l, i) => {
+    const [x, y, w, h] = l.box, area = w * h / (W * H);
+    const L = { ...l, i, x, y, w, h, area, kind: l.kind || 'shape' };
+    L.small = Math.max(w, h) < 150;
+    L.anchored = style === 'living';
+    L.settle = !!l.settle || area > 0.35;  // its hole could not be refilled cleanly: it moves in place, never leaves
+    L.motion = l.motion || L.kind;
+    if (TEXT.has(L.kind)) {
+      // a mask with headroom above for the overshoot; parts rise out of its bottom edge.
+      // Parts tile the whole line (each runs to the middle of the gap beside it) and reach E px past
+      // the box, because the cut (antialiasing, soft shadow) is wider than the glyphs.
+      const E = CUT_REACH, pad = Math.max(Math.round(h * 0.45), 12) + E;
+      const m = document.createElement('div'); m.className = 'mask';
+      Object.assign(m.style, { left: x - E + 'px', top: y - pad + 'px', width: w + 2 * E + 'px', height: h + pad + E + 'px' });
+      const raw = l.parts && l.parts.length ? l.parts : [[0, w]];
+      // whole pixels only: a half-pixel offset makes the browser resample, and the type goes soft
+      const mid = k => Math.round((raw[k][0] + raw[k][1] + raw[k + 1][0]) / 2);
+      const edges = raw.map((_, k) => [k ? mid(k - 1) : -E, k < raw.length - 1 ? mid(k) : w + E]);
+      L.parts = edges.map(([a, b]) => {
+        const p = document.createElement('div'); p.className = 'part';
+        Object.assign(p.style, { left: a + E + 'px', top: pad - E + 'px', width: b - a + 'px', height: h + 2 * E + 'px', transformOrigin: '50% 100%' });
+        cutout(p, x + a, y - E, l.id); m.appendChild(p); return p;
+      });
+      L.drop = h + 2 * E + 4;  // far enough below the mask to be hidden
+      $('root').appendChild(m);
+    } else {
+      // decorative blobs (large, or bleeding off the card) get a liquid edge; a centred mark is a logo and stays crisp
+      const bleeds = x <= 2 || y <= 2 || x + w >= W - 2 || y + h >= H - 2;
+      L.fluid = L.kind === 'shape' && !L.small && (bleeds || area > 0.12);
+      const pad = CUT_REACH + (L.fluid ? 28 : 0);  // room for the soft edge of the cut, and for a liquid edge
+      const el = document.createElement('div'); el.className = 'el';
+      Object.assign(el.style, { left: x - pad + 'px', top: y - pad + 'px', width: w + 2 * pad + 'px', height: h + 2 * pad + 'px',
+        transformOrigin: L.kind === 'illustration' ? '50% 100%' : '50% 50%' });
+      cutout(el, x - pad, y - pad, l.id); $('root').appendChild(el);
+      L.parts = [el];
+      if (L.fluid) {
+        const id = 'liq' + i;
+        $('defs').insertAdjacentHTML('beforeend', `<filter id="${id}" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.009" numOctaves="2" seed="${i + 3}"/>
+          <feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter>`);
+        L.liquid = $(id);
+      }
+    }
+    // light sweep through the element's own pixels
+    const lightInk = l.ink ? hexRgb(l.ink).split(',').reduce((m, v) => m + +v, 0) / 3 > 165 : false;
+    // white type can only take a coloured sweep; without an accent colour it gets none
+    const broad = L.kind === 'panel' || area > 0.35;  // big surfaces take a glancing reflection
+    if ((['headline', 'pill', 'logo'].includes(L.kind) || broad || (L.tone && TEXT.has(L.kind))) && !(lightInk && !ACCENT && !broad)) {
+      const s = document.createElement('div'); s.className = 'sheen';
+      Object.assign(s.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', backgroundSize: '320% 100%' });
+      glyphMask(s, x, y);
+      const c = broad || !lightInk ? '255,255,255' : ACCENT;
+      s.style.background = `linear-gradient(100deg, rgba(${c},0) 38%, rgba(${c},${broad ? 0.22 : 0.9}) 50%, rgba(${c},0) 62%)`;
+      if (broad) s.style.webkitMaskImage = s.style.maskImage = `url("${C.layerImage}")`;  // the whole surface, not just its marks
+      s.style.backgroundSize = '320% 100%';
+      $('top').appendChild(s); L.sheen = s;
+    }
+    if (L.kind === 'avatar' || (L.kind === 'logo' && !L.small)) {
+      const r = document.createElement('div'); r.className = 'ring';
+      Object.assign(r.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', border: `3px solid rgba(${ACCENT || '255,255,255'},0.9)` });
+      $('fx').appendChild(r); L.ring = r;
+    }
+    L.dist = Math.hypot(x + w / 2 - hc[0], y + h / 2 - hc[1]);
+    layers.push(L);
+  });
+  schedule(style);
+
+  const GLOW = ACCENT || '255,255,255';
+  if (ENERGY.accents >= 2 && style === 'rebuild') {
+    $('flare').style.background = `linear-gradient(90deg, transparent, rgba(${GLOW},.16) 30%, rgba(255,255,255,.42) 50%, rgba(${GLOW},.16) 70%, transparent)`;
+    [[0.24, 0.28, 0.5], [0.76, 0.7, 0.38]].forEach(([gx, gy, o], k) => {
+      const g = document.createElement('div'); g.className = 'glow'; const r = 300;
+      Object.assign(g.style, { width: 2 * r + 'px', height: 2 * r + 'px', background: `radial-gradient(circle, rgba(${GLOW},.5), rgba(${GLOW},0) 70%)` });
+      $('fx').appendChild(g); extras.push({ type: 'glow', el: g, x: gx * W, y: gy * H, r, o, k });
+    });
+    const last = layers.filter(l => l.kind === 'headline').pop();
+    if (last) for (let k = 0; k < 10; k++) {
+      const s = document.createElement('div'); s.className = 'spark'; s.style.background = `rgb(${GLOW})`;
+      s.style.left = last.x + last.w + 'px'; s.style.top = last.y + last.h / 2 + 'px'; $('top').appendChild(s);
+      extras.push({ type: 'spark', el: s, at: last.land + 0.05, a: k / 10 * 2 * Math.PI + (k % 2 ? 0.3 : 0), d: 60 + 30 * (k % 3) });
+    }
+  }
+  window.plan = layers.map(l => ({ id: l.id, kind: l.kind, motion: l.settle ? 'settle' : l.motion, style: l.anchored ? 'living' : 'rebuild',
+    at: +l.at.toFixed(2), parts: l.parts.length, accent: [l.sheen && 'sheen', l.ring && 'ring', l.liquid && 'liquid', l.punch && 'punch'].filter(Boolean).join(' ') }));
+}
+
+// ---- choreography: when each element enters ----
+const EXIT_END = 0.34, ENTER = 0.38;
+function schedule(style) {
+  let t = ENTER;
+  const order = layers.filter(l => !l.anchored);
+  const scatter = order.filter(l => l.small && (l.kind === 'shape' || l.kind === 'icon'));
+  const maxD = Math.max(1, ...scatter.map(l => l.dist));
+  const fixed = l => C.layers[l.i].at != null;  // a start time set in layers.js wins
+  for (const l of order) {
+    if (scatter.includes(l) || fixed(l)) continue;
+    l.at = VISUAL.has(l.kind) ? Math.max(ENTER, t - 0.12) : t;   // visuals arrive with the words, not after them
+    const g = ENERGY.gap;
+    t += l.kind === 'headline' ? g * 0.75 * l.parts.length * (l.letters ? 0.55 : 1) + g
+       : l.kind === 'logo' ? g * 1.4 : l.small ? g * 0.6 : g * 1.2;
+  }
+  const end = Math.max(t, ENTER + 0.01), limit = 1.7;
+  if (end > limit) order.forEach(l => { if (l.at != null && !fixed(l)) l.at = ENTER + (l.at - ENTER) * (limit - ENTER) / (end - ENTER); });
+  // small decorations ripple outward from the headline
+  scatter.forEach(l => { if (!fixed(l)) l.at = ENTER + 0.1 + 0.9 * (l.dist / maxD) + 0.02 * (l.i % 3); });
+  // a wordmark draws out of its logo
+  // living: accents are spread over what fits, so the last one is over before the loop closes
+  const n = layers.length;
+  layers.forEach(l => {
+    if (fixed(l)) { l.at = C.layers[l.i].at; return; }
+    if (l.anchored) { l.at = 0.4 + (n > 1 ? l.i / (n - 1) : 0) * (T - 0.4 - 1.3); return; }
+    if (l.wordmark) { const m = layers.find(o => o.kind === 'logo' && Math.abs(o.y + o.h / 2 - (l.y + l.h / 2)) < o.h && o.x < l.x);
+      if (m) { l.at = m.at + 0.14; l.motion = l.motion === l.kind ? 'unfurl' : l.motion; } }
+  });
+  layers.forEach(l => { l.land = l.at + (l.kind === 'headline' ? (l.parts.length - 1) * partGap(l) : 0) + 0.32; });
+  const heads = layers.filter(l => l.kind === 'headline' && !l.anchored);
+  const hero = heads.length ? heads.reduce((a, b) => (a.land > b.land ? a : b)) : null;
+  if (hero && ENERGY.accents >= 1) hero.punch = true;
+}
+const partGap = l => ENERGY.gap * (l.letters ? 0.42 : 0.75);
+
+// ---- state ----
+function apply(el, { o = 1, x = 0, y = 0, s = 1, sx = 1, sy = 1, r = 0, b = 0, clip = '' }) {
   el.style.opacity = o;
-  el.style.transform = `translate(${x}px,${y}px) rotate(${r}deg) scale(${s})`;
-  const f = []; if (b > 0.05) f.push(`blur(${b}px)`); if (glow > 0.02) f.push(`drop-shadow(0 0 ${30 * glow}px rgba(255,220,120,${0.9 * glow}))`);
+  el.style.transform = `translate(${x}px,${y}px) rotate(${r}deg) scale(${s * sx},${s * sy})`;
+  const f = el._liquid ? [el._liquid] : [];
+  if (b > 0.05) f.push(`blur(${b.toFixed(2)}px)`);
   el.style.filter = f.length ? f.join(' ') : 'none';
   el.style.clipPath = clip || 'none';
 }
 
-const EXIT = 0.30;
+// entrance: u = seconds since this part started; returns the part's state
+function enter(l, u, k) {
+  const D = ENERGY.dist, z = ENERGY.z, f = ENERGY.f;
+  const sp = spring(u, z, f), e = EASE.smooth(clamp(u / 0.42)), fast = EASE.out(clamp(u / 0.16));
+  const blur = (n) => u < 0.4 ? n * (1 - EASE.smooth(u / 0.4)) : 0;
+  if (l.settle) { const s2 = spring(u, Math.min(1, z + 0.1), f * 0.9); return { s: 1.035 - 0.035 * s2, b: blur(2.5) }; }
+  switch (l.motion) {
+    case 'headline': return { y: l.drop * (1 - sp), r: l.letters ? 6 * (1 - sp) : 0, b: blur(3) };
+    case 'text': return { o: e, y: 14 * D * (1 - e), b: blur(3) };
+    case 'label': return { o: fast, x: -14 * D * (1 - e), clip: `inset(-20% ${(100 * (1 - e)).toFixed(1)}% -20% 0)` };
+    case 'unfurl': return { o: fast, x: -28 * D * (1 - e), clip: `inset(-20% ${(100 * (1 - e)).toFixed(1)}% -20% 0)`, b: blur(2) };
+    case 'logo': { const s2 = spring(u, z * 0.8, f * 1.1); return { o: fast, s: 0.35 + 0.65 * s2, r: -40 * (1 - s2), b: blur(3) }; }
+    case 'pill': return { o: fast, s: 0.62 + 0.38 * EASE.spring(clamp(u / 0.44)), b: blur(2) };
+    case 'icon': { const s2 = spring(u, z * 0.8, f * 1.15); return { o: fast, s: 0.3 + 0.7 * s2, r: -14 * (1 - s2) }; }
+    case 'shape': if (l.small) { const s2 = spring(u, z * 0.75, f * 1.2); return { o: fast, s: s2 }; }
+      return { o: fast, s: 0.8 + 0.2 * sp, b: blur(5) };
+    case 'avatar': { const s2 = spring(u, z * 0.85, f); return { o: fast, s: 0.5 + 0.5 * s2, r: -32 * (1 - s2) }; }
+    case 'photo': { const a = (50 * (1 - e)).toFixed(1); return { o: fast, s: 1.1 - 0.1 * e, clip: `inset(${a}% 0 ${a}% 0 round 6px)` }; }
+    case 'panel': return { o: EASE.out(clamp(u / 0.22)), y: 42 * D * (1 - sp), s: 0.94 + 0.06 * sp, b: blur(6) };
+    case 'illustration': return { o: fast, y: 56 * D * (1 - sp), sy: 1 + 0.05 * Math.sin(Math.PI * clamp(u / 0.5)) * (1 - clamp(u / 0.5)), b: blur(4) };
+    case 'stroke': { const c = l.w >= l.h ? `inset(-10% ${(100 * (1 - e)).toFixed(1)}% -10% 0)` : `inset(0 -10% ${(100 * (1 - e)).toFixed(1)}% -10%)`; return { clip: c }; }
+    default: return { o: e, y: 10 * D * (1 - e), b: blur(2) };
+  }
+}
+// exit: v runs 0 to 1 over the exit; softer than the entrance
+function exit(l, v) {
+  const a = away(v);
+  if (l.settle) return { s: 1 + 0.035 * a, b: 2.5 * a };  // leans toward the viewer, so nothing behind it shows
+  switch (l.kind) {
+    case 'headline': return { y: l.drop * a, b: 3 * a };
+    case 'text': case 'label': return { o: 1 - a, y: 8 * a, b: 4 * a };
+    case 'logo': case 'icon': case 'pill': return { o: 1 - a, s: 1 - 0.55 * a, r: l.kind === 'logo' ? 30 * a : 0 };
+    case 'avatar': return { o: 1 - a, s: 1 - 0.45 * a, r: 24 * a };
+    case 'shape': return { o: 1 - a, s: l.small ? 1 - a : 1 - 0.15 * a, b: l.small ? 0 : 6 * a };
+    case 'stroke': return { clip: l.w >= l.h ? `inset(-10% 0 -10% ${(100 * a).toFixed(1)}%)` : `inset(${(100 * a).toFixed(1)}% -10% 0 -10%)` };
+    default: return { o: 1 - a, y: 14 * a, s: 1 - 0.04 * a, b: 6 * a };
+  }
+}
+// idle: movement in place; zero at t = 0 and t = T so the loop closes
+function idle(l, t, living) {
+  const A = ENERGY.idle * (living ? 1.5 : 1), ph = l.i * 1.7, E = env(t);
+  if (l.area > 0.35) return { s: 1 + 0.03 * A * E };  // a full-card image only pushes in: tilting it would show its corners
+  switch (l.kind) {
+    case 'avatar': return { y: -4 * A * E * Math.sin(2 * Math.PI * t / T * 2 + ph) };
+    case 'icon': case 'logo': return { y: -3 * A * E * Math.sin(2 * Math.PI * t / T * 2 + ph), r: 2.5 * A * E * Math.sin(2 * Math.PI * t / T + ph) };
+    case 'illustration': return { y: -5 * A * E * Math.sin(2 * Math.PI * t / T * 2 + ph), r: 1.2 * A * E * Math.sin(2 * Math.PI * t / T + ph) };
+    case 'panel': return { y: -3 * A * E * Math.sin(2 * Math.PI * t / T * 2 + ph) };
+    case 'photo': return { s: 1 + 0.035 * A * E, x: 6 * A * wave(t, 1, ph) };
+    case 'shape': return l.small ? { s: 1 + 0.12 * A * E * Math.sin(2 * Math.PI * t / T * 3 + ph) ** 2 } : { y: -4 * A * E * Math.sin(2 * Math.PI * t / T + ph) };
+    case 'pill': return living ? { s: 1 + 0.04 * A * bump(t, 1.0 + 0.1 * l.i, 0.5) } : {};
+    default: return {};
+  }
+}
+
+const scaleIdle = (s, k) => ({ x: (s.x || 0) * k, y: (s.y || 0) * k, r: (s.r || 0) * k, s: 1 + ((s.s ?? 1) - 1) * k });
+const add = (a, b) => ({ o: (a.o ?? 1) * (b.o ?? 1), x: (a.x || 0) + (b.x || 0), y: (a.y || 0) + (b.y || 0), s: (a.s ?? 1) * (b.s ?? 1),
+  sx: (a.sx ?? 1) * (b.sx ?? 1), sy: (a.sy ?? 1) * (b.sy ?? 1), r: (a.r || 0) + (b.r || 0), b: (a.b || 0) + (b.b || 0), clip: a.clip || b.clip || '' });
+
 window.render = function (t) {
-  const ph = 2 * Math.PI * t / T, float = Math.sin(ph) * 5; // periodic in T: seamless loop
-  layers.forEach((l, i) => {
-    const el = l.el, floats = l.role === 'spin' || l.role === 'stamp';
-    if (t < EXIT) { // everything streaks out to the left, staggered
-      const e = eIn(P(t, i * 0.02, 0.2));
-      return css(el, { o: 1 - e, x: -140 * e, y: floats ? float : 0, b: 10 * e });
+  t = ((t % T) + T) % T;
+  // camera punch when the hero line lands
+  const hero = layers.find(l => l.punch);
+  let cam = 1;
+  if (hero) { const u = t - hero.land + 0.06; if (u > 0 && u < 0.7) cam += (ENERGY.accents >= 2 ? 0.02 : 0.011) * Math.exp(-6 * u) * Math.sin(14 * u); }
+  // on a graded or pictorial background the whole card breathes: a slow push-in of the camera,
+  // so background and layers move together and nothing slides against what is behind it
+  if (C.background === 'graded' || C.background === 'detailed') cam *= 1 + 0.022 * ENERGY.idle * env(t);
+  $('cam').style.transform = cam === 1 ? 'none' : `scale(${cam.toFixed(5)})`;
+  $('cam').style.transformOrigin = hero ? `${hero.x + hero.w / 2}px ${hero.y + hero.h / 2}px` : '50% 50%';
+
+  layers.forEach(l => {
+    const living = l.anchored;
+    const id = idle(l, t, living);
+    l.parts.forEach((p, k) => {
+      let st;
+      if (living) {
+        st = id;
+        // type stays still and readable; light moves through it (the sweep below) while the camera breathes
+        if (l.kind === 'stroke') { const un = away(P(t, 1.0, 0.35)), re = EASE.smooth(P(t, 1.45, 0.55));
+          const c = 100 * (un * (1 - re)); st = { clip: l.w >= l.h ? `inset(-10% ${c.toFixed(1)}% -10% 0)` : `inset(0 -10% ${c.toFixed(1)}% -10%)` }; }
+        if (l.kind === 'logo') st = add(st, { r: 360 * EASE.inOut(P(t, 1.1, 1.0)) % 360 });
+      } else if (t < EXIT_END) {
+        const off = Math.min(0.1, Math.min(0.08, l.i * 0.012) + (l.kind === 'headline' ? k * 0.008 : 0));
+        st = exit(l, P(t, off, EXIT_END - 0.1));
+      } else {
+        const start = l.at + (l.kind === 'headline' ? k * partGap(l) : 0);
+        // idle eases in from the start of the entrance, so a layer that is visible throughout does not jump
+        const ramp = EASE.smooth(clamp((t - start) / 0.6));
+        st = t < start ? exit(l, 1) : add(enter(l, t - start, k), scaleIdle(id, ramp));
+      }
+      p._liquid = l.liquid ? `url(#${l.liquid.id})` : null;
+      apply(p, st);
+    });
+    if (l.liquid) {  // the shape's edge flows, then settles back to the approved outline
+      const E = env(t), dm = l.liquid.querySelector('feDisplacementMap'), tb = l.liquid.querySelector('feTurbulence');
+      dm.setAttribute('scale', (26 * ENERGY.idle * E * (living ? 1.4 : 1)).toFixed(2));
+      tb.setAttribute('baseFrequency', (0.009 * (1 + 0.3 * Math.sin(2 * Math.PI * t / T))).toFixed(5));
     }
-    const p = P(t, l.at, l.role === 'wipe' ? 0.55 : 0.5), s = spring(p), fy = floats ? float : 0;
-    switch (l.role) {
-      case 'rise': return css(el, { y: (l.box[3] + 10) * (1 - s), r: 4 * (1 - s), b: p < 1 ? 4 * (1 - p) : 0 });
-      case 'pop': return css(el, { o: clamp(p * 5), s: 0.3 + 0.7 * s, b: p < 1 ? 3 * (1 - p) : 0 });
-      case 'spin': { const sp = spring(P(t, l.at, 0.6), 8, 4.5); return css(el, { o: clamp(p * 5), s: 0.2 + 0.8 * sp, r: -25 * (1 - sp), y: fy }); }
-      case 'stamp': { const sp = spring(p, 9, 5), f = P(t, l.at + 0.12, 0.4);
-        return css(el, { o: clamp(p * 6), s: 1.6 - 0.6 * sp, r: 8 * (1 - sp), y: fy, glow: f > 0 && f < 1 ? 1 - f : 0 }); }
-      case 'wipe': { const e = eOut(p); return css(el, { clip: `inset(0 ${100 - 100 * e}% 0 0)` }); }
-      case 'slide': return css(el, { o: eOut(p), x: -80 * (1 - s) });
-      default: return css(el, { o: eOut(p), y: 20 * (1 - eOut(p)) });
+    if (l.sheen) {
+      const a = living ? l.at + 0.2 : l.land + 0.45 + (l.area > 0.035 && !TEXT.has(l.kind) ? 0.3 : 0);
+      const sp = P(t, a, 0.85), on = sp > 0 && sp < 1 && ENERGY.accents >= 1;
+      l.sheen.style.opacity = on ? Math.sin(Math.PI * sp) : 0;
+      l.sheen.style.backgroundPosition = `${(100 - 100 * EASE.inOut(sp)).toFixed(1)}% 0`;
+    }
+    if (l.ring) {
+      const a = living ? l.at + 0.3 : l.at + 0.22, rp = P(t, a, 0.75);
+      l.ring.style.opacity = rp > 0 && rp < 1 && ENERGY.accents >= 1 ? 0.9 * (1 - rp) : 0;
+      l.ring.style.transform = `scale(${1 + 0.55 * EASE.out(rp)})`;
     }
   });
+
+  extras.forEach(x => {
+    if (x.type === 'glow') {
+      const E = env(t), dx = 50 * Math.sin(2 * Math.PI * t / T + x.k * 2), dy = 30 * Math.cos(2 * Math.PI * t / T * 2 + x.k);
+      x.el.style.left = x.x - x.r + dx + 'px'; x.el.style.top = x.y - x.r + dy + 'px'; x.el.style.opacity = x.o * E;
+    } else {
+      const p = P(t, x.at, 0.7);
+      if (p <= 0 || p >= 1) { x.el.style.opacity = 0; return; }
+      const d = x.d * EASE.out(p);
+      x.el.style.opacity = p < 0.15 ? p / 0.15 : 1 - away((p - 0.15) / 0.85);
+      x.el.style.transform = `translate(${Math.cos(x.a) * d}px,${Math.sin(x.a) * d}px) rotate(${180 * p}deg) scale(${1 - 0.6 * p})`;
+    }
+  });
+  const fp = P(t, 0.02, 0.8), fl = $('flare');
+  if (ENERGY.accents >= 2 && layers.some(l => !l.anchored)) {
+    fl.style.opacity = fp > 0 && fp < 1 ? 0.85 * Math.sin(Math.PI * fp) : 0;
+    fl.style.transform = `translateX(${((-0.5 + 2 * fp) * W).toFixed(1)}px) skewX(-18deg)`;
+  }
 };
+
+// ?play previews the loop in a browser; reduced motion shows the still card
+if (/[?&]play\b/.test(location.search)) window.ready.then(() => {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const t0 = performance.now(); const tick = now => { window.render((now - t0) / 1000); requestAnimationFrame(tick); }; requestAnimationFrame(tick);
+});
 </script>
 </body></html>

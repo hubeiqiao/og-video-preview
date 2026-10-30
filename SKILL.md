@@ -1,6 +1,6 @@
 ---
 name: og-video-preview
-description: Turn any approved Open Graph image into a looping og:video so link previews move, and make it actually play in iMessage, Safari, Slack and social cards. Works from the finished image alone (cuts it into layers, frame 0 stays pixel-identical) or from an HTML card. Covers what to animate, motion presets, Playwright frame capture, ffmpeg encoding, seamless-loop and frame-0 checks, the meta tags, and the server requirements (HTTP Range / 206, clean .mp4 URLs, versioned filenames). Use when someone asks for an OG video, animated link preview, animated share card or og:video, wants an existing og:image to move, or has an og:video that only shows a still.
+description: Turn any approved Open Graph image into a looping og:video so link previews move, and make it actually play in iMessage, Safari, Slack and social cards. Works from the finished image alone: it reads what each element is (headline, logo, pill, photo, panel, shape, line and more), cuts it out cleanly and gives each kind its own physical motion, with frame 0 pixel-identical to the image. Or from an HTML card. Covers what to animate, motion presets, Playwright frame capture, ffmpeg encoding, seamless-loop and frame-0 checks, the meta tags, and the server requirements (HTTP Range / 206, clean .mp4 URLs, versioned filenames). Use when someone asks for an OG video, animated link preview, animated share card or og:video, wants an existing og:image to move, or has an og:video that only shows a still.
 ---
 
 # OG video preview
@@ -16,50 +16,97 @@ Two routes for step 2:
 | Route | Use when | Start from |
 |---|---|---|
 | **A. From the approved image** (default) | You have the final PNG/JPG, made anywhere (Figma, Canva, a generator, a screenshot) | `template/from-image.html` + `scripts/suggest_layers.py` |
-| **B. From an HTML card** | You are designing the card in code, or want word-by-word text motion | `template/og.html` |
+| **B. From an HTML card** | You are designing the card in code and want to change its text later without a new image | `template/og.html` |
 
-Requirements: Python 3 with `playwright` and `Pillow`, Chrome installed (Playwright uses `channel="chrome"`), `ffmpeg` and `ffprobe`.
+Requirements: Python 3 with `playwright`, `Pillow`, `opencv-python` and `numpy`; Chrome installed (Playwright uses `channel="chrome"`); `ffmpeg` and `ffprobe`. Optional: Tesseract and `pytesseract`, which find type on photos and 3D scenes and screen out texture that only looks like text.
 
 ## Route A: from the approved image
 
 ```bash
 SKILL=~/.claude/skills/og-video-preview
-mkdir -p og && cp approved.jpg og/card.jpg && cp $SKILL/template/from-image.html og/
-python3 $SKILL/scripts/suggest_layers.py og/card.jpg og        # writes og/layers.js + og/layers-preview.png
-# edit og/layers.js: one layer per thing that should move, each with a role (see below)
-python3 $SKILL/scripts/render_frames.py og/from-image.html og/frames --frames 0,30,50,70,100   # preview
+mkdir -p og && cp $SKILL/template/from-image.html og/
+python3 $SKILL/scripts/suggest_layers.py approved.png og      # card.jpg, layers.js, plate.png, layers.png, glyphs.png, layers-preview.png
+python3 $SKILL/scripts/render_frames.py og/from-image.html og/frames --frames 0,20,40,60,90,150   # preview; prints the motion plan
 python3 $SKILL/scripts/check_frame0.py og/card.jpg og/frames/f0000.png
 python3 $SKILL/scripts/render_frames.py og/from-image.html og/frames                 # all frames
 python3 $SKILL/scripts/check_loop.py og/frames
 bash    $SKILL/scripts/encode.sh og/frames public/og/home-v1 # home-v1.mp4 + home-v1.jpg
 ```
 
-How it works: every layer is a rectangle cut from the approved image itself and placed back exactly where it was, so at rest the page *is* the image. Underneath sits a **plate**, the same image with those rectangles removed, so layers can leave and come back.
+Requires `opencv-python` and `numpy` besides Playwright and Pillow. Any size or ratio works: the card is cover-cropped to 1200×630 first.
 
-**Choosing layers.** `suggest_layers.py` finds everything that differs from the background colour and joins words on one line. Its output is a starting point: look at `layers-preview.png`, then
-- split the headline into one layer per line (each line rises on its own),
-- separate a visual from the arrow or line that touches it,
-- keep boxes from overlapping, and leave a few pixels of background around each one,
-- order layers in the order they should enter.
+### 1. Read the card: what is each element?
 
-**Roles** (`role` in `layers.js`):
+`suggest_layers.py` models the background (a flat colour, or a smooth estimate under a gradient or photo), marks everything that stands out, groups it into elements, and decides what each one **is** from how it looks. Three cases are handled before that:
+- a big surface (a window, a card on a backdrop) becomes background and is searched again for the elements on it;
+- a full-card picture or scene (a 3D render, a photo, a dense illustration) stays in the plate, and only the type on it becomes layers: Tesseract reads where the lines are, and every glyph pixel goes to the nearest read line;
+- grids and hairline patterns stay in the background.
 
-| Role | Motion | Good for |
-|---|---|---|
-| `rise` | springs up out of its own box | headline lines, subtitles |
-| `pop` | scales up from 30% with a spring | badges, pills, labels |
-| `spin` | spins and springs in, then floats | portraits, orbs, logos as heroes |
-| `stamp` | slams down from 160% with a tilt and a flash, then floats | screenshots, report cards, stickers |
-| `wipe` | revealed left to right | arrows, underlines, charts, lines |
-| `slide` | slides in from the left | brand row, footer |
-| `fade` | soft fade up | anything quiet |
+| Kind | How it is recognised |
+|---|---|
+| `headline` | text lines whose cap height is near the largest on the card |
+| `text` | other text lines (one colour, many glyphs of regular height) |
+| `label` | small text: kickers, URLs, captions |
+| `logo` | a mark at the start of, or just left of, a text line: taller than its letters, another colour, or solid |
+| `pill` | a solid bar, wider than tall, with content in it: tags, buttons |
+| `icon` | a small graphic with inner detail: emoji, mascots, app icons |
+| `avatar` | a round element with photo detail |
+| `photo` | a solid rectangle with many colours |
+| `panel` | a large solid surface: screenshots, UI cards, sticky notes |
+| `illustration` | a larger multicolour graphic |
+| `shape` | a one-colour form: dots, squares, blobs, triangles |
+| `stroke` | thin and long: lines, arrows, underlines, squiggles |
 
-Optional per layer: `at` (start time in seconds); top level: `stagger` (default 0.13 s), `loop` (default 4 s).
+Text is split into lines, lines into words, and a one-word headline into letters. Look at `layers-preview.png` (each box is labelled with its id; the underline marks its parts). If an element is read wrongly, change its `kind` in `layers.js`; that needs no new cut. A box you add by hand is cut as a rectangle (or a disc with `"cut": "disc"`); run `make_plate.py og` after adding or removing boxes. To change which pixels an element owns, re-run `suggest_layers.py` instead.
 
-**Plate** (`plate.mode` in `layers.js`):
-- `fill` (default): each box is filled with the average colour of a thin ring around it. Clean on flat or gently graded backgrounds.
-- `blur`: a heavily blurred copy of the card. For photos and busy gradients; text ghosts show only while layers are away.
-- `image` with `src`: a clean background exported from the design tool. Best result for complex backgrounds.
+### 2. Cut it so only the element moves
+
+`make_plate.py` writes:
+- `plate.png`: the card with every element removed and the background refilled (smooth fill for shapes, texture-preserving inpaint behind type on photos and gradients).
+- `layers.png`: the card with alpha 1 over each element and a soft edge just outside it. Where the alpha is partial, plate and card are identical, so the layers over the plate reproduce the card exactly. Type keeps only its glyphs: no box of background travels with a word.
+- `cuts/<id>.png`: the same, one image per layer with only that layer's pixels, so boxes may overlap (tight leading, a pill inside a line) without a line carrying pieces of its neighbour.
+- `glyphs.png`: each element's own pixels, a mask for light sweeps.
+
+A soft shadow or glow travels with its element: faint pixels around it that differ from the background model are part of its cut.
+
+### 3. Motion comes from the kind
+
+Each kind has an entrance, an exit, an idle movement and an accent, built on the house tokens of physical-motion-design: `cubic-bezier(0.22, 1, 0.36, 1)` (smooth) for entrances, `cubic-bezier(0.35, 1.55, 0.65, 1)` (spring) only for pops, damped springs for anything with weight, and exits that are the smooth curve reversed (softer and shorter than entrances).
+
+| Kind | Enters | Leaves | Lives | Accent |
+|---|---|---|---|---|
+| `headline` | words (or letters) rise out of the line's own mask, staggered, on a spring | sinks back into the mask | stays still | light sweep through the glyphs; camera punch when the last line lands |
+| `text` | fade + 14 px rise + 3 px blur clearing, 0.42 s smooth | fade, drop, blur | | sweep if it has an accent colour |
+| `label` | wipes on left to right with a short slide | fade | | |
+| `logo` | scales up from 35 % with a spin, on a spring | shrinks and turns away | gentle bob and tilt; one full turn (living) | ring ripple |
+| wordmark | unfurls out of its logo, left to right | | | sweep |
+| `pill` | pops on the spring curve (overshoot) | shrinks | a small pulse (living) | sweep |
+| `icon` | springs up from 30 % with a small turn | shrinks | bob and tilt | |
+| `avatar` | springs up from 50 % with a turn | shrinks and turns | float | ring ripple |
+| `photo` | opens from the middle (clip) while settling from 110 % | fade, slight shrink | slow push-in and drift | |
+| `panel` | lifts 42 px with a scale from 94 % and a clearing blur | fade, drop | float | glancing reflection |
+| `illustration` | rises with a squash on landing | fade, drop | sway and bob | |
+| `shape` (small) | pops from 0, rippling outward from the headline | shrinks to 0 | twinkle | |
+| `shape` (large) | grows from 80 % out of a blur | fade | decorative blobs (large, or bleeding off the card) flow like liquid, then settle; a centred mark stays crisp | |
+| `stroke` | draws along its long axis | undraws | redraws (living) | |
+
+**Visuals that cannot leave cleanly settle instead.** A photo, panel, illustration or avatar that sits on something other than the plain background (a photo inside a UI, a poster in a stack), or covers a fifth of the card, never exposes the plate: it leans toward the viewer (scale 103.5 % with a light blur) during the exit and springs back when its turn comes. Shapes on the background leave and come back, and their holes are refilled from the background model, not smeared from their neighbours.
+
+**Camera.** On a graded or pictorial background the whole card breathes: a slow push-in of about 2 % that returns to 1 at the loop point, so background and layers move together and nothing slides against what is behind it. The headline's landing adds a short, damped punch.
+
+**Choreography** is automatic: elements enter in reading order (rows top to bottom, left to right), visuals arrive with the words rather than after them, small decorations ripple outward from the headline, a wordmark follows its logo, and the whole entrance is compressed to land by about 2 s of the 4 s loop. `render_frames.py` prints the plan (kind, motion, start time, accents) before capturing.
+
+**Style** (`style` in `layers.js`):
+- `rebuild` (default): a quick staggered exit in the first 0.34 s, then everything re-enters.
+- `living` (default when the type sits on a photo or a 3D scene, where no refill behind it looks clean): nothing leaves. Type stays still and readable while light sweeps through it, the camera breathes, decorative blobs flow, a logo turns once, lines redraw. Jed Bridges' og:video cards are the model: the title stays readable the whole time while one or two things move.
+
+**Energy** (`energy`): `calm` (smaller moves, no overshoot, no accents), `lively` (default), `bold` (more overshoot, plus a flare across the card, drifting glows and sparks off the last headline word).
+
+**Overrides per layer**: `kind`, `motion` (use another kind's motion), `at` (start time in seconds). Top level: `accent` ("r,g,b" for sweeps and rings; otherwise the first saturated text colour, and white type without one gets no sweep), `loop`.
+
+Every extra (idle, sweeps, rings, glows, punch, liquid edges, the breathing of a graded background) is exactly zero at t = 0 and t = loop, so the loop closes on the approved card.
+
+Tested on the OG images of 60+ well-known sites (`examples/gallery/sites.txt`; `examples/gallery/run.sh` fetches and renders them locally). Where the reading is wrong, it is usually one of: a text line containing a pill or avatars (read as an illustration), dense UI screenshots (many small parts), photo mosaics (one image). Fix those with `kind` in `layers.js`.
 
 ## Route B: from an HTML card
 
@@ -85,12 +132,13 @@ Each rule came from a real review.
 
 ## Motion rules
 
-1. **Fast and physical.** Land everything within ~2 s of a 4 s loop, with damped springs and overshoot. Slow fades read as "not moving".
-2. **60 fps, 4 s.** Smooth on retina screens, still a few hundred KB.
-3. **Frame 0 is the settled card**, identical to the still. The loop opens with a quick staggered exit (layers streak away with blur in ~0.3 s), rebuilds, then holds.
-4. **Ambient motion in the hold** (drifting glows, a floating visual) uses periodic functions of `2πt/T`, so the last frame flows into the first.
-5. **Masked text exits as a block.** Sliding a masked word sideways clips it.
-6. **Deterministic frames.** No CSS transitions or requestAnimationFrame; pages expose `window.render(t)` and the capture script calls it for each frame.
+1. **Fast and physical.** Land everything within about 2 s of a 4 s loop. Springs for anything with weight, the spring curve only for pops, the smooth curve for everything else. Slow fades read as "not moving".
+2. **Motion follows the element.** Type rises out of its own line, marks spin in, pills pop, photos open, panels lift, lines draw. Never one preset for everything.
+3. **One hero moment.** One camera punch when the headline lands, one light sweep per element at most. Accents should not compete.
+4. **60 fps, 4 s.** Smooth on retina screens, still a few hundred KB.
+5. **Frame 0 is the settled card**, identical to the still, and so is the last frame: every idle, accent and camera move is zero at both ends.
+6. **Nothing reveals a hole.** What cannot be refilled cleanly moves in place instead of leaving.
+7. **Deterministic frames.** No CSS transitions or requestAnimationFrame; pages expose `window.render(t)` and the capture script calls it for each frame.
 
 ## Encoding
 
@@ -99,7 +147,7 @@ Each rule came from a real review.
 - MP4 **≤ 2 MB** (a 4 s card is usually 300–700 KB). JPEG from frame 0 **< 180 KB**.
 
 Checks that must pass:
-- `check_frame0.py`: frame 0 matches the approved still (mean difference under 2).
+- `check_frame0.py`: frame 0 matches the approved still: mean difference under 2, and no local defects (a gap between letters, a missing edge) on more than 0.05 % of pixels.
 - `check_loop.py`: the jump from the last frame to the first is no bigger than a normal frame step.
 
 ## Meta tags
@@ -154,13 +202,14 @@ curl -s -o /dev/null -H "Range: bytes=0-1" -w "%{http_code}\n" https://example.c
 
 | File | What |
 |---|---|
-| `template/from-image.html` | Route A: animates an approved image from `layers.js` (layers, roles, plate) |
+| `template/from-image.html` | Route A: the motion engine; turns `layers.js` (elements and kinds) into motion |
 | `template/og.html` | Route B: configurable HTML card with the full motion set |
-| `scripts/suggest_layers.py` | Proposes layer boxes for an approved image and draws them on a preview |
+| `scripts/suggest_layers.py` | Reads an approved image: finds and classifies its elements, splits type into lines, words and letters |
+| `scripts/make_plate.py` | Clean plate, element cutouts and glyph masks (re-run after editing boxes) |
 | `scripts/render_frames.py` | Captures frames at 2× through a local server; prints element edges |
 | `scripts/check_frame0.py` | Frame 0 against the approved still |
 | `scripts/check_loop.py` | Seam against a normal frame step |
 | `scripts/encode.sh` | Frames to MP4 and frame-0 JPEG, with size limits |
 | `scripts/check_live.sh` | Live tags, files, https and Range check |
 | `worker/range-worker.js` | Cloudflare Worker adding Range / 206 for `.mp4` |
-| `examples/` | JoeSpeaking.com (route A) and demo.joespeaking.com (route B), with inputs and outputs |
+| `examples/` | Joe's own cards (route A and B) with inputs and outputs; `examples/gallery/` renders 60+ well-known sites' cards locally |

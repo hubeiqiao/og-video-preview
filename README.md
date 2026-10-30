@@ -12,20 +12,38 @@ An agent skill that turns any approved Open Graph image into a looping `og:video
 
 ## Examples
 
-**JoeSpeaking.com homepage card**, animated from the finished image alone (route A)
+Every route A example below starts from the approved image alone. The skill read each card, chose every motion and rendered it with no hand tuning. `out/layers-preview.png` in each folder shows what it recognised.
+
+**JoeSpeaking.com homepage card.** The pill pops, the headline rises letter by letter, the report card settles in place, the orb and its arrow rise, the wordmark unfurls from its logo.
 
 ![JoeSpeaking.com OG video](examples/joespeaking-home/out/preview.gif)
 
-**demo.joespeaking.com talk card**, built as an HTML card (route B)
+**hubeiqiao.com home card.** Type rises word by word and letter by letter on a dark vignette, the portrait springs in with a ring.
+
+![hubeiqiao.com OG video](examples/hubeiqiao-home/out/preview.gif)
+
+**hubeiqiao.com/co card.** Type over a photo: the photo stays, the camera breathes, and each line rises back in over a refilled background.
+
+![hubeiqiao.com/co OG video](examples/hubeiqiao-co/out/preview.gif)
+
+**A TON of Demos talk card, from its still.** The same card as the route B example below, animated from the finished JPG instead of the HTML.
+
+![A TON of Demos OG video](examples/ton-of-demos/out/preview.gif)
+
+**Living style.** Nothing leaves: the blobs flow and settle, the title stays readable the whole time.
+
+![Living style OG video](examples/living-blobs/out/preview.gif)
+
+**demo.joespeaking.com talk card**, built as an HTML card (route B).
 
 ![demo.joespeaking.com OG video](examples/demo-joespeaking/out/preview.gif)
 
-Each example folder has its inputs (`card.jpg` + `layers.js`, or `og.html`) and outputs (`out/*.mp4`, `out/*.jpg`). Rebuild both with `bash examples/build-examples.sh`.
+Rebuild all of them with `bash examples/build-examples.sh`. The engine was also run on the OG images of 60+ well-known sites. Their images belong to the sites, so they are not in this repo: `bash examples/gallery/run.sh` fetches and renders them on your machine.
 
 ## How it works
 
 1. **Approve the still.** Get the 1200×630 `og:image` right first.
-2. **Turn that exact image into motion.** The skill cuts the approved image into layers (title lines, badge, portrait, arrow, screenshot, logo), gives each a motion role, and rebuilds the card every 4 seconds. Frame 0 is the approved image, pixel for pixel.
+2. **Turn that exact image into motion.** The skill reads the approved image and works out what each element is: headline, body text, label, logo, pill, icon, avatar, photo, panel, illustration, shape or line. It cuts each one out cleanly over a refilled background, and each kind gets its own physical motion. Type rises word by word out of its own line, marks spin in, pills pop, photos open, panels lift and lines draw, all on one set of easing curves and springs. Frame 0 and the last frame are the approved image, pixel for pixel.
 3. **Publish both**, with tags and a server that let link previews play the video.
 
 Two routes:
@@ -33,7 +51,7 @@ Two routes:
 | Route | Start from | Good for |
 |---|---|---|
 | A. From the approved image | any PNG/JPG, made anywhere | existing cards, cards from Figma or Canva |
-| B. From an HTML card | `template/og.html` | new cards, word-by-word text motion |
+| B. From an HTML card | `template/og.html` | new cards designed in code |
 
 ## The part that silently breaks playback
 
