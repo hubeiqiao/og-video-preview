@@ -12,7 +12,7 @@ An open-source agent skill for Claude Code, OpenAI Codex, Cursor and every agent
 
 [Website](https://hubeiqiao.github.io/og-video-preview/) · [20-second film](social/promo.mp4) · [Eval](eval/) · [Skill reference](SKILL.md)
 
-![A beam of white light passes through a glass link card and splits into a fan of coloured cards, each playing a real og:video](social/hero.gif)
+![A grey still photo goes into a small brass machine and comes out as bright video cards with a play button](social/hero.gif)
 
 </div>
 
@@ -168,7 +168,7 @@ python3 eval/run.py --only stripe,github --keep  # a few cards, keeping their in
 | ![Living style](examples/living-blobs/out/preview.gif) | ![HTML card](examples/demo-joespeaking/out/preview.gif) |
 | **Living style**: nothing leaves, the blobs flow and settle | **Route B**: a card built in HTML |
 
-Rebuild them with `bash examples/build-examples.sh`. The [website](https://hubeiqiao.github.io/og-video-preview/)'s own link preview is a scene rendered through route B (`site/og/prism/`): white light through a glass card becomes a fan of moving previews.
+Rebuild them with `bash examples/build-examples.sh`. The [website](https://hubeiqiao.github.io/og-video-preview/)'s own link preview is made by the skill itself from its approved still, with a clean background (`--plate`) so every object can move (`site/og/build.sh`).
 
 ## Serving requirements
 

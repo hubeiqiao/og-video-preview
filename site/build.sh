@@ -1,10 +1,10 @@
 #!/bin/sh
-# Assemble the landing page into _site/ from files the repo already has: the page, its own og:video (site/og/prism/out,
-# rendered by the skill from the scene in site/og/prism), the film (social/promo.mp4), the eval's 61 cards (eval/out)
+# Assemble the landing page into _site/ from files the repo already has: the page, its own og:video (site/og/out,
+# made by the skill itself from the approved still: site/og/build.sh), the film (social/promo.mp4), the eval's 61 cards (eval/out)
 # and the element boxes the skill read on each card (site/media/boxes.json).
 # Light versions for the page are made here and cached in .cache/: small tile videos for the grid (480 px, 30 fps)
 # and a 720p film, so a page full of moving cards stays smooth.
-# The og files carry a version in their name (og-v4): bump it in index.html and here when the card changes.
+# The og files carry a version in their name (og-v5): bump it in index.html and here when the card changes.
 set -e
 cd "$(dirname "$0")/.."
 OUT=_site
@@ -14,8 +14,8 @@ cp_() { cp -c "$@" 2>/dev/null || cp "$@"; }  # a clone on APFS: no second copy 
 newer() { [ ! -f "$2" ] || [ "$1" -nt "$2" ]; }
 
 cp_ site/index.html site/textures.js "$OUT/"
-cp_ site/og/prism/out/og.jpg "$OUT/og/og-v4.jpg"
-cp_ site/og/prism/out/og.mp4 "$OUT/og/og-v4.mp4"
+cp_ site/og/out/og.jpg "$OUT/og/og-v5.jpg"
+cp_ site/og/out/og.mp4 "$OUT/og/og-v5.mp4"
 cp_ site/media/boxes.json site/media/sites.json site/media/promo-poster.jpg site/media/joe.webp "$OUT/media/"
 cp_ eval/out/*.mp4 eval/out/*.jpg eval/results.json "$OUT/eval/"
 
