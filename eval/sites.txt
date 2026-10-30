@@ -1,5 +1,6 @@
-# Sites whose og:image the analyzer and motion engine were tested on (2026-10-29).
-# Their images belong to their owners and are not stored here: run.sh fetches them.
+# Sites whose og:image the analyzer and motion engine are tested on. fetch.py downloads each og:image into cards/.
+# The images belong to their owners and are kept only as test inputs (see README.md).
+# Developer tools and products (2026-10-29)
 https://www.anthropic.com
 https://arc.net
 https://astro.build
@@ -61,3 +62,74 @@ https://www.warp.dev
 https://webflow.com
 https://zapier.com
 https://zed.dev
+# Venture capital (2026-10-30)
+https://www.ycombinator.com
+https://a16z.com
+https://www.sequoiacap.com
+https://www.accel.com
+https://greylock.com
+https://www.indexventures.com
+https://lsvp.com
+https://foundersfund.com
+https://www.kleinerperkins.com
+https://www.generalcatalyst.com
+https://www.bvp.com
+https://www.gv.com
+https://thrivecap.com
+https://www.benchmark.com
+https://www.nfx.com
+https://www.conviction.com
+https://www.insightpartners.com
+https://www.coatue.com
+# AI companies (2026-10-30)
+https://openai.com
+https://deepmind.google
+https://mistral.ai
+https://cohere.com
+https://x.ai
+https://www.midjourney.com
+https://runwayml.com
+https://elevenlabs.io
+https://character.ai
+https://stability.ai
+https://www.together.ai
+https://groq.com
+https://replicate.com
+https://scale.com
+https://lovable.dev
+https://windsurf.com
+https://suno.com
+https://pika.art
+https://poe.com
+https://www.krea.ai
+https://ideogram.ai
+https://cognition.ai
+https://www.harvey.ai
+https://www.glean.com
+# Technology companies (2026-10-30)
+https://www.apple.com
+https://www.google.com
+https://www.microsoft.com
+https://www.amazon.com
+https://www.meta.com
+https://www.netflix.com
+https://www.nvidia.com
+https://www.tesla.com
+https://www.airbnb.com
+https://www.uber.com
+https://www.ibm.com
+https://www.adobe.com
+https://www.salesforce.com
+https://www.samsung.com
+https://www.intel.com
+https://www.amd.com
+https://www.oracle.com
+https://www.youtube.com
+https://www.instagram.com
+https://www.linkedin.com
+https://www.pinterest.com
+https://www.reddit.com
+https://www.cloudflare.com
+https://www.atlassian.com
+https://www.canva.com
+https://www.duolingo.com

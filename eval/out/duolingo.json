@@ -1,0 +1,20 @@
+{
+ "name": "duolingo",
+ "layers": 8,
+ "kinds": {
+  "shape": 5,
+  "illustration": 1,
+  "icon": 1,
+  "avatar": 1
+ },
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 0.092,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 1,
+ "mp4_kb": 162,
+ "jpg_kb": 47,
+ "seconds": 46.9,
+ "pass": true
+}

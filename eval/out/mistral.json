@@ -1,0 +1,21 @@
+{
+ "name": "mistral",
+ "layers": 5,
+ "kinds": {
+  "logo": 1,
+  "text": 1,
+  "headline": 1,
+  "illustration": 1,
+  "stroke": 1
+ },
+ "background": "graded",
+ "style": "rebuild",
+ "frame0_mean": 0.166,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 2,
+ "mp4_kb": 282,
+ "jpg_kb": 39,
+ "seconds": 45.1,
+ "pass": true
+}

@@ -1,0 +1,20 @@
+{
+ "name": "stability",
+ "layers": 4,
+ "kinds": {
+  "shape": 1,
+  "pill": 1,
+  "headline": 1,
+  "icon": 1
+ },
+ "background": "detailed",
+ "style": "living",
+ "frame0_mean": 0.414,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 2,
+ "mp4_kb": 1027,
+ "jpg_kb": 128,
+ "seconds": 140.8,
+ "pass": true
+}

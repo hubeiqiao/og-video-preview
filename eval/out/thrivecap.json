@@ -1,0 +1,17 @@
+{
+ "name": "thrivecap",
+ "layers": 1,
+ "kinds": {
+  "stroke": 1
+ },
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 0.026,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 1,
+ "mp4_kb": 26,
+ "jpg_kb": 18,
+ "seconds": 28.2,
+ "pass": true
+}

@@ -6,12 +6,12 @@
  },
  "background": "flat",
  "style": "rebuild",
- "frame0_mean": 0.283,
+ "frame0_mean": 0.116,
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
  "mp4_kb": 67,
  "jpg_kb": 21,
- "seconds": 20.2,
+ "seconds": 24.9,
  "pass": true
 }

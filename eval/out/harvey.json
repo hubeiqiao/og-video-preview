@@ -1,0 +1,17 @@
+{
+ "name": "harvey",
+ "layers": 1,
+ "kinds": {
+  "headline": 1
+ },
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 0.053,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 3,
+ "mp4_kb": 53,
+ "jpg_kb": 16,
+ "seconds": 20.9,
+ "pass": true
+}

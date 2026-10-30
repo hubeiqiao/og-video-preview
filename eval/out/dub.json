@@ -2,10 +2,10 @@
  "name": "dub",
  "layers": 18,
  "kinds": {
-  "shape": 2,
+  "shape": 1,
+  "stroke": 3,
   "text": 2,
   "icon": 5,
-  "stroke": 2,
   "label": 4,
   "illustration": 1,
   "headline": 1,
@@ -13,12 +13,12 @@
  },
  "background": "flat",
  "style": "rebuild",
- "frame0_mean": 1.169,
+ "frame0_mean": 0.326,
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 1,
- "mp4_kb": 299,
+ "mp4_kb": 294,
  "jpg_kb": 75,
- "seconds": 55.8,
+ "seconds": 65.5,
  "pass": true
 }

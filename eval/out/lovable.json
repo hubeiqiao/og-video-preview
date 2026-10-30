@@ -1,0 +1,19 @@
+{
+ "name": "lovable",
+ "layers": 6,
+ "kinds": {
+  "headline": 1,
+  "text": 4,
+  "avatar": 1
+ },
+ "background": "detailed",
+ "style": "living",
+ "frame0_mean": 0.315,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 2,
+ "mp4_kb": 738,
+ "jpg_kb": 93,
+ "seconds": 113.5,
+ "pass": true
+}

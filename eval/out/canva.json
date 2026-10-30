@@ -1,0 +1,20 @@
+{
+ "name": "canva",
+ "layers": 11,
+ "kinds": {
+  "icon": 2,
+  "illustration": 5,
+  "stroke": 1,
+  "text": 3
+ },
+ "background": "graded",
+ "style": "rebuild",
+ "frame0_mean": 0.273,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 2,
+ "mp4_kb": 599,
+ "jpg_kb": 87,
+ "seconds": 66.6,
+ "pass": true
+}

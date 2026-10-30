@@ -7,12 +7,12 @@
  },
  "background": "flat",
  "style": "rebuild",
- "frame0_mean": 0.349,
+ "frame0_mean": 0.131,
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 1,
  "mp4_kb": 133,
  "jpg_kb": 33,
- "seconds": 27.8,
+ "seconds": 29.1,
  "pass": true
 }

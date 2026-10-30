@@ -9,12 +9,12 @@
  },
  "background": "detailed",
  "style": "living",
- "frame0_mean": 1.399,
+ "frame0_mean": 0.378,
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
  "mp4_kb": 694,
  "jpg_kb": 86,
- "seconds": 125.5,
+ "seconds": 127.4,
  "pass": true
 }

@@ -2,20 +2,21 @@
  "name": "spotify",
  "layers": 18,
  "kinds": {
-  "stroke": 2,
+  "stroke": 1,
   "illustration": 5,
-  "icon": 7,
+  "icon": 6,
   "label": 2,
-  "shape": 2
+  "photo": 3,
+  "shape": 1
  },
  "background": "graded",
  "style": "rebuild",
- "frame0_mean": 1.597,
+ "frame0_mean": 0.398,
  "frame0_local_pct": 0.0,
- "seam": 0,
- "step": 3,
- "mp4_kb": 888,
+ "seam": 27,
+ "step": 26,
+ "mp4_kb": 852,
  "jpg_kb": 99,
- "seconds": 87.6,
+ "seconds": 62.8,
  "pass": true
 }
