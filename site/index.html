@@ -90,7 +90,10 @@ section { padding-top: clamp(96px, 12vw, 160px); }
 .hero h1 { font-size: clamp(40px, 4.9vw, 76px); line-height: 1.02; }
 .hero h1 .w { display: inline-block; }
 .hero h1 .l { display: inline-block; will-change: transform; }
-.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: clamp(24px, 3vw, 36px); align-items: center; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: clamp(24px, 3vw, 36px); align-items: center; container-type: inline-size; }
+/* the install command fits one line or breaks after "add" on purpose, so its box hugs the longer line instead
+   of keeping a one-line width beside a wrapped command */
+@container (max-width: 469px) { .cmd code .nw { display: block; } }
 .cmd { display: inline-flex; align-items: center; gap: 16px; max-width: 100%; padding: 6px 6px 6px 16px; border-radius: 14px; background: var(--amber-soft);
   box-shadow: inset 0 0 0 1px var(--amber-line); font-family: var(--mono); font-size: 14px; color: var(--amber); }
 .cmd code { min-width: 0; overflow-wrap: break-word; }
