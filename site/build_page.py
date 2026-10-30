@@ -77,11 +77,15 @@ def main():
         {'@type': 'WebSite', '@id': BASE + '#website', 'url': BASE, 'name': 'OG Video Preview',
          'description': DESCRIPTION, 'about': {'@id': BASE + '#software'}}]}
     page = page.replace('<!-- structured-data -->', '<script type="application/ld+json">' + json.dumps(graph, separators=(',', ':')) + '</script>')
-    # Content hashes invalidate the texture bundle when it changes, without query-string caching tricks.
-    textures = OUT / 'textures.js'
-    versioned = 'textures-' + hashlib.sha256(textures.read_bytes()).hexdigest()[:12] + '.js'
-    textures.rename(OUT / versioned)
-    page = page.replace("s.src = 'textures.js'", f"s.src = '{versioned}'")
+    # Content hashes invalidate the texture bundle and the hero's element boxes when they change, without query-string
+    # caching tricks (the host's service worker keeps any .js or .json it has seen, with no revalidation).
+    for name in ('textures.js', 'media/boxes.json'):
+        src = OUT / name
+        versioned = src.with_name(src.stem + '-' + hashlib.sha256(src.read_bytes()).hexdigest()[:12] + src.suffix)
+        src.rename(versioned)
+        ref = versioned.relative_to(OUT).as_posix()
+        assert f"'{name}'" in page, name
+        page = page.replace(f"'{name}'", f"'{ref}'")
     (OUT / 'index.html').write_text(page)
     (OUT / 'robots.txt').write_text(f'User-agent: *\nAllow: /\n\nSitemap: {BASE}sitemap.xml\n')
     (OUT / 'sitemap.xml').write_text('<?xml version="1.0" encoding="UTF-8"?>\n'
