@@ -432,7 +432,8 @@ def ocr_lines(crop):
     return lines
 
 
-def detect(img, B, tol, offset, depth, backdrops, m=None, gaps=(13, 4), region=None):
+def detect(img, B, tol, offset, depth, backdrops, m=None, gaps=(13, 4), region=None, free=False):
+    # free: B is a clean plate of the very image, so whatever differs from it is an element, never a backdrop or scene
     if m is None:
         m = drop_textures(foreground(img, B, tol))
     if region is not None:
@@ -444,7 +445,7 @@ def detect(img, B, tol, offset, depth, backdrops, m=None, gaps=(13, 4), region=N
         if (w > 0.92 * ow and h < 6) or (h > 0.92 * oh and w < 6):
             continue  # ruled lines and grids belong to the background
         dense = own.mean()
-        if w * h > 0.35 * W * H and depth == 0:  # smaller cards (a report, a poster) move as one piece
+        if w * h > 0.35 * W * H and depth == 0 and not free:  # smaller cards (a report, a poster) move as one piece
             crop = img[y:y + h, x:x + w]
             surface, _ = mode_colour(crop)
             own_surface = dist(surface, np.median(B[y:y + h, x:x + w].reshape(-1, 3), 0)) > tol
@@ -462,11 +463,11 @@ def detect(img, B, tol, offset, depth, backdrops, m=None, gaps=(13, 4), region=N
         if w * h > 0.22 * W * H and gaps[0] > 2:
             # a big group may be separate elements that happen to sit close: group them again with tighter gaps
             out += detect(img[y:y + h, x:x + w], B[y:y + h, x:x + w], tol, (offset[0] + x, offset[1] + y), depth,
-                          backdrops, m=own.copy(), gaps=(5, 2) if gaps[0] > 5 else (2, 1))
+                          backdrops, m=own.copy(), gaps=(5, 2) if gaps[0] > 5 else (2, 1), free=free)
             continue
-        if w * h > 0.22 * W * H and dense < 0.3:
+        if w * h > 0.22 * W * H and dense < 0.3 and not free:
             continue  # one sparse connected web across the card (grass, a frame, a pattern): it stays in the plate
-        if w * h > 0.35 * W * H and dense >= 0.3:
+        if w * h > 0.35 * W * H and dense >= 0.3 and not free:
             # a full-card image or scene: it stays in the plate, and only the crisp things on it
             # (type, logos, buttons) become layers, found by their contrast with their surroundings
             crop = np.ascontiguousarray(img[y:y + h, x:x + w])
@@ -508,7 +509,9 @@ def main():
     ap.add_argument("out")
     ap.add_argument("--tol", type=int, default=40, help="colour distance from the background that counts as content")
     ap.add_argument("--max", type=int, default=18, help="most layers to keep; the smallest extras stay in the plate")
-    ap.add_argument("--style", default="auto", choices=["auto", "rebuild", "living"])
+    ap.add_argument("--style", default="auto", choices=["auto", "rebuild", "living", "flow"])
+    ap.add_argument("--plate", help="the same image with every element removed (from an image-edit tool): with it every\n"
+                    "visual can move freely, and the style becomes flow")
     ap.add_argument("--energy", default="lively", choices=["calm", "lively", "bold"])
     a = ap.parse_args()
     a.max = min(a.max, 250)  # the owner map is 8-bit
@@ -516,13 +519,43 @@ def main():
     img = load_card(a.card)
     os.makedirs(a.out, exist_ok=True)
     Image.fromarray(img).save(os.path.join(a.out, "card.jpg"), quality=95)
-    B, flat = background(img, a.tol)
+    if a.plate:  # the clean background is the background: what differs from it is an element, however busy the art
+        B, flat = load_card(a.plate).astype(np.float32), False
+        tol = a.tol
+    else:
+        B, flat = background(img, a.tol)
+        tol = a.tol if flat else int(a.tol * 1.4)
     backdrops = []
-    found = detect(img, B, a.tol if flat else int(a.tol * 1.4), (0, 0), 0, backdrops)
+    if a.plate:
+        # thin links between objects (orbit lines, rays of light) would join them into one piece: open them away,
+        # then give each object back its own edges. The links stay in the plate; the objects move.
+        m0 = foreground(img, B, tol)
+        core = cv2.morphologyEx(m0, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (13, 13)))
+        # objects that still touch (through a glow, a shared highlight) are split where the shape narrows: a
+        # watershed on the distance to the edge, seeded by each object's thick middle
+        dist_ = cv2.distanceTransform(core, cv2.DIST_L2, 5)
+        n, lab = cv2.connectedComponents(core)
+        seeds = np.zeros(core.shape, np.int32)
+        k = 1
+        for i in range(1, n):
+            comp = lab == i
+            if comp.sum() < 0.12 * W * H:
+                seeds[comp] = k; k += 1
+                continue
+            peak = (dist_ > 0.45 * dist_[comp].max()) & comp
+            m_, l_ = cv2.connectedComponents(peak.astype(np.uint8))
+            for j in range(1, m_):
+                seeds[l_ == j] = k; k += 1
+        ws = cv2.watershed(cv2.cvtColor(np.ascontiguousarray(img.astype(np.uint8)), cv2.COLOR_RGB2BGR), seeds.copy())
+        core = ((ws > 0) & (core > 0)).astype(np.uint8)  # the watershed lines (-1) cut the touching objects apart
+        m = (cv2.dilate(core, np.ones((7, 7), np.uint8)) > 0) & (m0 > 0) & ~(cv2.dilate((ws == -1).astype(np.uint8), np.ones((3, 3), np.uint8)) > 0)
+        found = detect(img, B, tol, (0, 0), 0, backdrops, m=m.astype(np.uint8), free=True)
+    else:
+        found = detect(img, B, tol, (0, 0), 0, backdrops)
 
     # pieces that lie on one line Tesseract read are one line of type, however the grouping split them
     read = ocr_lines(img)
-    marked = foreground(img, B, a.tol if flat else int(a.tol * 1.4))
+    marked = foreground(img, B, tol)
     for rx, ry, rw, rh in read or []:
         lx0, ly0, lx1, ly1 = rx - rh, ry - rh // 2, rx + rw + rh, ry + rh + rh // 2  # Tesseract may miss an end letter
         on = [k for k, ((x, y, w, h), _, loose) in enumerate(found)
@@ -770,12 +803,14 @@ def main():
     config = {
         "image": "card.jpg", "layerImage": "layers.png", "cuts": "cuts/", "glyphs": "glyphs.png",
         "width": W, "height": H, "loop": 4.0,
-        "style": a.style, "energy": a.energy,
+        "style": a.style, "energy": a.energy, "cleanPlate": bool(a.plate),
         # type on a large picture: refills behind it never look clean, so the card lives in place
         "background": "detailed" if any(len(b) > 4 and b[2] * b[3] > 0.45 * W * H for b in backdrops) else "flat" if flat else "graded",
         "plate": {"mode": "image", "src": "plate.png"},
         "layers": out_layers,
     }
+    if a.plate:  # a clean background behind every element, cover-cropped like the card
+        Image.fromarray(load_card(a.plate)).save(os.path.join(a.out, "plate-clean.png"))
     with open(os.path.join(a.out, "layers.js"), "w") as fh:
         fh.write("// Written by suggest_layers.py. Each layer's motion comes from its kind:\n")
         fh.write("// " + " | ".join(KINDS) + "\n")

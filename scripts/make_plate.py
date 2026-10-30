@@ -114,6 +114,10 @@ def main():
         plate[t] = tex[t]
     w_ = wide > 0
     plate[w_] = B[w_]  # a large hole filled from its neighbours smears them in; the background model does not
+    clean = os.path.join(d, "plate-clean.png")
+    if os.path.exists(clean):  # a clean background from an image-edit tool beats any refill
+        cp = cv2.cvtColor(cv2.imread(clean), cv2.COLOR_BGR2RGB)
+        plate = cv2.resize(cp, (W, H), interpolation=cv2.INTER_AREA).astype(plate.dtype)
     plate = np.where(hole[..., None], plate, img).clip(0, 255).astype(np.uint8)
     cv2.imwrite(os.path.join(d, "plate.png"), cv2.cvtColor(plate, cv2.COLOR_RGB2BGR))
 

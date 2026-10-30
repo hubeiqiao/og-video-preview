@@ -70,6 +70,14 @@ Text is split into lines, lines into words, and a one-word headline into letters
 
 A soft shadow or glow travels with its element: faint pixels around it that differ from the background model are part of its cut.
 
+**A clean background lets everything move.** A refill is never perfect behind a large visual on a picture, which is why such visuals settle in place. When an image-edit tool is available (any model that can edit an image from a reference), ask it for the approved image with every element removed: the background alone, same colour, light and texture, no ghost outlines (check it at 3x where the elements were). Pass it to the analyzer:
+
+```bash
+python3 $SKILL/scripts/suggest_layers.py og.jpg og --plate og-clean.png
+```
+
+`make_plate.py` then fills every hole from it, nothing has to settle, and the style becomes `flow`. For a visual-led card (an illustration, a scene of separate objects), this is what makes it lively; design such a card with its objects apart from each other, so each can move on its own.
+
 ### 3. Motion comes from the kind
 
 Each kind has an entrance, an exit, an idle movement and an accent, built on the house tokens of physical-motion-design: `cubic-bezier(0.22, 1, 0.36, 1)` (smooth) for entrances, `cubic-bezier(0.35, 1.55, 0.65, 1)` (spring) only for pops, damped springs for anything with weight, and exits that are the smooth curve reversed (softer and shorter than entrances).
@@ -99,11 +107,12 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 
 **Style** (`style` in `layers.js`):
 - `rebuild` (default): a quick staggered exit in the first 0.34 s, then everything re-enters.
+- `flow` (default with `--plate`): nothing leaves, and every visual keeps moving through the whole loop, each on its own path: drift, a 3D tilt and a slow turn, nearer (bigger) visuals moving further, so the card has depth. Type stays still and readable. Every move is a sine of the loop, so frame 0 and the last frame are the card.
 - `living` (default when the type sits on a photo or a 3D scene, where no refill behind it looks clean): nothing leaves. Type stays still and readable while light sweeps through it, the camera breathes, decorative blobs flow, a logo turns once, lines redraw. Jed Bridges' og:video cards are the model: the title stays readable the whole time while one or two things move.
 
 **Energy** (`energy`): `calm` (smaller moves, no overshoot, no accents), `lively` (default), `bold` (more overshoot, plus a flare across the card, drifting glows and sparks off the last headline word).
 
-**Overrides per layer**: `kind`, `motion` (use another kind's motion), `at` (start time in seconds). Top level: `accent` ("r,g,b" for sweeps and rings; otherwise the first saturated text colour, and white type without one gets no sweep), `loop`.
+**Overrides per layer**: `kind`, `motion` (use another kind's motion), `at` (start time in seconds), `idle` (how much it moves while it lives: 0 keeps it still, 1 is the default, up to 2; in a card that shows a change, keep the before still and let the after move). Top level: `accent` ("r,g,b" for sweeps and rings; otherwise the first saturated text colour, and white type without one gets no sweep), `loop`.
 
 Every extra (idle, sweeps, rings, glows, punch, liquid edges, the breathing of a graded background) is exactly zero at t = 0 and t = loop, so the loop closes on the approved card.
 

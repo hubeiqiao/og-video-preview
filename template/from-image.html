@@ -122,7 +122,8 @@ function glyphMask(node, x, y) {
 
 function build() {
   // type on a photo or a 3D scene cannot leave without showing a refill, so those cards live in place
-  const style = C.style && C.style !== 'auto' ? C.style : C.background === 'detailed' ? 'living' : 'rebuild';
+  // with a clean background behind every element (--plate), nothing has to hide its hole: the card flows
+  const style = C.style && C.style !== 'auto' ? C.style : C.cleanPlate ? 'flow' : C.background === 'detailed' ? 'living' : 'rebuild';
   const head = C.layers.filter(l => l.kind === 'headline');
   const hc = head.length ? head.reduce((a, l) => [a[0] + l.box[0] + l.box[2] / 2, a[1] + l.box[1] + l.box[3] / 2], [0, 0]).map(v => v / head.length) : [W / 2, H / 2];
 
@@ -130,8 +131,9 @@ function build() {
     const [x, y, w, h] = l.box, area = w * h / (W * H);
     const L = { ...l, i, x, y, w, h, area, kind: l.kind || 'shape' };
     L.small = Math.max(w, h) < 150;
-    L.anchored = style === 'living';
-    L.settle = !!l.settle || area > 0.35;  // its hole could not be refilled cleanly: it moves in place, never leaves
+    L.anchored = style === 'living' || style === 'flow';
+    L.flow = style === 'flow';
+    L.settle = !C.cleanPlate && (!!l.settle || area > 0.35);  // its hole could not be refilled cleanly: it moves in place, never leaves
     L.motion = l.motion || L.kind;
     if (TEXT.has(L.kind)) {
       // a mask with headroom above for the overshoot; parts rise out of its bottom edge.
@@ -252,9 +254,10 @@ function schedule(style) {
 const partGap = l => ENERGY.gap * (l.letters ? 0.42 : 0.75);
 
 // ---- state ----
-function apply(el, { o = 1, x = 0, y = 0, s = 1, sx = 1, sy = 1, r = 0, b = 0, clip = '' }) {
+function apply(el, { o = 1, x = 0, y = 0, s = 1, sx = 1, sy = 1, r = 0, rx = 0, ry = 0, b = 0, clip = '' }) {
   el.style.opacity = o;
-  el.style.transform = `translate(${x}px,${y}px) rotate(${r}deg) scale(${s * sx},${s * sy})`;
+  const tilt = Math.abs(rx) + Math.abs(ry) > 1e-4 ? `perspective(900px) rotateX(${rx.toFixed(3)}deg) rotateY(${ry.toFixed(3)}deg) ` : '';  // none at rest, so frame 0 is drawn flat
+  el.style.transform = `translate(${x}px,${y}px) ${tilt}rotate(${r}deg) scale(${s * sx},${s * sy})`;
   const f = el._liquid ? [el._liquid] : [];
   if (b > 0.05) f.push(`blur(${b.toFixed(2)}px)`);
   el.style.filter = f.length ? f.join(' ') : 'none';
@@ -326,6 +329,7 @@ function exit(l, v) {
 }
 // idle: movement in place; zero at t = 0 and t = T so the loop closes
 function idle(l, t, living) {
+  if (l.flow) return float(l, t);
   const A = ENERGY.idle * (living ? 1.5 : 1), ph = l.i * 1.7, E = env(t);
   if (l.area > 0.35) return { s: 1 + 0.03 * A * E };  // a full-card image only pushes in: tilting it would show its corners
   switch (l.kind) {
@@ -340,9 +344,29 @@ function idle(l, t, living) {
   }
 }
 
+// flow: every visual keeps moving through the whole loop, each on its own path, nearer (bigger) ones further, so
+// the card has depth; type stays still and readable. Every term is a sine of the loop, so frame 0 and the last frame
+// are the card itself and the loop closes.
+function float(l, t) {
+  if (TEXT.has(l.kind)) return {};
+  const w = 2 * Math.PI * t / T, A = ENERGY.idle * (l.idle ?? 1);  // idle in layers.js scales one layer: 0 keeps it still
+  const h = k => { const v = Math.sin((l.i + 1) * 12.9898 + k * 78.233) * 43758.5453; return 2 * (v - Math.floor(v)) - 1; };  // a fixed -1..1 per layer
+  const side = k => (h(k) < 0 ? -1 : 1) * (0.55 + 0.45 * Math.abs(h(k + 9)));
+  const d = Math.min(1.6, Math.max(0.55, 0.45 + 2.4 * Math.sqrt(l.area))) * (l.small ? 0.7 : 1);
+  return {
+    x: A * d * (16 * side(1) * Math.sin(w) + 6 * side(2) * Math.sin(2 * w)),
+    y: A * d * (12 * side(3) * Math.sin(w) + 7 * side(4) * Math.sin(2 * w)),
+    r: A * d * 3.2 * side(5) * Math.sin(w),
+    ry: A * d * 11 * side(6) * Math.sin(w),
+    rx: A * d * 7 * side(7) * Math.sin(2 * w),
+    s: 1 + A * 0.03 * d * Math.sin(2 * w),
+  };
+}
+
 const scaleIdle = (s, k) => ({ x: (s.x || 0) * k, y: (s.y || 0) * k, r: (s.r || 0) * k, s: 1 + ((s.s ?? 1) - 1) * k });
 const add = (a, b) => ({ o: (a.o ?? 1) * (b.o ?? 1), x: (a.x || 0) + (b.x || 0), y: (a.y || 0) + (b.y || 0), s: (a.s ?? 1) * (b.s ?? 1),
-  sx: (a.sx ?? 1) * (b.sx ?? 1), sy: (a.sy ?? 1) * (b.sy ?? 1), r: (a.r || 0) + (b.r || 0), b: (a.b || 0) + (b.b || 0), clip: a.clip || b.clip || '' });
+  sx: (a.sx ?? 1) * (b.sx ?? 1), sy: (a.sy ?? 1) * (b.sy ?? 1), r: (a.r || 0) + (b.r || 0), rx: (a.rx || 0) + (b.rx || 0), ry: (a.ry || 0) + (b.ry || 0),
+  b: (a.b || 0) + (b.b || 0), clip: a.clip || b.clip || '' });
 
 window.render = function (t) {
   t = ((t % T) + T) % T;
