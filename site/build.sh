@@ -16,7 +16,7 @@ newer() { [ ! -f "$2" ] || [ "$1" -nt "$2" ]; }
 cp_ site/index.html site/textures.js "$OUT/"
 cp_ site/og/prism/out/og.jpg "$OUT/og/og-v4.jpg"
 cp_ site/og/prism/out/og.mp4 "$OUT/og/og-v4.mp4"
-cp_ site/media/boxes.json site/media/sites.json site/media/promo-poster.jpg "$OUT/media/"
+cp_ site/media/boxes.json site/media/sites.json site/media/promo-poster.jpg site/media/joe.webp "$OUT/media/"
 cp_ eval/out/*.mp4 eval/out/*.jpg eval/results.json "$OUT/eval/"
 
 for f in eval/out/*.mp4; do
