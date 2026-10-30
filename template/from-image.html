@@ -198,6 +198,39 @@ function build() {
   });
   schedule(style);
 
+  // a lone mark (one visual on an empty card: a logo, a symbol) becomes the hero: it is cut into slices that assemble,
+  // a light rises behind it (or a shadow under it on a light card), a flare crosses once, and it turns slowly in 3D
+  const marks = layers.filter(l => !TEXT.has(l.kind) && !['photo', 'panel'].includes(l.kind) && !l.settle);
+  const heroL = style === 'rebuild' && marks.length === 1 && layers.length <= 2 && marks[0].area < 0.3 ? marks[0] : null;
+  if (heroL) {
+    const L = heroL, el0 = L.parts[0], N = 7, pad = CUT_REACH;
+    L.hero = true; L.bandsH = L.w >= L.h * 0.8;
+    const ew = L.w + 2 * pad, eh = L.h + 2 * pad;
+    L.parts = Array.from({ length: N }, (_, k) => {
+      const el = el0.cloneNode(true); el0.parentNode.insertBefore(el, el0);
+      const a = (100 * k / N).toFixed(3), b = (100 * (N - k - 1) / N).toFixed(3);
+      el._band = L.bandsH ? `inset(${a}% -20% ${b}% -20%)` : `inset(-20% ${b}% -20% ${a}%)`;
+      return el;
+    });
+    el0.remove();
+    const paper = hexRgb(C.paper || '#000000').split(',').reduce((m, v) => m + +v, 0) / 3;
+    const ink = L.ink ? hexRgb(L.ink).split(',').reduce((m, v) => m + +v, 0) / 3 : 255;
+    const halo = document.createElement('div'); halo.className = 'glow';
+    const r = Math.max(L.w, L.h) * 1.15, cx = L.x + L.w / 2, cy = L.y + L.h / 2;
+    if (ink > paper + 30) {  // a light mark on a dark card: its own colour glows behind it (above the layers, screen blend)
+      const c = L.tone ? hexRgb(L.tone) : ACCENT || '255,255,255';
+      Object.assign(halo.style, { left: cx - r + 'px', top: cy - r + 'px', width: 2 * r + 'px', height: 2 * r + 'px', background: `radial-gradient(circle, rgba(${c},.3) 0%, rgba(${c},.14) 28%, rgba(${c},.05) 48%, rgba(${c},0) 70%)` });
+      $('top').insertBefore(halo, $('flare'));
+      $('flare').style.background = `linear-gradient(90deg, transparent, rgba(${c},.12) 30%, rgba(255,255,255,.34) 50%, rgba(${c},.12) 70%, transparent)`;
+      L.flare = true;
+    } else {  // a dark mark on a light card: a soft shadow grows under it as it lifts
+      Object.assign(halo.style, { left: cx - r * 0.6 + 'px', top: L.y + L.h + 6 + 'px', width: 1.2 * r + 'px', height: 0.22 * r + 'px', mixBlendMode: 'multiply',
+        background: 'radial-gradient(closest-side, rgba(0,0,0,.18), rgba(0,0,0,0))' });
+      $('fx').appendChild(halo);
+    }
+    L.halo = halo;
+  }
+
   const GLOW = ACCENT || '255,255,255';
   if (ENERGY.accents >= 2 && style === 'rebuild') {
     $('flare').style.background = `linear-gradient(90deg, transparent, rgba(${GLOW},.16) 30%, rgba(255,255,255,.42) 50%, rgba(${GLOW},.16) 70%, transparent)`;
@@ -261,7 +294,7 @@ function apply(el, { o = 1, x = 0, y = 0, s = 1, sx = 1, sy = 1, r = 0, rx = 0, 
   const f = el._liquid ? [el._liquid] : [];
   if (b > 0.05) f.push(`blur(${b.toFixed(2)}px)`);
   el.style.filter = f.length ? f.join(' ') : 'none';
-  el.style.clipPath = clip || 'none';
+  el.style.clipPath = clip || el._band || 'none';
 }
 
 // a straight wipe across a stroke along the way it is drawn (l.dir: an arrow from its tail to its head; otherwise
@@ -289,6 +322,11 @@ function wipe(l, lo, hi) {
 // entrance: u = seconds since this part started; returns the part's state
 function enter(l, u, k) {
   const D = ENERGY.dist, z = ENERGY.z, f = ENERGY.f;
+  if (l.hero) {  // a lone mark assembles: its slices slide in from alternate sides, out of a blur, and it settles on a spring
+    const v = u - k * 0.05, e2 = EASE.smooth(clamp(v / 0.6)), dir = k % 2 ? 1 : -1, s2 = spring(u, z, f * 0.9);
+    const off = 70 * D * (1 - e2) * dir;
+    return { o: clamp(v / 0.18), x: l.bandsH ? off : 0, y: l.bandsH ? 0 : off, s: 0.93 + 0.07 * s2, b: 7 * (1 - e2) };
+  }
   const sp = spring(u, z, f), e = EASE.smooth(clamp(u / 0.42)), fast = EASE.out(clamp(u / 0.16));
   const blur = (n) => u < 0.4 ? n * (1 - EASE.smooth(u / 0.4)) : 0;
   if (l.settle) { const s2 = spring(u, Math.min(1, z + 0.1), f * 0.9); return { s: 1.035 - 0.035 * s2, b: blur(2.5) }; }
@@ -314,7 +352,9 @@ function enter(l, u, k) {
   }
 }
 // exit: v runs 0 to 1 over the exit; softer than the entrance
-function exit(l, v) {
+function exit(l, v, k = 0) {
+  if (l.hero) { const a = away(v), dir = k % 2 ? 1 : -1;  // the slices part, alternate ways
+    return l.bandsH ? { o: 1 - a, x: dir * 40 * a, b: 4 * a } : { o: 1 - a, y: dir * 40 * a, b: 4 * a }; }
   const a = away(v);
   if (l.settle) return { s: 1 + 0.035 * a, b: 2.5 * a };  // leans toward the viewer, so nothing behind it shows
   switch (l.kind) {
@@ -330,6 +370,8 @@ function exit(l, v) {
 // idle: movement in place; zero at t = 0 and t = T so the loop closes
 function idle(l, t, living) {
   if (l.flow) return float(l, t);
+  if (l.hero) { const w = 2 * Math.PI * t / T, A = ENERGY.idle;  // a product shot: it turns slowly in 3D and breathes
+    return { ry: 10 * A * Math.sin(w), rx: 4 * A * Math.sin(2 * w), y: -4 * A * Math.sin(2 * w), s: 1 + 0.025 * A * env(t) }; }
   const A = ENERGY.idle * (living ? 1.5 : 1), ph = l.i * 1.7, E = env(t);
   if (l.area > 0.35) return { s: 1 + 0.03 * A * E };  // a full-card image only pushes in: tilting it would show its corners
   switch (l.kind) {
@@ -363,7 +405,7 @@ function float(l, t) {
   };
 }
 
-const scaleIdle = (s, k) => ({ x: (s.x || 0) * k, y: (s.y || 0) * k, r: (s.r || 0) * k, s: 1 + ((s.s ?? 1) - 1) * k });
+const scaleIdle = (s, k) => ({ x: (s.x || 0) * k, y: (s.y || 0) * k, r: (s.r || 0) * k, rx: (s.rx || 0) * k, ry: (s.ry || 0) * k, s: 1 + ((s.s ?? 1) - 1) * k });
 const add = (a, b) => ({ o: (a.o ?? 1) * (b.o ?? 1), x: (a.x || 0) + (b.x || 0), y: (a.y || 0) + (b.y || 0), s: (a.s ?? 1) * (b.s ?? 1),
   sx: (a.sx ?? 1) * (b.sx ?? 1), sy: (a.sy ?? 1) * (b.sy ?? 1), r: (a.r || 0) + (b.r || 0), rx: (a.rx || 0) + (b.rx || 0), ry: (a.ry || 0) + (b.ry || 0),
   b: (a.b || 0) + (b.b || 0), clip: a.clip || b.clip || '' });
@@ -393,12 +435,12 @@ window.render = function (t) {
         if (l.kind === 'logo') st = add(st, { r: 360 * EASE.inOut(P(t, 1.1, 1.0)) % 360 });
       } else if (t < EXIT_END) {
         const off = Math.min(0.1, Math.min(0.08, l.i * 0.012) + (l.kind === 'headline' ? k * 0.008 : 0));
-        st = exit(l, P(t, off, EXIT_END - 0.1));
+        st = exit(l, P(t, off, EXIT_END - 0.1), k);
       } else {
         const start = l.at + (l.kind === 'headline' ? k * partGap(l) : 0);
         // idle eases in from the start of the entrance, so a layer that is visible throughout does not jump
         const ramp = EASE.smooth(clamp((t - start) / 0.6));
-        st = t < start ? exit(l, 1) : add(enter(l, t - start, k), scaleIdle(id, ramp));
+        st = t < start ? exit(l, 1, k) : add(enter(l, t - start, k), scaleIdle(id, ramp));
       }
       // the filter is on only while the edge moves: Chrome draws SVG filters at 1x, so with it on even a still
       // edge is softer than the card at 2x, and the first and last frames must be the card itself
@@ -436,8 +478,18 @@ window.render = function (t) {
       x.el.style.transform = `translate(${Math.cos(x.a) * d}px,${Math.sin(x.a) * d}px) rotate(${180 * p}deg) scale(${1 - 0.6 * p})`;
     }
   });
+  const hl = layers.find(l => l.hero);
+  if (hl) {
+    const on = EASE.smooth(P(t, hl.at + 0.35, 0.8)) * (1 - EASE.smooth(P(t, T - 0.55, 0.5)));  // zero at both ends
+    hl.halo.style.opacity = (on * (0.85 + 0.15 * Math.sin(2 * Math.PI * t / T * 2))).toFixed(4);
+    if (hl.flare) {
+      const q = P(t, hl.at + 0.75, 0.95);
+      $('flare').style.opacity = q > 0 && q < 1 ? (0.9 * Math.sin(Math.PI * q)).toFixed(4) : 0;
+      $('flare').style.transform = `translateX(${((-0.5 + 2 * q) * W).toFixed(1)}px) skewX(-18deg)`;
+    }
+  }
   const fp = P(t, 0.02, 0.8), fl = $('flare');
-  if (ENERGY.accents >= 2 && layers.some(l => !l.anchored)) {
+  if (ENERGY.accents >= 2 && layers.some(l => !l.anchored) && !hl) {
     fl.style.opacity = fp > 0 && fp < 1 ? 0.85 * Math.sin(Math.PI * fp) : 0;
     fl.style.transform = `translateX(${((-0.5 + 2 * fp) * W).toFixed(1)}px) skewX(-18deg)`;
   }

@@ -8,10 +8,10 @@
  "style": "rebuild",
  "frame0_mean": 0.049,
  "frame0_local_pct": 0.0,
- "seam": 1,
- "step": 1,
- "mp4_kb": 151,
+ "seam": 58,
+ "step": 62,
+ "mp4_kb": 345,
  "jpg_kb": 16,
- "seconds": 25.0,
+ "seconds": 33.1,
  "pass": true
 }

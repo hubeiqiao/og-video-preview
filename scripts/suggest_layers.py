@@ -804,6 +804,7 @@ def main():
         "image": "card.jpg", "layerImage": "layers.png", "cuts": "cuts/", "glyphs": "glyphs.png",
         "width": W, "height": H, "loop": 4.0,
         "style": a.style, "energy": a.energy, "cleanPlate": bool(a.plate),
+        "paper": "#%02x%02x%02x" % tuple(int(v) for v in mode_colour(np.concatenate([img[0], img[-1], img[:, 0], img[:, -1]]))[0]),
         # type on a large picture: refills behind it never look clean, so the card lives in place
         "background": "detailed" if any(len(b) > 4 and b[2] * b[3] > 0.45 * W * H for b in backdrops) else "flat" if flat else "graded",
         "plate": {"mode": "image", "src": "plate.png"},
