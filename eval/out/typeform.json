@@ -1,0 +1,17 @@
+{
+ "name": "typeform",
+ "layers": 1,
+ "kinds": {
+  "headline": 1
+ },
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 0.165,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 2,
+ "mp4_kb": 54,
+ "jpg_kb": 17,
+ "seconds": 25.3,
+ "pass": true
+}

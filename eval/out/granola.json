@@ -1,0 +1,18 @@
+{
+ "name": "granola",
+ "layers": 8,
+ "kinds": {
+  "icon": 4,
+  "headline": 4
+ },
+ "background": "graded",
+ "style": "rebuild",
+ "frame0_mean": 1.297,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 2,
+ "mp4_kb": 749,
+ "jpg_kb": 117,
+ "seconds": 99.3,
+ "pass": true
+}

@@ -1,0 +1,22 @@
+{
+ "name": "tailwindcss",
+ "layers": 18,
+ "kinds": {
+  "icon": 8,
+  "label": 2,
+  "logo": 1,
+  "headline": 2,
+  "illustration": 2,
+  "shape": 3
+ },
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 1.175,
+ "frame0_local_pct": 0.0,
+ "seam": 1,
+ "step": 1,
+ "mp4_kb": 450,
+ "jpg_kb": 64,
+ "seconds": 59.7,
+ "pass": true
+}

@@ -1,6 +1,6 @@
 ---
 name: og-video-preview
-description: Turn any approved Open Graph image into a looping og:video so link previews move, and make it actually play in iMessage, Safari, Slack and social cards. Works from the finished image alone: it reads what each element is (headline, logo, pill, photo, panel, shape, line and more), cuts it out cleanly and gives each kind its own physical motion, with frame 0 pixel-identical to the image. Or from an HTML card. Covers what to animate, motion presets, Playwright frame capture, ffmpeg encoding, seamless-loop and frame-0 checks, the meta tags, and the server requirements (HTTP Range / 206, clean .mp4 URLs, versioned filenames). Use when someone asks for an OG video, animated link preview, animated share card or og:video, wants an existing og:image to move, or has an og:video that only shows a still.
+description: Turn any approved Open Graph image into a looping og:video so link previews move, and make it actually play where previews can play video (iMessage, Discord) while every other app shows the matching still. Works from the finished image alone: it reads what each element is (headline, logo, pill, photo, panel, shape, line and more), cuts it out cleanly and gives each kind its own physical motion, with frame 0 pixel-identical to the image. Or from an HTML card. Covers what to animate, motion presets, Playwright frame capture, ffmpeg encoding, seamless-loop and frame-0 checks, the meta tags, and the server requirements (HTTP Range / 206, clean .mp4 URLs, versioned filenames). Use when someone asks for an OG video, animated link preview, animated share card or og:video, wants an existing og:image to move, or has an og:video that only shows a still.
 ---
 
 # OG video preview
@@ -106,7 +106,7 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 
 Every extra (idle, sweeps, rings, glows, punch, liquid edges, the breathing of a graded background) is exactly zero at t = 0 and t = loop, so the loop closes on the approved card.
 
-Tested on the OG images of 60+ well-known sites (`examples/gallery/sites.txt`; `examples/gallery/run.sh` fetches and renders them locally). Where the reading is wrong, it is usually one of: a text line containing a pill or avatars (read as an illustration), dense UI screenshots (many small parts), photo mosaics (one image). Fix those with `kind` in `layers.js`.
+Tested on the OG images of 61 well-known sites in `eval/` (`python3 eval/run.py` renders and scores all of them; run it after any change to the engine). Where a reading is wrong it is usually one of: a text line containing a pill or avatars, a dense UI screenshot (many small parts), stylised capitals Tesseract cannot read. Fix those with `kind` in `layers.js`.
 
 ## Route B: from an HTML card
 
@@ -191,12 +191,26 @@ curl -s -o /dev/null -H "Range: bytes=0-1" -w "%{http_code}\n" https://example.c
 
   Without `run_worker_first`, asset paths never reach the worker. Keep the worker file out of the public folder. Test with `wrangler dev`: Range → 206, full GET → 200 with `Accept-Ranges`, out-of-range → 416, other pages unchanged.
 
+## Where og:video plays (checked 2026-10-30)
+
+Most apps read only `og:image`. **Where video is not supported, the app simply shows your `og:image`, the approved still, exactly as it did before you added og:video; nothing breaks.** The video is a bonus where it plays, which is why frame 0 must be that same image: the still and the moving card always agree.
+
+| App | What it shows | Conditions and source |
+|---|---|---|
+| iMessage | **Plays**: autoplays muted and loops | Direct MP4 link; the page under 1 MB, icon + image + video under 10 MB; with autoplay off or Reduce Motion, the still with a play button. Apple [TN3156](https://developer.apple.com/documentation/technotes/tn3156-create-rich-previews-for-messages). Needs HTTP Range (206), see below |
+| Discord | **Plays**: inline player with a play button, no autoplay | MP4, WebM or MOV over https; `og:image` is required and becomes the first frame; the whole fetch must finish within 10 s, at most 50 MB; previews cached about 30 min. Discord's docs also ask for `og:type` `video.other` or `twitter:card` `player`; a device test (checkmyog, 24 Oct 2026) played a plain `website` page too. [Discord link previews](https://docs.discord.com/developers/link-previews/overview) |
+| Telegram | Reports disagree | Some sites report the loop playing; a device test on 24 Oct 2026 saw only the still ([checkmyog](https://github.com/twidtwid/checkmyog)). Test on your own device before you promise it |
+| Slack | Still | Classic unfurls read Open Graph and show `og:image`; inline video only for sites Slack handles itself or an app unfurl. [Slack unfurling](https://docs.slack.dev/messaging/unfurling-links-in-messages/) |
+| X, Facebook, LinkedIn, WhatsApp, Signal, Bluesky, Mastodon, Matrix / Element | Still | Each reads `og:image`; none plays `og:video` in a link card (X's large card needs `twitter:card` `summary_large_image`). The viral og:video clips on X were iMessage screen recordings |
+
+Sources were read on 2026-10-30; the per-app device tests are from [checkmyog](https://github.com/twidtwid/checkmyog) (MIT), whose support table cites each one.
+
 ## After publishing
 
 - `scripts/check_live.sh <page-url>` reads the page's tags and checks both files: status, type, size, https, query strings and the 206 answer. It exits non-zero on any failure.
 - iMessage caches a preview per URL on the sender's device; retest with a URL it has never seen (`?t=2`).
 - LinkedIn Post Inspector, and the X and Facebook card tools, refresh their caches.
-- Platforms decide for themselves whether to animate. Report "eligible and verified over HTTP" until someone has seen it move on a device.
+- Platforms decide for themselves whether to animate (see the table above). Report "eligible and verified over HTTP" until someone has seen it move on a device.
 
 ## Files
 
@@ -212,4 +226,5 @@ curl -s -o /dev/null -H "Range: bytes=0-1" -w "%{http_code}\n" https://example.c
 | `scripts/encode.sh` | Frames to MP4 and frame-0 JPEG, with size limits |
 | `scripts/check_live.sh` | Live tags, files, https and Range check |
 | `worker/range-worker.js` | Cloudflare Worker adding Range / 206 for `.mp4` |
-| `examples/` | Joe's own cards (route A and B) with inputs and outputs; `examples/gallery/` renders 60+ well-known sites' cards locally |
+| `examples/` | Worked examples (route A, living style, route B) with inputs and outputs |
+| `eval/` | 61 real OG images, the runner that renders and scores them, and the results |

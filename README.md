@@ -8,27 +8,19 @@ An agent skill that turns any approved Open Graph image into a looping `og:video
 
 ## Watch it
 
-[16-second promo (MP4)](social/promo.mp4): it opens on the X post that started this (its own og:video playing), then turns an OG image into video in one prompt. Made with Remotion; music "Deep Urban" from Mixkit (free licence); sound effects from [earshot](https://github.com/Leonxlnx/earshot).
+[18-second promo (MP4)](social/promo.mp4): it opens on the X post that started this (its own og:video playing), then deals out 20 of the eval's real sites and slams into all 61 at once. Made with Remotion; music "Deep Urban" from Mixkit (free licence); sound effects from [earshot](https://github.com/Leonxlnx/earshot).
+
+## Tested on 61 real OG images
+
+![61 OG images, animated](eval/sheet.jpg)
+
+The OG images of 61 well-known sites, each turned into an og:video by the skill alone, with no hand tuning. Every card is scored: frame 0 must equal the image, the loop must close without a jump, and the files must stay under the size limits. The table, the videos and `python3 eval/run.py` to run it again are in [eval/](eval/). It doubles as the skill's regression test: re-run it after any change to the engine and compare.
 
 ## Examples
 
-Every route A example below starts from the approved image alone. The skill read each card, chose every motion and rendered it with no hand tuning. `out/layers-preview.png` in each folder shows what it recognised.
-
-**JoeSpeaking.com homepage card.** The pill pops, the headline rises letter by letter, the report card settles in place, the orb and its arrow rise, the wordmark unfurls from its logo.
+**JoeSpeaking.com homepage card**, from the finished image alone: the pill pops, the headline rises letter by letter, the report card settles in place, the orb and its arrow rise, the wordmark unfurls from its logo.
 
 ![JoeSpeaking.com OG video](examples/joespeaking-home/out/preview.gif)
-
-**hubeiqiao.com home card.** Type rises word by word and letter by letter on a dark vignette, the portrait springs in with a ring.
-
-![hubeiqiao.com OG video](examples/hubeiqiao-home/out/preview.gif)
-
-**hubeiqiao.com/co card.** Type over a photo: the photo stays, the camera breathes, and each line rises back in over a refilled background.
-
-![hubeiqiao.com/co OG video](examples/hubeiqiao-co/out/preview.gif)
-
-**A TON of Demos talk card, from its still.** The same card as the route B example below, animated from the finished JPG instead of the HTML.
-
-![A TON of Demos OG video](examples/ton-of-demos/out/preview.gif)
 
 **Living style.** Nothing leaves: the blobs flow and settle, the title stays readable the whole time.
 
@@ -38,7 +30,7 @@ Every route A example below starts from the approved image alone. The skill read
 
 ![demo.joespeaking.com OG video](examples/demo-joespeaking/out/preview.gif)
 
-Rebuild all of them with `bash examples/build-examples.sh`. The engine was also run on the OG images of 60+ well-known sites. Their images belong to the sites, so they are not in this repo: `bash examples/gallery/run.sh` fetches and renders them on your machine.
+Rebuild them with `bash examples/build-examples.sh`; `out/layers-preview.png` in each folder shows what the skill recognised.
 
 ## How it works
 
@@ -52,6 +44,14 @@ Two routes:
 |---|---|---|
 | A. From the approved image | any PNG/JPG, made anywhere | existing cards, cards from Figma or Canva |
 | B. From an HTML card | `template/og.html` | new cards designed in code |
+
+## Where it plays
+
+| Plays the video | Shows the still |
+|---|---|
+| **iMessage**: autoplays, muted, looping<br>**Discord**: inline player with a play button<br>**Telegram**: reports disagree, test on your device | Slack, X, Facebook, LinkedIn, WhatsApp, Signal, Bluesky, Mastodon, Matrix |
+
+**Where video is not supported, nothing breaks: the app shows your `og:image`, the same approved image as frame 0 of the video.** So the preview is never worse than today, and it moves wherever it can. Details, conditions and sources are in [SKILL.md](SKILL.md#where-ogvideo-plays-checked-2026-10-30).
 
 ## The part that silently breaks playback
 
@@ -105,17 +105,19 @@ The skill will:
 og-video-preview/
 ├── SKILL.md                 # workflow, card and motion rules, tags, server requirements
 ├── template/
-│   ├── from-image.html      # route A: animate an approved image from layers.js
+│   ├── from-image.html      # route A: the motion engine, motion chosen per element kind
 │   └── og.html              # route B: configurable HTML card
 ├── scripts/
-│   ├── suggest_layers.py    # propose layer boxes for an image
+│   ├── suggest_layers.py    # read an image: find and classify every element
+│   ├── make_plate.py        # clean plate and per-element cutouts
 │   ├── render_frames.py     # Playwright frame capture at 2x
 │   ├── check_frame0.py      # frame 0 vs the approved still
 │   ├── check_loop.py        # seamless loop check
-│   ├── encode.sh            # MP4 + JPEG with size limits
+│   ├── encode.sh            # MP4 + JPEG, compressing harder until they fit the limits
 │   └── check_live.sh        # live tags, files and Range check
 ├── worker/range-worker.js   # Range / 206 support on Cloudflare Workers assets
-├── examples/                # JoeSpeaking.com and demo.joespeaking.com
+├── examples/                # worked examples: route A, living style, route B
+├── eval/                    # 61 real OG images, the runner that scores them, the results
 └── social/                  # this repo's own hero, social preview and promo
 ```
 

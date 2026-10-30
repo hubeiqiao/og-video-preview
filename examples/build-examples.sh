@@ -26,9 +26,6 @@ route_a() { # name, then any suggest_layers.py options
 }
 
 route_a joespeaking-home
-route_a hubeiqiao-home
-route_a hubeiqiao-co
-route_a ton-of-demos
 route_a living-blobs --style living
 
 # Route B: the demo.joespeaking.com talk card, built as HTML

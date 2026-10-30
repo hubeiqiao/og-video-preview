@@ -18,6 +18,7 @@
 -->
 <html><head><meta charset="utf-8">
 <script src="layers.js"></script>
+<script src="cuts/cuts.js"></script>
 <style>
 * { margin:0; box-sizing:border-box; }
 html, body { overflow:hidden; background:#000; }
@@ -89,16 +90,28 @@ const ACCENT = C.accent || (C.layers.find(l => l.tone) ? hexRgb(C.layers.find(l 
 
 // ---- build ----
 let layers = [], extras = [];
-const load = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => i.decode().then(() => ok(i), () => ok(i)); i.onerror = () => no(new Error('could not load ' + src)); i.src = src; });
+// a busy machine can drop a request: try each image three times before giving up
+const load = (src, tries = 3) => new Promise((ok, no) => {
+  const i = new Image();
+  i.onload = () => i.decode().then(() => ok(i), () => ok(i));
+  i.onerror = () => tries > 1 ? setTimeout(() => load(src + (src.includes('?') ? '&' : '?') + 'r=' + tries, tries - 1).then(ok, no), 200) : no(new Error('could not load ' + src));
+  i.src = src;
+});
+const keep = [];  // decoded images stay referenced for the whole capture
 // every image a frame can show is loaded and decoded before the first frame is captured
-const images = [C.plate.src, C.layerImage, C.glyphs, ...(C.cuts ? C.layers.map(l => `${C.cuts}${l.id}.png`) : [])].filter(Boolean);
-window.ready = Promise.all(images.map(load)).then(([pl]) => {
+const images = [C.plate.src, C.layerImage, C.glyphs, ...(C.cuts && window.CUTS ? C.layers.filter(l => window.CUTS[l.id]).map(l => `${C.cuts}${l.id}.png`) : [])].filter(Boolean);
+window.ready = Promise.all(images.map(s => load(s))).then(imgs => { keep.push(...imgs); return imgs; }).then(([pl]) => {
   const plate = $('plate'); plate.width = W; plate.height = H; plate.getContext('2d').drawImage(pl, 0, 0, W, H);
   build(); window.render(0); window.readyDone = true;
 });
 
 function cutout(node, x, y, id) {
-  const src = C.cuts && id ? `${C.cuts}${id}.png` : C.layerImage;  // each layer's own pixels when cut separately
+  const own = C.cuts && id && window.CUTS && window.CUTS[id];  // each layer's own pixels, cropped to where they are
+  if (own) {
+    const [cx, cy, cw, ch] = own;
+    return Object.assign(node.style, { backgroundImage: `url("${C.cuts}${id}.png")`, backgroundSize: `${cw}px ${ch}px`, backgroundPosition: `${cx - x}px ${cy - y}px` });
+  }
+  const src = C.layerImage;
   Object.assign(node.style, { backgroundImage: `url("${src}")`, backgroundSize: `${W}px ${H}px`, backgroundPosition: `${-x}px ${-y}px` });
 }
 function glyphMask(node, x, y) {
@@ -334,7 +347,10 @@ window.render = function (t) {
         const ramp = EASE.smooth(clamp((t - start) / 0.6));
         st = t < start ? exit(l, 1) : add(enter(l, t - start, k), scaleIdle(id, ramp));
       }
-      p._liquid = l.liquid ? `url(#${l.liquid.id})` : null;
+      // the filter is on only while the edge moves: Chrome draws SVG filters at 1x, so with it on even a still
+      // edge is softer than the card at 2x, and the first and last frames must be the card itself
+      const flow = l.liquid ? 26 * ENERGY.idle * env(t) * (living ? 1.4 : 1) : 0;
+      p._liquid = flow > 0.5 ? `url(#${l.liquid.id})` : null;
       apply(p, st);
     });
     if (l.liquid) {  // the shape's edge flows, then settles back to the approved outline

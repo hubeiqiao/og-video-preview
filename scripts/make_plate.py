@@ -123,11 +123,22 @@ def main():
         return cv2.cvtColor(np.dstack([img, (a_ * 255).clip(0, 255).astype(np.uint8)]), cv2.COLOR_RGBA2BGRA)
     cv2.imwrite(os.path.join(d, "layers.png"), cutout(cut))
     # one image per layer with only its own pixels, so boxes may overlap (tight leading, a pill in a line)
+    # each image is cropped to its own pixels (a full-card image per layer costs the browser too much
+    # memory); cuts/cuts.js records where each crop sits on the card
     os.makedirs(os.path.join(d, "cuts"), exist_ok=True)
+    where = {}
     for lid, x0, y0, x1, y1, m in own_cut:
         one = np.zeros((H, W), np.uint8)
         one[y0:y1, x0:x1] = m
-        cv2.imwrite(os.path.join(d, "cuts", f"{lid}.png"), cutout(one), [cv2.IMWRITE_PNG_COMPRESSION, 9])
+        rgba = cutout(one)
+        ys, xs = np.nonzero(rgba[..., 3])
+        if not len(ys):
+            continue
+        cx, cy, cx1, cy1 = int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
+        cv2.imwrite(os.path.join(d, "cuts", f"{lid}.png"), rgba[cy:cy1, cx:cx1], [cv2.IMWRITE_PNG_COMPRESSION, 9])
+        where[lid] = [cx, cy, cx1 - cx, cy1 - cy]
+    with open(os.path.join(d, "cuts", "cuts.js"), "w") as fh:
+        fh.write("window.CUTS = " + json.dumps(where) + ";\n")
 
     ga = cv2.GaussianBlur(glyph.astype(np.float32), (0, 0), 0.7)
     white = np.full((H, W, 3), 255, np.uint8)

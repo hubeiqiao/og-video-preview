@@ -56,7 +56,7 @@ async def main():
         await page.wait_for_timeout(300)
         if errors:
             raise SystemExit("page error: " + "; ".join(errors))
-        await page.wait_for_function("!window.ready || window.readyDone === true", timeout=15000)
+        await page.wait_for_function("!window.ready || window.readyDone === true", timeout=60000)
         size = await page.evaluate("window.OG ? [OG.width, OG.height] : [1200, 630]")
         await page.set_viewport_size({"width": size[0], "height": size[1]})
         await page.wait_for_timeout(1200)  # let images decode

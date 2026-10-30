@@ -3,5 +3,5 @@ frames/
 __pycache__/
 node_modules/
 .wrangler/
-examples/gallery/out/
 examples/*/work/
+eval/work/

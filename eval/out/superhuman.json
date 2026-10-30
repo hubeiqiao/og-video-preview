@@ -1,0 +1,22 @@
+{
+ "name": "superhuman",
+ "layers": 10,
+ "kinds": {
+  "logo": 2,
+  "illustration": 2,
+  "icon": 2,
+  "avatar": 1,
+  "text": 1,
+  "label": 2
+ },
+ "background": "graded",
+ "style": "rebuild",
+ "frame0_mean": 1.051,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 1,
+ "mp4_kb": 860,
+ "jpg_kb": 80,
+ "seconds": 165.6,
+ "pass": true
+}

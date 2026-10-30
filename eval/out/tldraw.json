@@ -1,0 +1,18 @@
+{
+ "name": "tldraw",
+ "layers": 2,
+ "kinds": {
+  "logo": 1,
+  "headline": 1
+ },
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 0.28,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 1,
+ "mp4_kb": 116,
+ "jpg_kb": 22,
+ "seconds": 27.4,
+ "pass": true
+}

@@ -1,0 +1,21 @@
+{
+ "name": "netlify",
+ "layers": 13,
+ "kinds": {
+  "icon": 6,
+  "text": 1,
+  "headline": 2,
+  "avatar": 3,
+  "shape": 1
+ },
+ "background": "graded",
+ "style": "rebuild",
+ "frame0_mean": 0.718,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 3,
+ "mp4_kb": 508,
+ "jpg_kb": 60,
+ "seconds": 69.8,
+ "pass": true
+}

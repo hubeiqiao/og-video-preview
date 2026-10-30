@@ -1,0 +1,17 @@
+{
+ "name": "miro",
+ "layers": 1,
+ "kinds": {
+  "shape": 1
+ },
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 0.157,
+ "frame0_local_pct": 0.0,
+ "seam": 1,
+ "step": 1,
+ "mp4_kb": 186,
+ "jpg_kb": 24,
+ "seconds": 47.0,
+ "pass": true
+}

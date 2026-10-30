@@ -1,0 +1,23 @@
+{
+ "name": "railway",
+ "layers": 18,
+ "kinds": {
+  "icon": 7,
+  "logo": 1,
+  "text": 1,
+  "label": 1,
+  "illustration": 4,
+  "shape": 1,
+  "headline": 3
+ },
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 0.781,
+ "frame0_local_pct": 0.0,
+ "seam": 2,
+ "step": 2,
+ "mp4_kb": 401,
+ "jpg_kb": 52,
+ "seconds": 47.4,
+ "pass": true
+}
