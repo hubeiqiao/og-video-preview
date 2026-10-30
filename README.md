@@ -12,7 +12,7 @@ An open-source agent skill for Claude Code, OpenAI Codex, Cursor and every agent
 
 [Website](https://hubeiqiao.com/og-video-preview/) · [20-second film](social/promo.mp4) · [Eval](eval/) · [Skill reference](SKILL.md)
 
-![A grey still photo goes into a small brass machine and comes out as bright video cards with a play button](social/hero.gif)
+![Before and after: the approved og:image on the left, the og:video the skill made from it playing on the right, for this project's own page and for joespeaking.com](social/hero.gif)
 
 </div>
 
@@ -45,7 +45,7 @@ Then ask your agent: *"Use /og-video-preview to make my og:image move."*
 
 ## Features
 
-| | |
+| Feature | What it does |
 |---|---|
 | **Element-aware motion** | Twelve element kinds, each with its own entrance, exit, idle movement and accent, on one set of easing curves and damped springs. Accents differ from card to card (a sweep, hopping letters, a star, a coin flip, a swing), and a fine background texture moves as one surface |
 | **Works from the finished image** | Any PNG or JPG, made in Figma, Canva or code (route A), or a configurable HTML card (route B) |
@@ -139,7 +139,7 @@ Full detail, including styles (`rebuild`, `living`), energy levels and per-layer
 
 ## Evaluation
 
-![The 103 eval cards, animated](eval/sheet.jpg)
+![Six eval cards, each with the site's own og:image on the left and the og:video the skill made from it on the right](social/eval-pairs.gif)
 
 The skill is tested on the Open Graph images of 103 well-known sites, each put through the whole pipeline with no hand tuning and scored automatically. They cover developer tools and products (61), venture capital firms such as Y Combinator, a16z and Sequoia (16), AI companies such as OpenAI, Mistral and ElevenLabs (18), and technology companies such as Apple, IBM and Cloudflare (8).
 
@@ -161,12 +161,19 @@ python3 eval/run.py --only stripe,github --keep  # a few cards, keeping their in
 
 ## Examples
 
-| | |
+Each pair is the site's approved `og:image` on the left and the `og:video` the skill made from it on the right, with no hand tuning unless noted.
+
+| ![This project's page: og:image and og:video](social/pairs/og-video-preview.gif) | ![joespeaking.com: og:image and og:video](social/pairs/joespeaking.gif) |
 |---|---|
-| ![This project's own card](examples/og-video-preview/out/preview.gif) | ![JoeSpeaking.com](examples/joespeaking-home/out/preview.gif) |
-| **This project's card**, from the finished image alone | **[joespeaking.com](https://joespeaking.com)**, from its approved image |
-| ![Living style](examples/living-blobs/out/preview.gif) | ![HTML card](examples/demo-joespeaking/out/preview.gif) |
-| **Living style**: nothing leaves, the blobs flow and settle | **Route B**: a card built in HTML |
+| **[This project's page](https://hubeiqiao.com/og-video-preview/)**: an illustration with a clean background (`--plate`), so every object moves | **[joespeaking.com](https://joespeaking.com)**: the flow style, with the arrow's cut corrected by hand |
+| ![shopify.com: og:image and og:video](social/pairs/shopify.gif) | ![elevenlabs.io: og:image and og:video](social/pairs/elevenlabs.gif) |
+| **shopify.com**: the globe turns | **elevenlabs.io**: the line texture moves as one surface |
+| ![apple.com: og:image and og:video](social/pairs/apple.gif) | ![planetscale.com: og:image and og:video](social/pairs/planetscale.gif) |
+| **apple.com**: a lone mark, revealed like a product | **planetscale.com**: a logo wall, a pop and a band of light |
+| ![groq.com: og:image and og:video](social/pairs/groq.gif) | ![stripe.com: og:image and og:video](social/pairs/stripe.gif) |
+| **groq.com**: a flat graphic behind the type moves | **stripe.com**: the headline rises out of its own line |
+
+The six site cards are from the [eval](eval/); their images belong to their owners and are used only as test inputs. More worked examples, with their inputs (a living-style card and a card built in HTML), are in [`examples/`](examples/). Regenerate these GIFs with `python3 tools/readme_gifs.py`.
 
 Rebuild them with `bash examples/build-examples.sh`. The [website](https://hubeiqiao.com/og-video-preview/)'s own link preview is made by the skill itself from its approved still, with a clean background (`--plate`) so every object can move (`site/og/build.sh`).
 
