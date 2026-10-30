@@ -5,3 +5,6 @@ node_modules/
 .wrangler/
 examples/*/work/
 eval/work/
+_site/
+site/og/work/
+.cache/

@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OG Video Preview: make your link previews move</title>
+<meta name="description" content="An open-source agent skill that turns any og:image into a looping og:video. Tested on 103 real OG images with no hand tuning.">
+<link rel="canonical" href="https://hubeiqiao.github.io/og-video-preview/">
+<!-- the preview of this page: one still becomes many moving previews, rendered with the skill (site/og/prism/) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OG Video Preview">
+<meta property="og:title" content="OG Video Preview: make your link previews move">
+<meta property="og:description" content="An open-source agent skill that turns any og:image into a looping og:video. Tested on 103 real OG images.">
+<meta property="og:url" content="https://hubeiqiao.github.io/og-video-preview/">
+<meta property="og:image" content="https://hubeiqiao.github.io/og-video-preview/og/og-v4.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A beam of white light passes through a glass link card and splits into a fan of coloured cards, each playing a real og:video">
+<meta property="og:video" content="https://hubeiqiao.github.io/og-video-preview/og/og-v4.mp4">
+<meta property="og:video:secure_url" content="https://hubeiqiao.github.io/og-video-preview/og/og-v4.mp4">
+<meta property="og:video:type" content="video/mp4">
+<meta property="og:video:width" content="1200">
+<meta property="og:video:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://hubeiqiao.github.io/og-video-preview/og/og-v4.jpg">
+<meta name="twitter:image:alt" content="A beam of white light passes through a glass link card and splits into a fan of coloured cards, each playing a real og:video">
+<meta name="theme-color" content="#0b0a09">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23f6b93b'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Fragment+Mono&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="https://joespeaking.com/landing/og/home-en.jpg">
+<style>
+:root {
+  color-scheme: dark;
+  --ink: oklch(0.145 0.006 60); --raised: oklch(0.195 0.007 60); --raised-2: oklch(0.235 0.008 60);
+  --text: oklch(0.97 0.004 60); --text-2: oklch(0.84 0.008 60); --text-3: oklch(0.72 0.01 60);
+  --amber: oklch(0.82 0.15 78); --amber-soft: oklch(0.82 0.15 78 / 0.12); --amber-line: oklch(0.82 0.15 78 / 0.35);
+  --live: oklch(0.66 0.21 28);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow: 0 0 0 0.5px oklch(1 0 0 / 0.08), 0 1px 2px oklch(0 0 0 / 0.3), 0 12px 32px oklch(0 0 0 / 0.32), 0 40px 100px oklch(0 0 0 / 0.45);
+  --sans: 'Familjen Grotesk', ui-sans-serif, system-ui, sans-serif; --mono: 'Fragment Mono', ui-monospace, monospace;
+  --gutter: clamp(16px, 4vw, 56px);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { background: var(--ink); -webkit-text-size-adjust: 100%; }
+body { background: var(--ink); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  font-synthesis: none; text-rendering: optimizeLegibility; overflow-x: hidden; }
+::selection { background: var(--amber); color: var(--ink); }
+a { color: inherit; text-decoration: none; }
+img, video { display: block; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+.amber { color: var(--amber); }
+.nw { white-space: nowrap; }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 0 var(--gutter); }
+h1, h2 { font-weight: 650; letter-spacing: -0.04em; text-wrap: balance; }
+h2 { font-size: clamp(34px, 5vw, 72px); line-height: 1.04; }
+.media { border-radius: clamp(10px, 1.4vw, 16px); overflow: hidden; background: var(--raised); box-shadow: var(--shadow); position: relative; }
+.media img, .media video { width: 100%; height: 100%; object-fit: cover; }
+.media::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.1); pointer-events: none; }
+section { padding-top: clamp(96px, 12vw, 160px); }
+.head { display: grid; gap: 14px; margin-bottom: clamp(28px, 4vw, 44px); }
+.sub { font-family: var(--mono); font-size: 14px; color: var(--text-3); }
+.in { animation: rise 600ms var(--ease) both; animation-delay: calc(var(--d, 0) * 80ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+
+.top { display: flex; justify-content: space-between; align-items: center; height: 72px; font-family: var(--mono); font-size: 14px; }
+.top .name { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--amber); }
+.top a { color: var(--text-3); padding: 10px 0 10px 12px; transition: color 160ms var(--ease); }
+.top a:hover { color: var(--text); }
+
+/* hero: the headline, and beside it the skill at work on one real card after another */
+.heroband { position: relative; isolation: isolate; }
+.heroband > .tex { inset: -40px 0 -60px; opacity: 0.55;
+  mask-image: radial-gradient(75% 85% at 30% 50%, #000 10%, transparent 75%); -webkit-mask-image: radial-gradient(75% 85% at 30% 50%, #000 10%, transparent 75%); }
+.hero { position: relative; z-index: 1; padding-top: clamp(24px, 5vh, 64px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: clamp(28px, 4vw, 64px); align-items: center; }
+.hero h1 { font-size: clamp(40px, 4.9vw, 76px); line-height: 1.02; }
+.hero h1 .w { display: inline-block; }
+.hero h1 .l { display: inline-block; will-change: transform; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: clamp(24px, 3vw, 36px); align-items: center; }
+.cmd { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 6px 6px 6px 16px; border-radius: 14px; background: var(--amber-soft);
+  box-shadow: inset 0 0 0 1px var(--amber-line); font-family: var(--mono); font-size: 14px; color: var(--amber); }
+.cmd code { min-width: 0; overflow-wrap: break-word; }
+.cmd code::before { content: '$ '; opacity: 0.55; }
+.btn { min-height: 40px; padding: 0 14px; border-radius: 10px; background: oklch(0.82 0.15 78 / 0.16); font-family: var(--mono); font-size: 14px; color: var(--amber);
+  display: inline-flex; align-items: center; gap: 8px; flex: none; transition-property: background-color, transform; transition-duration: 160ms; transition-timing-function: var(--ease); }
+.btn:hover { background: oklch(0.82 0.15 78 / 0.26); }
+.btn:active { transform: scale(0.98); }
+.btn.quiet { background: var(--raised-2); color: var(--text); }
+.btn.quiet:hover { background: oklch(0.28 0.008 60); }
+
+.stage { position: relative; aspect-ratio: 1200 / 630; }
+.stage .still { position: absolute; inset: 0; filter: grayscale(0.9) brightness(0.62); }
+.stage video { position: absolute; inset: 0; clip-path: inset(0 100% 0 0); }
+.stage svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.stage svg rect.box { fill: oklch(0.82 0.15 78 / 0.07); stroke: var(--amber); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.stage svg text { font-family: var(--mono); font-size: 19px; fill: oklch(0.145 0.006 60); }
+.stage svg rect.chip { fill: var(--amber); }
+.beam { position: absolute; top: -3%; bottom: -3%; width: 3px; left: 0; opacity: 0; border-radius: 3px; background: oklch(0.95 0.08 85); will-change: transform;
+  box-shadow: 0 0 18px 4px oklch(0.82 0.15 78 / 0.75), 0 0 60px 14px oklch(0.82 0.15 78 / 0.35); }
+.status { margin-top: 16px; display: flex; justify-content: space-between; gap: 16px; font-family: var(--mono); font-size: 13px; color: var(--text-3); min-height: 20px; }
+.status a { color: var(--text); transition: color 160ms var(--ease); }
+.status a:hover { color: var(--amber); }
+.status b { color: var(--amber); font-weight: 400; }
+.status .k { white-space: nowrap; }
+
+/* the film */
+.filmband { padding-top: clamp(48px, 7vw, 96px); }  /* the film follows the hero directly, no heading */
+.film { position: relative; }
+.film .media { aspect-ratio: 16 / 9; }
+.film .sound { position: absolute; right: 14px; bottom: 14px; background: oklch(0.145 0.006 60 / 0.82); color: var(--text); }
+.film .sound:hover { background: oklch(0.145 0.006 60 / 0.95); }
+
+/* live sites */
+.live { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(16px, 2vw, 28px); }
+.site figcaption { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-family: var(--mono); font-size: 14px; color: var(--text-3); }
+.site a { color: var(--text); padding: 8px 0; transition: color 160ms var(--ease); }
+.site a:hover { color: var(--amber); }
+.site .on { display: inline-flex; align-items: center; gap: 8px; }
+.site .on i { width: 7px; height: 7px; border-radius: 50%; background: var(--live); }
+.site .media { aspect-ratio: 1200 / 630; }
+
+/* the eval cards: light tile videos play by themselves while on screen; a click opens the full one */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: clamp(10px, 1.2vw, 16px); }
+.tile { text-align: left; }
+.tile .media { aspect-ratio: 1200 / 630; border-radius: 10px; box-shadow: 0 0 0 0.5px oklch(1 0 0 / 0.06), 0 6px 18px oklch(0 0 0 / 0.25); transition: transform 240ms var(--ease); }
+.tile:hover .media { transform: translateY(-2px); }
+.tile span { display: block; font-family: var(--mono); font-size: 12px; color: var(--text-3); margin-top: 8px; }
+.tile:focus-visible { outline: 2px solid var(--amber); outline-offset: 4px; border-radius: 12px; }
+
+dialog { margin: auto; border: 0; padding: 0; background: transparent; color: var(--text); width: min(1100px, calc(100vw - 2 * var(--gutter))); overflow: visible; }
+dialog::backdrop { background: oklch(0.1 0.005 60 / 0.86); }
+dialog .bar { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-family: var(--mono); font-size: 14px; gap: 12px; }
+dialog .bar a { color: var(--amber); padding: 8px 0; }
+dialog .nav { display: flex; gap: 8px; }
+dialog .media { aspect-ratio: 1200 / 630; }
+
+/* textures (textures.dev, MIT): Settle behind the hero, Watch behind the end; each rests while off screen */
+.tex { position: absolute; z-index: 0; pointer-events: none; }
+.tex .host { position: absolute; inset: 0; }
+.end { position: relative; isolation: isolate; text-align: center; padding-bottom: 40px; }
+.end > :not(.tex) { position: relative; z-index: 1; }
+.end > .tex { inset: 40px calc(-1 * var(--gutter)) 140px; opacity: 0.6;
+  mask-image: radial-gradient(60% 70% at 50% 45%, #000 10%, transparent 70%); -webkit-mask-image: radial-gradient(60% 70% at 50% 45%, #000 10%, transparent 70%); }
+.end h2 { font-size: clamp(40px, 7vw, 104px); line-height: 1.02; }
+.end .actions { justify-content: center; }
+footer { margin-top: clamp(80px, 10vw, 128px); display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 24px; font-family: var(--mono); font-size: 13px; color: var(--text-3); }
+footer a { padding: 8px 0; transition: color 160ms var(--ease); }
+footer a:hover { color: var(--text); }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .live { grid-template-columns: minmax(0, 1fr); }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .cmd { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .in { animation: none; }
+  .tile .media { transition: none; }
+}
+</style>
+</head>
+<body>
+<div class="heroband">
+  <div class="tex" data-motion="ambient" aria-hidden="true"><div class="host" data-texture="settle" data-ink="oklch(0.82 0.15 78 / 0.32)" data-field="transparent"></div></div>
+  <div class="wrap" style="position:relative;z-index:1">
+    <header class="top in"><span class="name"><i class="dot"></i>og-video-preview</span>
+      <a href="https://github.com/hubeiqiao/og-video-preview" target="_blank" rel="noopener">GitHub ↗</a></header>
+    <div class="hero">
+      <div>
+        <h1 id="title">Make your link <span class="nw">previews <span class="amber" id="move">move.</span></span></h1>
+        <div class="actions in" style="--d:4">
+          <div class="cmd"><code>npx skills add <span class="nw">hubeiqiao/og-video-preview</span></code><button class="btn copy" aria-label="Copy the install command">Copy</button></div>
+        </div>
+      </div>
+      <div class="in" style="--d:3">
+        <div class="media stage" id="stage">
+          <img class="still" alt="" src="https://joespeaking.com/landing/og/home-en.jpg">
+          <video muted playsinline preload="auto" aria-hidden="true"></video>
+          <video muted playsinline preload="auto" aria-hidden="true"></video>
+          <svg viewBox="0 0 1200 630" aria-hidden="true"></svg>
+          <div class="beam"></div>
+        </div>
+        <div class="status" aria-live="polite"><span id="site"></span><span class="k" id="what"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <section class="filmband">
+    <div class="film">
+      <div class="media"><video id="film" src="media/film.mp4" poster="media/promo-poster.jpg" muted loop playsinline preload="none" aria-label="20-second film about OG Video Preview"></video></div>
+      <button class="btn sound" id="sound" aria-pressed="false">Sound on</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="head"><h2>Live on real sites</h2></div>
+    <div class="live">
+      <figure class="site">
+        <div class="media"><video class="auto" muted loop playsinline preload="none" poster="https://joespeaking.com/landing/og/home-en.jpg"
+          data-src="https://joespeaking.com/landing/og/home-en.mp4" aria-label="The link preview of joespeaking.com, moving"></video></div>
+        <figcaption><a href="https://joespeaking.com" target="_blank" rel="noopener">joespeaking.com ↗</a><span class="on"><i></i>og:video live</span></figcaption>
+      </figure>
+      <figure class="site">
+        <div class="media"><video class="auto" muted loop playsinline preload="none" poster="https://hubeiqiao.com/share/og-home.jpg"
+          data-src="https://hubeiqiao.com/share/og-home-v4.mp4" aria-label="The link preview of hubeiqiao.com, moving"></video></div>
+        <figcaption><a href="https://hubeiqiao.com" target="_blank" rel="noopener">hubeiqiao.com ↗</a><span class="on"><i></i>og:video live</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="eval">
+    <div class="head">
+      <h2 id="evalTitle">Real sites. <span class="amber nw">Zero hand-tuning.</span></h2>
+      <p class="sub" id="stats">Each card made by the skill from the site's own og:image.</p>
+    </div>
+    <div id="groups"></div>
+  </section>
+
+  <section class="end" id="end">
+    <div class="tex" data-motion="ambient" aria-hidden="true"><div class="host" data-texture="watch" data-ink="oklch(0.82 0.15 78 / 0.5)" data-field="transparent"></div></div>
+    <h2>One command. <span class="nw">Any <span class="amber">og:image.</span></span></h2>
+    <div class="actions">
+      <div class="cmd"><code>npx skills add <span class="nw">hubeiqiao/og-video-preview</span></code><button class="btn copy" aria-label="Copy the install command">Copy</button></div>
+      <a class="btn quiet" href="https://github.com/hubeiqiao/og-video-preview" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+    <footer>
+      <a href="https://x.com/pfista/status/2113288415546638515" target="_blank" rel="noopener">Inspired by @pfista</a>
+      <a href="https://x.com/hubeiqiao" target="_blank" rel="noopener">Built by Joe Hu</a>
+      <a href="https://github.com/hubeiqiao/og-video-preview/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a>
+    </footer>
+  </section>
+</div>
+
+<dialog id="viewer" aria-label="OG video">
+  <div class="media"><video id="big" muted loop playsinline autoplay></video></div>
+  <div class="bar"><a id="link" target="_blank" rel="noopener"></a>
+    <div class="nav"><button class="btn quiet" id="prev" aria-label="Previous card">←</button><button class="btn quiet" id="next" aria-label="Next card">→</button>
+    <button class="btn quiet" id="close" aria-label="Close">Close</button></div></div>
+</dialog>
+
+<script>
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let SITES = {}, GROUPS = {}, names = [];  // filled from media/sites.json and eval/results.json: every card the eval rendered
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+// ---- the headline: words rise in; the letters of "move." ripple each time a card comes alive
+const title = document.getElementById('title');
+(function split(node) {
+  [...node.childNodes].forEach(n => {
+    if (n.nodeType === 3) {
+      const frag = document.createDocumentFragment();
+      n.textContent.split(/(\s+)/).forEach(part => {
+        if (!part) return;
+        if (/^\s+$/.test(part)) return frag.appendChild(document.createTextNode(part));
+        const w = document.createElement('span'); w.className = 'w';
+        [...part].forEach(ch => { const l = document.createElement('span'); l.className = 'l'; l.textContent = ch; w.appendChild(l); });
+        frag.appendChild(w);
+      });
+      n.replaceWith(frag);
+    } else walk(n);
+  });
+  function walk(n) { split(n); }
+})(title);
+const words = [...title.querySelectorAll('.w')], moveLetters = [...document.getElementById('move').querySelectorAll('.l')];
+if (!still) words.forEach((w, i) => w.animate([{ opacity: 0, transform: 'translateY(0.35em)' }, { opacity: 1, transform: 'none' }],
+  { duration: 700, delay: 120 + i * 70, easing: 'cubic-bezier(0.22,1,0.36,1)', fill: 'backwards' }));
+function ripple() {
+  if (still) return;
+  moveLetters.forEach((l, i) => l.animate([{ transform: 'none' }, { transform: 'translateY(-0.16em) rotate(-4deg)' }, { transform: 'none' }],
+    { duration: 620, delay: i * 55, easing: 'cubic-bezier(0.22,1,0.36,1)' }));
+}
+
+// ---- the stage: one real card after another. Grey still, the elements the skill read (site/media/boxes.json),
+// a beam that turns it into its og:video. Two video elements take turns, so the next card loads while this one plays.
+const stage = document.getElementById('stage'), img = stage.querySelector('.still'), [va, vb] = stage.querySelectorAll('video'),
+  svg = stage.querySelector('svg'), beam = stage.querySelector('.beam'), siteEl = document.getElementById('site'), what = document.getElementById('what');
+const NS = 'http://www.w3.org/2000/svg';
+const own = [
+  { key: 'joespeaking', domain: 'joespeaking.com', still: 'https://joespeaking.com/landing/og/home-en.jpg', video: 'https://joespeaking.com/landing/og/home-en.mp4' },
+  { key: 'hubeiqiao', domain: 'hubeiqiao.com', still: 'https://hubeiqiao.com/share/og-home.jpg', video: 'https://hubeiqiao.com/share/og-home-v4.mp4' },
+];
+let playlist = own;
+let visible = true;
+new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(stage);
+const until = async () => { while (!visible || document.hidden) await wait(300); };
+const ready = (v, ms) => new Promise(r => { if (v.readyState >= 3) return r(true); const t = setTimeout(() => r(false), ms); v.addEventListener('canplay', () => { clearTimeout(t); r(true); }, { once: true }); });
+const preload = src => new Promise(r => { const i = new Image(); i.onload = i.onerror = () => r(); i.src = src; });
+
+async function stageLoop(boxes) {
+  let k = 0, front = va, back = vb;
+  back.src = playlist[0].video;
+  for (;;) {
+    const c = playlist[k % playlist.length], n = playlist[(k + 1) % playlist.length]; k++;
+    await until();
+    await preload(c.still);
+    img.src = c.still; svg.replaceChildren();
+    [front, back] = [back, front];                     // the one that has been loading becomes the card
+    // a finished reveal keeps its last frame (fill: forwards) and would override the hidden clip below:
+    // cancel every animation first, so only this card's video can ever show, and only once the beam reveals it
+    [front, back].forEach(v => v.getAnimations().forEach(a => a.cancel()));
+    front.style.zIndex = 2; back.style.zIndex = 1;
+    front.style.clipPath = 'inset(0 100% 0 0)'; front.style.visibility = 'visible'; front.currentTime = 0; front.pause();
+    back.pause(); back.style.clipPath = 'inset(0 100% 0 0)'; back.style.visibility = 'hidden';  // it loads the next card unseen
+    siteEl.innerHTML = `<a href="https://${c.domain}" target="_blank" rel="noopener">${c.domain} ↗</a>`;
+    const list = boxes[c.key] || [];
+    what.textContent = 'reading the image';
+    const drawn = list.map(([kind, [x, y, w, h]], i) => {
+      const g = document.createElementNS(NS, 'g');
+      const r = document.createElementNS(NS, 'rect'); r.setAttribute('class', 'box');
+      Object.entries({ x, y, width: w, height: h, rx: 6 }).forEach(([a, v]) => r.setAttribute(a, v));
+      const cw = kind.length * 11.4 + 16, cy = y > 34 ? y - 30 : y + 4;
+      const ch = document.createElementNS(NS, 'rect'); ch.setAttribute('class', 'chip');
+      Object.entries({ x, y: cy, width: cw, height: 26, rx: 5 }).forEach(([a, v]) => ch.setAttribute(a, v));
+      const t = document.createElementNS(NS, 'text'); t.setAttribute('x', x + 8); t.setAttribute('y', cy + 19); t.textContent = kind;
+      g.append(r, ch, t); svg.appendChild(g);
+      g.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 300, delay: i * 70, easing: 'cubic-bezier(0.22,1,0.36,1)', fill: 'backwards' });
+      return g;
+    });
+    await wait(list.length * 70 + 650);
+    what.innerHTML = `<b>${list.length}</b> ${list.length === 1 ? 'element' : 'elements'}`;
+    const ok = await ready(front, 3000);
+    back.src = n.video; back.load();                   // the next card starts loading now
+    if (!ok) { await wait(400); continue; }            // a card that will not load is skipped, not waited on
+    front.play().catch(() => {}); ripple();
+    const D = 850;
+    front.animate([{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)' }], { duration: D, easing: 'cubic-bezier(0.66,0,0.34,1)', fill: 'forwards' });
+    beam.animate([{ transform: 'translateX(0)', opacity: 1 }, { transform: `translateX(${stage.clientWidth}px)`, opacity: 1 }, { transform: `translateX(${stage.clientWidth}px)`, opacity: 0 }],
+      { duration: D + 150, easing: 'cubic-bezier(0.66,0,0.34,1)' });
+    drawn.forEach((g, i) => g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, delay: 150 + i * 30, fill: 'forwards' }));
+    await wait(D);
+    what.innerHTML = `<b>${list.length}</b> ${list.length === 1 ? 'element' : 'elements'} &middot; playing`;
+    await wait(2900);
+  }
+}
+const json = u => fetch(u).then(r => r.json()).catch(() => null);
+Promise.all([json('media/sites.json'), json('media/boxes.json'), json('eval/results.json')]).then(([sites, boxes, results]) => {
+  sites = sites || {}; results = results || [];
+  names = results.map(r => r.name).filter(n => sites[n]);
+  names.forEach(n => { SITES[n] = sites[n].domain; GROUPS[n] = sites[n].group; });
+  const shuffled = names.map(n => [Math.random(), n]).sort((a, b) => a[0] - b[0]).map(([, n]) => ({ key: n, domain: SITES[n], still: `eval/${n}.jpg`, video: `eval/${n}.mp4` }));
+  playlist = [...own, ...shuffled];
+  buildGrid(results);
+  if (still) { va.src = own[0].video; va.style.clipPath = 'none'; va.play().catch(() => {}); siteEl.textContent = own[0].domain; return; }
+  stageLoop(boxes || {});
+});
+
+// ---- everything else that moves plays only while on screen
+const onScreen = new IntersectionObserver(es => es.forEach(e => {
+  const v = e.target;
+  if (e.isIntersecting) { if (!v.src && v.dataset.src) v.src = v.dataset.src; if (!still) v.play().catch(() => {}); } else v.pause();
+}), { rootMargin: '150px' });
+
+// the film plays by itself, muted; sound on request
+const film = document.getElementById('film'), sound = document.getElementById('sound');
+onScreen.observe(film);
+sound.addEventListener('click', () => {
+  film.muted = !film.muted;
+  if (!film.muted) { film.currentTime = 0; film.play(); }
+  sound.textContent = film.muted ? 'Sound on' : 'Sound off'; sound.setAttribute('aria-pressed', String(!film.muted));
+});
+document.querySelectorAll('video.auto').forEach(v => onScreen.observe(v));
+
+// every eval card, in a new random order: stills at rest, the light tile video (480 px, 30 fps) under the pointer, a click
+// (a tap on a phone) opens the full one
+const hover = matchMedia('(hover: hover)').matches;
+function buildGrid(results) {
+  const wrap = document.getElementById('groups');
+  const pass = results.filter(r => r.pass).length, n = results.reduce((s, r) => s + r.layers, 0);
+  document.getElementById('evalTitle').firstChild.textContent = `${names.length} real sites. `;
+  document.getElementById('stats').textContent = `${pass} of ${results.length} pass the checks · ${n} elements read · frame 0 equals the image on every card`;
+  const grid = document.createElement('div'); grid.className = 'grid';
+  names.map(n => [Math.random(), n]).sort((a, b) => a[0] - b[0]).forEach(([, name]) => {  // a new order on every visit
+    const i = names.indexOf(name);
+    const b = document.createElement('button'); b.className = 'tile';
+    b.setAttribute('aria-label', `Open the og:video of ${SITES[name]}`);
+    b.innerHTML = `<div class="media"><video muted loop playsinline preload="none" poster="eval/${name}.jpg" data-src="media/tiles/${name}.mp4" aria-hidden="true"></video></div><span>${SITES[name]}</span>`;
+    b.addEventListener('click', () => open(i));
+    if (hover && !still) {  // stills at rest; the one under the pointer plays its light tile
+      const v = b.querySelector('video');
+      b.addEventListener('pointerenter', () => { if (!v.src) v.src = v.dataset.src; v.play().catch(() => {}); });
+      b.addEventListener('pointerleave', () => { v.pause(); v.currentTime = 0; });
+    }
+    grid.appendChild(b);
+  });
+  wrap.appendChild(grid);
+}
+
+// the viewer
+const dlg = document.getElementById('viewer'), big = document.getElementById('big'), link = document.getElementById('link');
+let at = 0;
+function open(i) {
+  at = (i + names.length) % names.length; const name = names[at];
+  big.poster = `eval/${name}.jpg`; big.src = `eval/${name}.mp4`; big.play().catch(() => {});
+  link.href = `https://${SITES[name]}`; link.textContent = `${SITES[name]} ↗`;
+  if (!dlg.open) dlg.showModal();
+}
+document.getElementById('prev').onclick = () => open(at - 1);
+document.getElementById('next').onclick = () => open(at + 1);
+document.getElementById('close').onclick = () => dlg.close();
+dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+dlg.addEventListener('close', () => { big.pause(); big.removeAttribute('src'); big.load(); });
+dlg.addEventListener('keydown', e => { if (e.key === 'ArrowRight') open(at + 1); if (e.key === 'ArrowLeft') open(at - 1); });
+
+// copy the install command
+document.querySelectorAll('.copy').forEach(b => b.addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText('npx skills add hubeiqiao/og-video-preview'); b.textContent = 'Copied'; } catch { b.textContent = 'Select it'; }
+  setTimeout(() => { b.textContent = 'Copy'; }, 1600);
+}));
+
+// the textures load after the page has painted; each one rests while off screen
+const later = window.requestIdleCallback || (f => setTimeout(f, 1200));
+addEventListener('load', () => later(() => { const s = document.createElement('script'); s.src = 'textures.js'; document.body.appendChild(s); }));
+</script>
+</body>
+</html>

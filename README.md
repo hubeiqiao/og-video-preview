@@ -1,86 +1,85 @@
+<div align="center">
+
 # OG Video Preview
 
-![OG Video Preview](social/hero.gif)
+**Turn any approved `og:image` into a looping `og:video`, so your link previews move.**
 
-An agent skill that turns any approved Open Graph image into a looping `og:video`, so your link previews move, and makes sure the video actually plays in iMessage, Safari and social cards.
+An open-source agent skill for Claude Code, OpenAI Codex, Cursor and every agent that supports [Agent Skills](https://agentskills.io).
 
-> Works with [Claude Code](https://claude.com/claude-code), [OpenAI Codex](https://openai.com/index/codex/), [Cursor](https://cursor.sh) and other agents that support the [Agent Skills](https://agentskills.io) standard.
+[![License: MIT](https://img.shields.io/badge/license-MIT-f6b93b.svg)](LICENSE)
+[![Eval: 103 of 103](https://img.shields.io/badge/eval-103%20of%20103%20pass-f6b93b.svg)](eval/)
+[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-f6b93b.svg)](https://agentskills.io)
 
-## Watch it
+[Website](https://hubeiqiao.github.io/og-video-preview/) · [20-second film](social/promo.mp4) · [Eval](eval/) · [Skill reference](SKILL.md)
 
-[18-second promo (MP4)](social/promo.mp4): it opens on the X post that started this (its own og:video playing), then deals out 20 of the eval's real sites and slams into all 61 at once. Made with Remotion; music "Deep Urban" from Mixkit (free licence); sound effects from [earshot](https://github.com/Leonxlnx/earshot).
+![A beam of white light passes through a glass link card and splits into a fan of coloured cards, each playing a real og:video](social/hero.gif)
 
-## Tested on 61 real OG images
+</div>
 
-![61 OG images, animated](eval/sheet.jpg)
+## Overview
 
-The OG images of 61 well-known sites, each turned into an og:video by the skill alone, with no hand tuning. Every card is scored: frame 0 must equal the image, the loop must close without a jump, and the files must stay under the size limits. The table, the videos and `python3 eval/run.py` to run it again are in [eval/](eval/). It doubles as the skill's regression test: re-run it after any change to the engine and compare.
+A link preview is the first thing people see of your page in a chat. In iMessage and Discord it can be a video, and almost nobody uses that. OG Video Preview takes the still image you already approved and turns it into a short, seamless loop:
 
-## Examples
+- **It reads the image.** Every element is found and classified (headline, label, logo, pill, photo, stroke and six more kinds), cut out cleanly over a refilled background, and given motion that suits what it is.
+- **Frame 0 is your image, pixel for pixel.** Apps that cannot play video show the same still they show today, so the preview is never worse than before.
+- **It is checked, not hoped for.** Every render is tested for frame-0 identity, a seamless loop and file-size budgets, and the live server is tested for the HTTP Range support Apple's players require.
 
-**JoeSpeaking.com homepage card**, from the finished image alone: the pill pops, the headline rises letter by letter, the report card settles in place, the orb and its arrow rise, the wordmark unfurls from its logo.
+```bash
+npx skills add hubeiqiao/og-video-preview
+```
 
-![JoeSpeaking.com OG video](examples/joespeaking-home/out/preview.gif)
+Then ask your agent: *"Use /og-video-preview to make my og:image move."*
 
-**Living style.** Nothing leaves: the blobs flow and settle, the title stays readable the whole time.
+## Contents
 
-![Living style OG video](examples/living-blobs/out/preview.gif)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [How it works](#how-it-works)
+- [Where og:video plays](#where-ogvideo-plays)
+- [Evaluation](#evaluation)
+- [Examples](#examples)
+- [Serving requirements](#serving-requirements)
+- [Repository layout](#repository-layout)
+- [Credits and license](#credits-and-license)
 
-**demo.joespeaking.com talk card**, built as an HTML card (route B).
+## Features
 
-![demo.joespeaking.com OG video](examples/demo-joespeaking/out/preview.gif)
-
-Rebuild them with `bash examples/build-examples.sh`; `out/layers-preview.png` in each folder shows what the skill recognised.
-
-## How it works
-
-1. **Approve the still.** Get the 1200×630 `og:image` right first.
-2. **Turn that exact image into motion.** The skill reads the approved image and works out what each element is: headline, body text, label, logo, pill, icon, avatar, photo, panel, illustration, shape or line. It cuts each one out cleanly over a refilled background, and each kind gets its own physical motion. Type rises word by word out of its own line, marks spin in, pills pop, photos open, panels lift and lines draw, all on one set of easing curves and springs. Frame 0 and the last frame are the approved image, pixel for pixel.
-3. **Publish both**, with tags and a server that let link previews play the video.
-
-Two routes:
-
-| Route | Start from | Good for |
-|---|---|---|
-| A. From the approved image | any PNG/JPG, made anywhere | existing cards, cards from Figma or Canva |
-| B. From an HTML card | `template/og.html` | new cards designed in code |
-
-## Where it plays
-
-| Plays the video | Shows the still |
+| | |
 |---|---|
-| **iMessage**: autoplays, muted, looping<br>**Discord**: inline player with a play button<br>**Telegram**: reports disagree, test on your device | Slack, X, Facebook, LinkedIn, WhatsApp, Signal, Bluesky, Mastodon, Matrix |
-
-**Where video is not supported, nothing breaks: the app shows your `og:image`, the same approved image as frame 0 of the video.** So the preview is never worse than today, and it moves wherever it can. Details, conditions and sources are in [SKILL.md](SKILL.md#where-ogvideo-plays-checked-2026-10-30).
-
-## The part that silently breaks playback
-
-Apple's players request `Range: bytes=0-1` first and only play when the server answers **206 Partial Content**. Cloudflare Workers static assets answer 200 with the whole file, so the preview falls back to the still image. The skill checks for this (`scripts/check_live.sh`) and ships a small Worker that fixes it (`worker/range-worker.js`). It also versions files by name (`home-v3.mp4`) instead of query strings.
+| **Element-aware motion** | Twelve element kinds, each with its own entrance, exit, idle movement and accent, on one set of easing curves and damped springs |
+| **Works from the finished image** | Any PNG or JPG, made in Figma, Canva or code (route A), or a configurable HTML card (route B) |
+| **Clean cut-outs** | Each element owns its exact pixels; the background behind it is refilled, and visuals that cannot be refilled cleanly move in place instead of leaving |
+| **Seamless 4 s loops at 60 fps** | Every idle, accent and camera move is exactly zero at the loop point |
+| **Measured quality gates** | Frame-0 mean difference and local defects, seam size, MP4 and JPEG budgets, all scripted |
+| **Deploys correctly** | Meta tags, versioned filenames, a Range check for the live server, and a Cloudflare Worker that adds `206 Partial Content` |
 
 ## Installation
 
-### Claude Code plugin
+**Agent Skills** (any compatible agent):
+
+```bash
+npx skills add hubeiqiao/og-video-preview
+```
+
+**Claude Code plugin:**
 
 ```bash
 /plugin marketplace add hubeiqiao/og-video-preview
 /plugin install og-video-preview@og-video-preview-marketplace
 ```
 
-### Agent Skills
-
-```bash
-npx skills add hubeiqiao/og-video-preview
-```
-
-### Manual
+**Manual:**
 
 ```bash
 git clone https://github.com/hubeiqiao/og-video-preview.git ~/.claude/skills/og-video-preview
 ```
 
-Requirements: Python 3 with `playwright` and `Pillow`, Google Chrome, `ffmpeg`.
+**Requirements:** Python 3 with `playwright`, `Pillow`, `opencv-python` and `numpy`; Google Chrome; `ffmpeg` and `ffprobe`. [Tesseract](https://github.com/tesseract-ocr/tesseract) is optional and improves text reading on photos.
 
 ## Usage
+
+Ask in your own words:
 
 ```
 Use /og-video-preview to make my og:image move
@@ -92,41 +91,116 @@ Turn public/og/home.jpg into an OG video and wire up the tags
 My og:video only shows a still in iMessage. Find out why.
 ```
 
-The skill will:
-1. Confirm the still is approved (or help design it, with rules for cards strangers can read at thumbnail size)
-2. Propose layers and motion roles for the image
-3. Render a few preview frames for review, then the full 60 fps loop
-4. Check that frame 0 matches the approved image and that the loop has no visible jump
-5. Encode the MP4 and JPEG, write the meta tags, and check the live server answers Range requests
+The skill then:
 
-## What's inside
+1. Confirms the still is approved, or helps design one that strangers can read at thumbnail size.
+2. Reads the image and proposes the layers and their motion (`layers-preview.png` shows every box and its kind).
+3. Renders preview frames for review, then the full 60 fps loop.
+4. Checks that frame 0 matches the approved image and that the loop has no visible jump.
+5. Encodes the MP4 and JPEG, writes the meta tags, and checks that the live server answers Range requests.
+
+## How it works
+
+```mermaid
+flowchart LR
+  A[Approved og:image] --> B[suggest_layers.py<br/>find and classify elements]
+  B --> C[make_plate.py<br/>refilled plate and per-element cuts]
+  C --> D[from-image.html<br/>motion by kind]
+  D --> E[render_frames.py<br/>60 fps capture]
+  E --> F[check_frame0.py<br/>check_loop.py]
+  F --> G[encode.sh<br/>MP4 and JPEG within budget]
+  G --> H[Meta tags and<br/>check_live.sh]
+```
+
+| Kind | Recognised as | Motion |
+|---|---|---|
+| `headline` | lines with the largest cap height | words or letters rise out of the line's own mask on a spring |
+| `text` | other lines of text | fade, short rise and a clearing blur |
+| `label` | small text: kickers, URLs, captions | wipes on from the left |
+| `logo` | a mark at the start of a line of text | scales up with a spin; a wordmark unfurls from it |
+| `pill` | a solid bar with content: tags, buttons | pops with a slight overshoot |
+| `icon` | a small graphic with inner detail | springs up with a small turn |
+| `avatar` | a round element with photo detail | springs up with a turn, then floats |
+| `photo` | a solid rectangle with many colours | opens from the middle while settling |
+| `panel` | a large solid surface: screenshots, UI cards | lifts with a scale and a clearing blur |
+| `illustration` | a larger multicolour graphic | rises with a squash on landing |
+| `shape` | a one-colour form: dots, blobs, squares | small ones pop outward from the headline; large ones flow and settle |
+| `stroke` | lines, arrows, underlines, squiggles | draws at an even pen pace; an arrow draws from its tail to its head |
+
+Full detail, including styles (`rebuild`, `living`), energy levels and per-layer overrides, is in [SKILL.md](SKILL.md).
+
+## Where og:video plays
+
+| Plays the video | Shows the still |
+|---|---|
+| **iMessage**: autoplays, muted, looping<br>**Discord**: inline player with a play button<br>**Telegram**: reports disagree, test on your device | Slack, X, Facebook, LinkedIn, WhatsApp, Signal, Bluesky, Mastodon, Matrix |
+
+**Where video is not supported, nothing breaks:** the app shows your `og:image`, which is the same approved image as frame 0 of the video. Conditions and sources, checked 2026-10-30, are in [SKILL.md](SKILL.md#where-ogvideo-plays-checked-2026-10-30).
+
+## Evaluation
+
+![The 103 eval cards, animated](eval/sheet.jpg)
+
+The skill is tested on the Open Graph images of 103 well-known sites, each put through the whole pipeline with no hand tuning and scored automatically. They cover developer tools and products (61), venture capital firms such as Y Combinator, a16z and Sequoia (16), AI companies such as OpenAI, Mistral and ElevenLabs (18), and technology companies such as Apple, IBM and Cloudflare (8).
+
+| Check | Pass when |
+|---|---|
+| Frame 0 | mean difference to the image ≤ 2, and local defects on ≤ 0.05 % of pixels |
+| Seam | the jump from the last frame to the first is no bigger than an ordinary frame step |
+| Size | MP4 ≤ 2 MB, frame-0 JPEG ≤ 180 KB |
+
+All 103 pass. Run it after any change to the engine:
+
+```bash
+python3 eval/fetch.py                            # download the og:image of every site in eval/sites.txt
+python3 eval/run.py                              # all cards: videos, results.json, sheet.jpg
+python3 eval/run.py --only stripe,github --keep  # a few cards, keeping their intermediate files
+```
+
+`results.json` records what the engine decided for every card, so a change can be compared card by card. The images in `eval/cards/` belong to their owners and are used only as test inputs; they are not covered by this repository's license.
+
+## Examples
+
+| | |
+|---|---|
+| ![This project's own card](examples/og-video-preview/out/preview.gif) | ![JoeSpeaking.com](examples/joespeaking-home/out/preview.gif) |
+| **This project's card**, from the finished image alone | **[joespeaking.com](https://joespeaking.com)**, from its approved image |
+| ![Living style](examples/living-blobs/out/preview.gif) | ![HTML card](examples/demo-joespeaking/out/preview.gif) |
+| **Living style**: nothing leaves, the blobs flow and settle | **Route B**: a card built in HTML |
+
+Rebuild them with `bash examples/build-examples.sh`. The [website](https://hubeiqiao.github.io/og-video-preview/)'s own link preview is a scene rendered through route B (`site/og/prism/`): white light through a glass card becomes a fan of moving previews.
+
+## Serving requirements
+
+Apple's players request `Range: bytes=0-1` first and play only when the server answers **`206 Partial Content`**. Static assets on Cloudflare Workers answer `200` with the whole file, so the preview silently falls back to the still. The skill checks for this with `scripts/check_live.sh` and ships `worker/range-worker.js` to fix it. Files are versioned by name (`home-v3.mp4`), never by query string.
+
+## Repository layout
 
 ```
 og-video-preview/
-├── SKILL.md                 # workflow, card and motion rules, tags, server requirements
+├── SKILL.md                 workflow, element kinds, motion, tags, server requirements
 ├── template/
-│   ├── from-image.html      # route A: the motion engine, motion chosen per element kind
-│   └── og.html              # route B: configurable HTML card
+│   ├── from-image.html      route A: the motion engine
+│   └── og.html              route B: a configurable HTML card
 ├── scripts/
-│   ├── suggest_layers.py    # read an image: find and classify every element
-│   ├── make_plate.py        # clean plate and per-element cutouts
-│   ├── render_frames.py     # Playwright frame capture at 2x
-│   ├── check_frame0.py      # frame 0 vs the approved still
-│   ├── check_loop.py        # seamless loop check
-│   ├── encode.sh            # MP4 + JPEG, compressing harder until they fit the limits
-│   └── check_live.sh        # live tags, files and Range check
-├── worker/range-worker.js   # Range / 206 support on Cloudflare Workers assets
-├── examples/                # worked examples: route A, living style, route B
-├── eval/                    # 61 real OG images, the runner that scores them, the results
-└── social/                  # this repo's own hero, social preview and promo
+│   ├── suggest_layers.py    find and classify every element
+│   ├── make_plate.py        refilled plate, per-element cuts, light and glyph masks
+│   ├── render_frames.py     frame capture with Playwright
+│   ├── check_frame0.py      frame 0 against the approved image
+│   ├── check_loop.py        seam check
+│   ├── encode.sh            MP4 and JPEG within the size budgets
+│   └── check_live.sh        live tags, files and Range support
+├── worker/range-worker.js   206 Partial Content on Cloudflare Workers
+├── eval/                    103 real OG images, the fetcher, the runner and the results
+├── examples/                worked examples for both routes
+├── site/                    the website; its own og:video is made with the skill
+└── social/                  the film and the social preview
 ```
 
-## Credits
+## Credits and license
 
-Inspired by [Michael Pfister](https://x.com/pfista)'s [post on X](https://x.com/pfista/status/2113288415546638515): "this is your sign to start using og:video on your website".
+- Inspired by [Michael Pfister](https://x.com/pfista)'s [post on X](https://x.com/pfista/status/2113288415546638515): "this is your sign to start using og:video on your website".
+- Built by [Joe Hu](https://x.com/hubeiqiao) while making the link previews for [Joe Speaking](https://joespeaking.com).
+- The film uses music ("Digital Clouds" by Alejandro Magaña) and sound effects from [Mixkit](https://mixkit.co) under the Mixkit free license. The website uses the Watch texture from [Textures](https://textures.dev) (MIT).
 
-Built by [Joe Hu](https://x.com/hubeiqiao) while making the link previews for [Joe Speaking](https://joespeaking.com) and a talk at A TON of Demos Ottawa.
-
-## License
-
-MIT
+Released under the [MIT License](LICENSE).
