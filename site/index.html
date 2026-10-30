@@ -25,12 +25,21 @@
 <meta name="twitter:image" content="https://hubeiqiao.github.io/og-video-preview/og/og-v4.jpg">
 <meta name="twitter:image:alt" content="A beam of white light passes through a glass link card and splits into a fan of coloured cards, each playing a real og:video">
 <meta name="theme-color" content="#0b0a09">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23f6b93b'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Fragment+Mono&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="https://joespeaking.com/landing/og/home-en.jpg">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="favicon-16.png" type="image/png" sizes="16x16">
+<link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180">
+<link rel="manifest" href="site.webmanifest">
+<meta name="twitter:title" content="OG Video Preview: make your link previews move">
+<meta name="twitter:description" content="An open-source agent skill that turns any og:image into a looping og:video. Tested on 103 real OG images.">
+<!-- structured-data -->
+<link rel="preload" href="fonts/familjen-grotesk-latin-v11.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/fragment-mono-latin-v6.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" as="image" href="media/joespeaking.webp" fetchpriority="high">
+<link rel="preload" as="image" href="media/promo-poster.webp" fetchpriority="high">
 <style>
+@font-face { font-family: 'Familjen Grotesk'; font-style: normal; font-weight: 400 700; font-display: swap; src: url('fonts/familjen-grotesk-latin-v11.woff2') format('woff2'); }
+@font-face { font-family: 'Fragment Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/fragment-mono-latin-v6.woff2') format('woff2'); }
 :root {
   color-scheme: dark;
   --ink: oklch(0.145 0.006 60); --raised: oklch(0.195 0.007 60); --raised-2: oklch(0.235 0.008 60);
@@ -125,6 +134,7 @@ section { padding-top: clamp(96px, 12vw, 160px); }
 /* the eval cards: light tile videos play by themselves while on screen; a click opens the full one */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: clamp(10px, 1.2vw, 16px); }
 .tile { text-align: left; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .tile .media { aspect-ratio: 1200 / 630; border-radius: 10px; box-shadow: 0 0 0 0.5px oklch(1 0 0 / 0.06), 0 6px 18px oklch(0 0 0 / 0.25); transition: transform 240ms var(--ease); }
 .tile:hover .media { transform: translateY(-2px); }
 .tile span { display: block; font-family: var(--mono); font-size: 12px; color: var(--text-3); margin-top: 8px; }
@@ -167,6 +177,7 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
 </style>
 </head>
 <body>
+<main>
 <div class="heroband">
   <div class="tex" data-motion="ambient" aria-hidden="true"><div class="host" data-texture="settle" data-ink="oklch(0.82 0.15 78 / 0.32)" data-field="transparent"></div></div>
   <div class="wrap" style="position:relative;z-index:1">
@@ -181,7 +192,7 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
       </div>
       <div class="in" style="--d:3">
         <div class="media stage" id="stage">
-          <img class="still" alt="" src="https://joespeaking.com/landing/og/home-en.jpg">
+          <img class="still" alt="" src="media/joespeaking.webp" width="1200" height="630" fetchpriority="high" decoding="async">
           <video muted playsinline preload="auto" aria-hidden="true"></video>
           <video muted playsinline preload="auto" aria-hidden="true"></video>
           <svg viewBox="0 0 1200 630" aria-hidden="true"></svg>
@@ -196,7 +207,7 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
 <div class="wrap">
   <section class="filmband">
     <div class="film">
-      <div class="media"><video id="film" src="media/film.mp4" poster="media/promo-poster.jpg" muted loop playsinline preload="none" aria-label="20-second film about OG Video Preview"></video></div>
+      <div class="media"><video id="film" src="media/film.mp4" poster="media/promo-poster.webp" muted loop playsinline preload="none" aria-label="20-second film about OG Video Preview"></video></div>
       <button class="btn sound" id="sound" aria-pressed="false">Sound on</button>
     </div>
   </section>
@@ -205,12 +216,12 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
     <div class="head"><h2>Live on real sites</h2></div>
     <div class="live">
       <figure class="site">
-        <div class="media"><video class="auto" muted loop playsinline preload="none" poster="https://joespeaking.com/landing/og/home-en.jpg"
+        <div class="media"><video class="auto" muted loop playsinline preload="none" poster="media/joespeaking.webp"
           data-src="https://joespeaking.com/landing/og/home-en.mp4" aria-label="The link preview of joespeaking.com, moving"></video></div>
         <figcaption><a href="https://joespeaking.com" target="_blank" rel="noopener">joespeaking.com ↗</a><span class="on"><i></i>og:video live</span></figcaption>
       </figure>
       <figure class="site">
-        <div class="media"><video class="auto" muted loop playsinline preload="none" poster="https://hubeiqiao.com/share/og-home.jpg"
+        <div class="media"><video class="auto" muted loop playsinline preload="none" data-poster="media/hubeiqiao.webp"
           data-src="https://hubeiqiao.com/share/og-home-v4.mp4" aria-label="The link preview of hubeiqiao.com, moving"></video></div>
         <figcaption><a href="https://hubeiqiao.com" target="_blank" rel="noopener">hubeiqiao.com ↗</a><span class="on"><i></i>og:video live</span></figcaption>
       </figure>
@@ -222,7 +233,7 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
       <h2 id="evalTitle">Real sites. <span class="amber nw">Zero hand-tuning.</span></h2>
       <p class="sub" id="stats">Each card made by the skill from the site's own og:image.</p>
     </div>
-    <div id="groups"></div>
+    <div id="groups"><!-- eval-grid --></div>
   </section>
 
   <section class="end" id="end">
@@ -234,11 +245,13 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
     </div>
     <footer>
       <a href="https://x.com/pfista/status/2113288415546638515" target="_blank" rel="noopener">Inspired by @pfista</a>
-      <a class="by" href="https://x.com/hubeiqiao" target="_blank" rel="noopener"><span class="face"><img src="media/joe.webp" alt="" width="28" height="28"></span>Built by Joe Hu</a>
+      <a class="by" href="https://x.com/hubeiqiao" target="_blank" rel="noopener"><span class="face"><img src="media/joe.webp" alt="" width="28" height="28" loading="lazy" decoding="async"></span>Built by Joe Hu</a>
       <a href="https://github.com/hubeiqiao/og-video-preview/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a>
     </footer>
   </section>
 </div>
+
+</main>
 
 <dialog id="viewer" aria-label="OG video">
   <div class="media"><video id="big" muted loop playsinline autoplay></video></div>
@@ -249,8 +262,24 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
 
 <script>
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-let SITES = {}, GROUPS = {}, names = [];  // filled from media/sites.json and eval/results.json: every card the eval rendered
+const tiles = [...document.querySelectorAll('.tile[data-name]')];
+// The no-JS list follows sites.json; the viewer keeps its original results.json navigation order.
+const names = [...tiles].sort((a, b) => Number(a.dataset.index) - Number(b.dataset.index)).map(b => b.dataset.name);
+const SITES = Object.fromEntries(tiles.map(b => [b.dataset.name, b.dataset.domain]));
 const wait = ms => new Promise(r => setTimeout(r, ms));
+// Paint the stills and type before starting decoders or mounting the texture runtime.
+// This also gives slow connections the first-screen images before video traffic competes with them.
+const painted = new Promise(resolve => {
+  if (performance.getEntriesByName('first-contentful-paint').length) return resolve();
+  if (!window.PerformanceObserver || !PerformanceObserver.supportedEntryTypes?.includes('paint')) {
+    return requestAnimationFrame(() => requestAnimationFrame(resolve));
+  }
+  const observer = new PerformanceObserver(list => {
+    if (!list.getEntries().some(e => e.name === 'first-contentful-paint')) return;
+    observer.disconnect(); resolve();
+  });
+  observer.observe({ type: 'paint', buffered: true });
+});
 
 // ---- the headline: words rise in; the letters of "move." ripple each time a card comes alive
 const title = document.getElementById('title');
@@ -285,8 +314,8 @@ const stage = document.getElementById('stage'), img = stage.querySelector('.stil
   svg = stage.querySelector('svg'), beam = stage.querySelector('.beam'), siteEl = document.getElementById('site'), what = document.getElementById('what');
 const NS = 'http://www.w3.org/2000/svg';
 const own = [
-  { key: 'joespeaking', domain: 'joespeaking.com', still: 'https://joespeaking.com/landing/og/home-en.jpg', video: 'https://joespeaking.com/landing/og/home-en.mp4' },
-  { key: 'hubeiqiao', domain: 'hubeiqiao.com', still: 'https://hubeiqiao.com/share/og-home.jpg', video: 'https://hubeiqiao.com/share/og-home-v4.mp4' },
+  { key: 'joespeaking', domain: 'joespeaking.com', still: 'media/joespeaking.webp', video: 'https://joespeaking.com/landing/og/home-en.mp4' },
+  { key: 'hubeiqiao', domain: 'hubeiqiao.com', still: 'media/hubeiqiao.webp', video: 'https://hubeiqiao.com/share/og-home-v4.mp4' },
 ];
 let playlist = own;
 let visible = true;
@@ -342,21 +371,26 @@ async function stageLoop(boxes) {
   }
 }
 const json = u => fetch(u).then(r => r.json()).catch(() => null);
-Promise.all([json('media/sites.json'), json('media/boxes.json'), json('eval/results.json')]).then(([sites, boxes, results]) => {
-  sites = sites || {}; results = results || [];
-  names = results.map(r => r.name).filter(n => sites[n]);
-  names.forEach(n => { SITES[n] = sites[n].domain; GROUPS[n] = sites[n].group; });
-  const shuffled = names.map(n => [Math.random(), n]).sort((a, b) => a[0] - b[0]).map(([, n]) => ({ key: n, domain: SITES[n], still: `eval/${n}.jpg`, video: `eval/${n}.mp4` }));
-  playlist = [...own, ...shuffled];
-  buildGrid(results);
+const shuffled = names.map(n => [Math.random(), n]).sort((a, b) => a[0] - b[0]).map(([, n]) => ({ key: n, domain: SITES[n], still: `eval/${n}.jpg`, video: `eval/${n}.mp4` }));
+playlist = [...own, ...shuffled];
+painted.then(() => json('media/boxes.json')).then(boxes => {
   if (still) { va.src = own[0].video; va.style.clipPath = 'none'; va.play().catch(() => {}); siteEl.textContent = own[0].domain; return; }
   stageLoop(boxes || {});
 });
 
 // ---- everything else that moves plays only while on screen
+const visibleMedia = new WeakSet();
 const onScreen = new IntersectionObserver(es => es.forEach(e => {
   const v = e.target;
-  if (e.isIntersecting) { if (!v.src && v.dataset.src) v.src = v.dataset.src; if (!still) v.play().catch(() => {}); } else v.pause();
+  if (e.isIntersecting) {
+    if (v.dataset.poster && !v.poster) v.poster = v.dataset.poster;
+    visibleMedia.add(v);
+    painted.then(() => {
+      if (!visibleMedia.has(v)) return;
+      if (!v.src && v.dataset.src) v.src = v.dataset.src;
+      if (!still) v.play().catch(() => {});
+    });
+  } else { visibleMedia.delete(v); v.pause(); }
 }), { rootMargin: '150px' });
 
 // the film plays by itself, muted; sound on request
@@ -372,27 +406,31 @@ document.querySelectorAll('video.auto').forEach(v => onScreen.observe(v));
 // every eval card, in a new random order: stills at rest, the light tile video (480 px, 30 fps) under the pointer, a click
 // (a tap on a phone) opens the full one
 const hover = matchMedia('(hover: hover)').matches;
-function buildGrid(results) {
-  const wrap = document.getElementById('groups');
-  const pass = results.filter(r => r.pass).length, n = results.reduce((s, r) => s + r.layers, 0);
-  document.getElementById('evalTitle').firstChild.textContent = `${names.length} real sites. `;
-  document.getElementById('stats').textContent = `${pass} of ${results.length} pass the checks · ${n} elements read · frame 0 equals the image on every card`;
-  const grid = document.createElement('div'); grid.className = 'grid';
-  names.map(n => [Math.random(), n]).sort((a, b) => a[0] - b[0]).forEach(([, name]) => {  // a new order on every visit
-    const i = names.indexOf(name);
-    const b = document.createElement('button'); b.className = 'tile';
-    b.setAttribute('aria-label', `Open the og:video of ${SITES[name]}`);
-    b.innerHTML = `<div class="media"><video muted loop playsinline preload="none" poster="eval/${name}.jpg" data-src="media/tiles/${name}.mp4" aria-hidden="true"></video></div><span>${SITES[name]}</span>`;
-    b.addEventListener('click', () => open(i));
-    if (hover && !still) {  // stills at rest; the one under the pointer plays its light tile
-      const v = b.querySelector('video');
-      b.addEventListener('pointerenter', () => { if (!v.src) v.src = v.dataset.src; v.play().catch(() => {}); });
-      b.addEventListener('pointerleave', () => { v.pause(); v.currentTime = 0; });
-    }
-    grid.appendChild(b);
-  });
-  wrap.appendChild(grid);
-}
+// Images are crawlable, lazy decoded stills. Only the hovered tile needs a decoder.
+const grid = document.querySelector('#groups .grid');
+// Native lazy loading can queue the original HTML order before the shuffle. Observe after reordering instead.
+const tileImages = new IntersectionObserver(entries => entries.forEach(e => {
+  if (!e.isIntersecting) return;
+  e.target.src = e.target.dataset.src; tileImages.unobserve(e.target);
+}), { rootMargin: '300px' });
+let tileVideo;
+tiles.map(b => [Math.random(), b]).sort((a, b) => a[0] - b[0]).forEach(([, b]) => {
+  const i = names.indexOf(b.dataset.name);
+  b.addEventListener('click', e => { e.preventDefault(); open(i); });
+  if (hover && !still) {
+    b.addEventListener('pointerenter', () => {
+      if (!tileVideo) { tileVideo = document.createElement('video'); tileVideo.muted = true; tileVideo.loop = true; tileVideo.playsInline = true; tileVideo.setAttribute('aria-hidden', 'true'); tileVideo.style.cssText = 'position:absolute;inset:0'; }
+      tileVideo.pause(); tileVideo.src = `media/tiles/${b.dataset.name}.mp4`;
+      b.querySelector('.media').appendChild(tileVideo); tileVideo.play().catch(() => {});
+    });
+    b.addEventListener('pointerleave', () => {
+      if (!tileVideo || !b.contains(tileVideo)) return;
+      tileVideo.pause(); tileVideo.removeAttribute('src'); tileVideo.load(); tileVideo.remove();
+    });
+  }
+  grid.appendChild(b);
+  tileImages.observe(b.querySelector('img'));
+});
 
 // the viewer
 const dlg = document.getElementById('viewer'), big = document.getElementById('big'), link = document.getElementById('link');
@@ -418,7 +456,7 @@ document.querySelectorAll('.copy').forEach(b => b.addEventListener('click', asyn
 
 // the textures load after the page has painted; each one rests while off screen
 const later = window.requestIdleCallback || (f => setTimeout(f, 1200));
-addEventListener('load', () => later(() => { const s = document.createElement('script'); s.src = 'textures.js'; document.body.appendChild(s); }));
+addEventListener('load', () => painted.then(() => later(() => { const s = document.createElement('script'); s.src = 'textures.js'; document.body.appendChild(s); })));
 </script>
 </body>
 </html>
