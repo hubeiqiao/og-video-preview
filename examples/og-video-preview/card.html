@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Fragment+Mono&display=block" rel="stylesheet">
+<style>
+:root{--ink:oklch(0.145 0.006 60);--raised:oklch(0.29 0.008 60);--text:oklch(0.97 0.004 60);--t2:oklch(0.82 0.008 60);--t3:oklch(0.66 0.01 60);--amber:oklch(0.82 0.15 78)}
+*{margin:0;box-sizing:border-box}
+body{width:1200px;height:630px;overflow:hidden;background:var(--ink);color:var(--text);font-family:'Familjen Grotesk',sans-serif;-webkit-font-smoothing:antialiased;position:relative}
+.light{position:absolute;left:520px;top:-260px;width:900px;height:620px;border-radius:50%;background:oklch(0.62 0.12 70/.2);filter:blur(110px)}
+.label{position:absolute;left:64px;top:56px;font:400 19px 'Fragment Mono',monospace;color:var(--t2);letter-spacing:.01em}
+.label b{font-weight:400;color:var(--amber)}
+.strip{position:absolute;left:64px;top:150px;display:flex;gap:31px}
+.f{position:relative;width:190px}
+.card{position:relative;width:190px;height:100px;border-radius:12px;background:var(--raised);overflow:hidden;box-shadow:0 1px 2px oklch(0 0 0/.3),0 10px 30px oklch(0 0 0/.35),inset 0 0 0 1px oklch(1 0 0/.1)}
+.b1{position:absolute;left:14px;top:22px;width:104px;height:14px;border-radius:7px;background:var(--text)}
+.b2{position:absolute;left:14px;top:44px;width:76px;height:14px;border-radius:7px;background:var(--amber)}
+.b3{position:absolute;left:14px;top:76px;width:56px;height:8px;border-radius:4px;background:var(--t3)}
+.dot{position:absolute;left:130px;top:26px;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,oklch(0.78 0.14 70),oklch(0.6 0.17 35))}
+.grey .card > div{filter:grayscale(1) brightness(.75)}
+.t{margin-top:12px;font:400 15px 'Fragment Mono',monospace;color:var(--t3);display:flex;justify-content:space-between}
+.t i{font-style:normal;color:var(--amber)}
+h1{position:absolute;left:60px;bottom:104px;font-size:86px;font-weight:700;line-height:1;letter-spacing:-.035em;white-space:nowrap}
+h1 span{color:var(--amber)}
+.url{position:absolute;left:64px;bottom:52px;font:400 19px 'Fragment Mono',monospace;color:var(--t3)}
+.rail{position:absolute;left:64px;top:318px;width:1072px;height:1px;background:oklch(1 0 0/.14)}
+.rail .p{position:absolute;left:0;top:0;width:979px;height:1px;background:linear-gradient(90deg,oklch(0.82 0.15 78/.15),var(--amber))}
+.rail .k{position:absolute;top:-4px;width:1px;height:9px;background:oklch(1 0 0/.28)}
+.rail .h{position:absolute;left:974px;top:-5px;width:11px;height:11px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 4px oklch(0.82 0.15 78/.2)}
+</style></head><body>
+<div class="light"></div>
+<div class="label"><b>●</b> OG Video Preview · open-source agent skill</div>
+<div class="strip">
+  <div class="f grey"><div class="card"><div class="b1"></div><div class="b2"></div><div class="b3"></div><div class="dot"></div></div><div class="t"><span>og:image</span><span>still</span></div></div>
+  <div class="f"><div class="card"><div class="b1" style="top:40px;opacity:.5;filter:blur(2px)"></div><div class="dot" style="transform:scale(.4);opacity:.6"></div></div><div class="t"><span>0.4 s</span></div></div>
+  <div class="f"><div class="card"><div class="b1" style="top:26px"></div><div class="b2" style="top:62px;opacity:.6;filter:blur(1.5px)"></div><div class="dot" style="transform:scale(.85) rotate(-20deg)"></div></div><div class="t"><span>0.8 s</span></div></div>
+  <div class="f"><div class="card"><div class="b1"></div><div class="b2" style="top:46px"></div><div class="b3" style="width:30px"></div><div class="dot" style="transform:scale(1.04)"></div></div><div class="t"><span>1.2 s</span></div></div>
+  <div class="f"><div class="card"><div class="b1"></div><div class="b2"></div><div class="b3"></div><div class="dot"></div></div><div class="t"><span>og:video</span><i>● playing</i></div></div>
+</div>
+<div class="rail"><div class="p"></div><i class="k" style="left:95px"></i><i class="k" style="left:316px"></i><i class="k" style="left:537px"></i><i class="k" style="left:758px"></i><i class="k" style="left:979px"></i><div class="h"></div></div>
+<h1>Make link previews <span>move.</span></h1>
+<div class="url">github.com/hubeiqiao/og-video-preview</div>
+</body></html>

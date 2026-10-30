@@ -25,6 +25,7 @@ route_a() { # name, then any suggest_layers.py options
   rm -rf "$work/frames"
 }
 
+route_a og-video-preview
 route_a joespeaking-home
 route_a living-blobs --style living
 

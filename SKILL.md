@@ -66,6 +66,7 @@ Text is split into lines, lines into words, and a one-word headline into letters
 - `layers.png`: the card with alpha 1 over each element and a soft edge just outside it. Where the alpha is partial, plate and card are identical, so the layers over the plate reproduce the card exactly. Type keeps only its glyphs: no box of background travels with a word.
 - `cuts/<id>.png`: the same, one image per layer with only that layer's pixels, so boxes may overlap (tight leading, a pill inside a line) without a line carrying pieces of its neighbour.
 - `glyphs.png`: each element's own pixels, a mask for light sweeps.
+- `light.png`: where an element is lighter than the refilled background behind it, the mask for the light that runs through a picture that stays in place.
 
 A soft shadow or glow travels with its element: faint pixels around it that differ from the background model are part of its cut.
 
@@ -88,9 +89,9 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 | `illustration` | rises with a squash on landing | fade, drop | sway and bob | |
 | `shape` (small) | pops from 0, rippling outward from the headline | shrinks to 0 | twinkle | |
 | `shape` (large) | grows from 80 % out of a blur | fade | decorative blobs (large, or bleeding off the card) flow like liquid, then settle; a centred mark stays crisp | |
-| `stroke` | draws along its long axis | undraws | redraws (living) | |
+| `stroke` | draws at a pen's even pace along its long axis; an arrow (its two barbs found on the skeleton) draws from its tail to its head | undraws | redraws (living) | |
 
-**Visuals that cannot leave cleanly settle instead.** A photo, panel, illustration or avatar that sits on something other than the plain background (a photo inside a UI, a poster in a stack), or covers a fifth of the card, never exposes the plate: it leans toward the viewer (scale 103.5 % with a light blur) during the exit and springs back when its turn comes. Shapes on the background leave and come back, and their holes are refilled from the background model, not smeared from their neighbours.
+**Visuals that cannot leave cleanly settle instead.** A photo, panel, illustration or avatar that sits on something other than the plain background (a photo inside a UI, a poster in a stack), or covers a fifth of the card, never exposes the plate: it leans toward the viewer (scale 103.5 % with a light blur) during the exit and springs back when its turn comes. Light then runs through its own lit parts (`light.png`: where it is brighter than the background behind it), so a print, a glint or a pale object comes alive without the soft edge of its cut showing. Shapes on the background leave and come back, and their holes are refilled from the background model, not smeared from their neighbours.
 
 **Camera.** On a graded or pictorial background the whole card breathes: a slow push-in of about 2 % that returns to 1 at the loop point, so background and layers move together and nothing slides against what is behind it. The headline's landing adds a short, damped punch.
 
@@ -106,7 +107,7 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 
 Every extra (idle, sweeps, rings, glows, punch, liquid edges, the breathing of a graded background) is exactly zero at t = 0 and t = loop, so the loop closes on the approved card.
 
-Tested on the OG images of 61 well-known sites in `eval/` (`python3 eval/run.py` renders and scores all of them; run it after any change to the engine). Where a reading is wrong it is usually one of: a text line containing a pill or avatars, a dense UI screenshot (many small parts), stylised capitals Tesseract cannot read. Fix those with `kind` in `layers.js`.
+Tested on the OG images of 103 well-known sites in `eval/` (developer tools, venture capital firms, AI companies and technology companies) (`python3 eval/run.py` renders and scores all of them; run it after any change to the engine). Where a reading is wrong it is usually one of: a text line containing a pill or avatars, a dense UI screenshot (many small parts), stylised capitals Tesseract cannot read. Fix those with `kind` in `layers.js`.
 
 ## Route B: from an HTML card
 
@@ -227,4 +228,4 @@ Sources were read on 2026-10-30; the per-app device tests are from [checkmyog](h
 | `scripts/check_live.sh` | Live tags, files, https and Range check |
 | `worker/range-worker.js` | Cloudflare Worker adding Range / 206 for `.mp4` |
 | `examples/` | Worked examples (route A, living style, route B) with inputs and outputs |
-| `eval/` | 61 real OG images, the runner that renders and scores them, and the results |
+| `eval/` | 103 real OG images, `fetch.py` that downloads them, the runner that renders and scores them, and the results |

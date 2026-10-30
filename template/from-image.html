@@ -173,13 +173,16 @@ function build() {
     const lightInk = l.ink ? hexRgb(l.ink).split(',').reduce((m, v) => m + +v, 0) / 3 > 165 : false;
     // white type can only take a coloured sweep; without an accent colour it gets none
     const broad = L.kind === 'panel' || area > 0.35;  // big surfaces take a glancing reflection
-    if ((['headline', 'pill', 'logo'].includes(L.kind) || broad || (L.tone && TEXT.has(L.kind))) && !(lightInk && !ACCENT && !broad)) {
+    // a picture that has to stay in place comes alive with light running through it instead
+    const picture = L.settle && ['illustration', 'photo', 'panel'].includes(L.kind);
+    if ((['headline', 'pill', 'logo'].includes(L.kind) || broad || picture || (L.tone && TEXT.has(L.kind))) && !(lightInk && !ACCENT && !broad && !picture)) {
       const s = document.createElement('div'); s.className = 'sheen';
       Object.assign(s.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', backgroundSize: '320% 100%' });
       glyphMask(s, x, y);
-      const c = broad || !lightInk ? '255,255,255' : ACCENT;
-      s.style.background = `linear-gradient(100deg, rgba(${c},0) 38%, rgba(${c},${broad ? 0.22 : 0.9}) 50%, rgba(${c},0) 62%)`;
-      if (broad) s.style.webkitMaskImage = s.style.maskImage = `url("${C.layerImage}")`;  // the whole surface, not just its marks
+      const c = broad || picture || !lightInk ? '255,255,255' : ACCENT;
+      s.style.background = `linear-gradient(100deg, rgba(${c},0) 38%, rgba(${c},${picture ? 0.4 : broad ? 0.22 : 0.9}) 50%, rgba(${c},0) 62%)`;
+      if (broad && !picture) s.style.webkitMaskImage = s.style.maskImage = `url("${C.layerImage}")`;  // the whole surface, not just its marks
+      if (picture) s.style.webkitMaskImage = s.style.maskImage = 'url("light.png")';  // its own lit parts (make_plate.py)
       s.style.backgroundSize = '320% 100%';
       $('top').appendChild(s); L.sheen = s;
     }
@@ -258,6 +261,28 @@ function apply(el, { o = 1, x = 0, y = 0, s = 1, sx = 1, sy = 1, r = 0, b = 0, c
   el.style.clipPath = clip || 'none';
 }
 
+// a straight wipe across a stroke along the way it is drawn (l.dir: an arrow from its tail to its head; otherwise
+// left to right, or top to bottom when it is tall): keep where the position along that way lies in [lo, hi] of the box
+function wipe(l, lo, hi) {
+  const [dx, dy] = l.dir || (l.w >= l.h ? [1, 0] : [0, 1]);
+  const ew = l.w + 2 * CUT_REACH, eh = l.h + 2 * CUT_REACH;  // the element is the box padded by the cut's reach
+  const s = ([u, v]) => dx * u * ew + dy * v * eh;
+  const ss = [[0, 0], [1, 0], [1, 1], [0, 1]].map(s), s0 = Math.min(...ss), s1 = Math.max(...ss);
+  let poly = [[-0.1, -0.1], [1.1, -0.1], [1.1, 1.1], [-0.1, 1.1]];
+  for (const [lim, sign] of [[s0 + lo * (s1 - s0), 1], [s0 + hi * (s1 - s0), -1]]) {
+    if ((sign > 0 && lo <= 0) || (sign < 0 && hi >= 1)) continue;  // that side stays open, as a plain inset did
+    const inside = q => sign * (s(q) - lim) >= 0, out = [];
+    poly.forEach((q, i) => {
+      const r = poly[(i + 1) % poly.length];
+      if (inside(q)) out.push(q);
+      if (inside(q) !== inside(r)) { const t = (lim - s(q)) / (s(r) - s(q)); out.push([q[0] + t * (r[0] - q[0]), q[1] + t * (r[1] - q[1])]); }
+    });
+    poly = out;
+  }
+  if (poly.length < 3) return 'polygon(0 0, 0 0, 0 0)';
+  return 'polygon(' + poly.map(([u, v]) => `${(100 * u).toFixed(2)}% ${(100 * v).toFixed(2)}%`).join(', ') + ')';
+}
+
 // entrance: u = seconds since this part started; returns the part's state
 function enter(l, u, k) {
   const D = ENERGY.dist, z = ENERGY.z, f = ENERGY.f;
@@ -278,7 +303,10 @@ function enter(l, u, k) {
     case 'photo': { const a = (50 * (1 - e)).toFixed(1); return { o: fast, s: 1.1 - 0.1 * e, clip: `inset(${a}% 0 ${a}% 0 round 6px)` }; }
     case 'panel': return { o: EASE.out(clamp(u / 0.22)), y: 42 * D * (1 - sp), s: 0.94 + 0.06 * sp, b: blur(6) };
     case 'illustration': return { o: fast, y: 56 * D * (1 - sp), sy: 1 + 0.05 * Math.sin(Math.PI * clamp(u / 0.5)) * (1 - clamp(u / 0.5)), b: blur(4) };
-    case 'stroke': { const c = l.w >= l.h ? `inset(-10% ${(100 * (1 - e)).toFixed(1)}% -10% 0)` : `inset(0 -10% ${(100 * (1 - e)).toFixed(1)}% -10%)`; return { clip: c }; }
+    case 'stroke': {  // drawn like a pen: an even pace, longer for a longer line
+      const dur = Math.min(0.8, 0.3 + Math.hypot(l.w, l.h) / 1200);
+      return { clip: wipe(l, 0, EASE.inOut(clamp(u / dur))) };
+    }
     default: return { o: e, y: 10 * D * (1 - e), b: blur(2) };
   }
 }
@@ -292,7 +320,7 @@ function exit(l, v) {
     case 'logo': case 'icon': case 'pill': return { o: 1 - a, s: 1 - 0.55 * a, r: l.kind === 'logo' ? 30 * a : 0 };
     case 'avatar': return { o: 1 - a, s: 1 - 0.45 * a, r: 24 * a };
     case 'shape': return { o: 1 - a, s: l.small ? 1 - a : 1 - 0.15 * a, b: l.small ? 0 : 6 * a };
-    case 'stroke': return { clip: l.w >= l.h ? `inset(-10% 0 -10% ${(100 * a).toFixed(1)}%)` : `inset(${(100 * a).toFixed(1)}% -10% 0 -10%)` };
+    case 'stroke': return { clip: wipe(l, a, 1) };
     default: return { o: 1 - a, y: 14 * a, s: 1 - 0.04 * a, b: 6 * a };
   }
 }
@@ -337,7 +365,7 @@ window.render = function (t) {
         st = id;
         // type stays still and readable; light moves through it (the sweep below) while the camera breathes
         if (l.kind === 'stroke') { const un = away(P(t, 1.0, 0.35)), re = EASE.smooth(P(t, 1.45, 0.55));
-          const c = 100 * (un * (1 - re)); st = { clip: l.w >= l.h ? `inset(-10% ${c.toFixed(1)}% -10% 0)` : `inset(0 -10% ${c.toFixed(1)}% -10%)` }; }
+          st = { clip: wipe(l, 0, 1 - un * (1 - re)) }; }
         if (l.kind === 'logo') st = add(st, { r: 360 * EASE.inOut(P(t, 1.1, 1.0)) % 360 });
       } else if (t < EXIT_END) {
         const off = Math.min(0.1, Math.min(0.08, l.i * 0.012) + (l.kind === 'headline' ? k * 0.008 : 0));

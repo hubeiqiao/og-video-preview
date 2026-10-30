@@ -137,16 +137,28 @@ def group(m, gx=13, gy=4, min_area=260):
 
 def merge_items(items):
     """merge_boxes for (box, own mask) pairs. Each piece joins exactly one group, so a small element
-    that sits inside a large web's box is never also part of the web."""
+    that sits inside a large web's box is never also part of the web. Words of one line join; solid
+    pieces side by side (cards in a row) do not."""
     groups = [([list(b)], [k]) for k, (b, _) in enumerate(items)]
     bbox = lambda bs: [min(b[0] for b in bs), min(b[1] for b in bs),
                        max(b[0] + b[2] for b in bs) - min(b[0] for b in bs), max(b[1] + b[3] for b in bs) - min(b[1] for b in bs)]
+    fill = lambda g: sum(items[k][1].sum() for k in g[1]) / max(1, sum(items[k][0][2] * items[k][0][3] for k in g[1]))
+
+    def touch(p, q, solid):
+        ix = min(p[0] + p[2], q[0] + q[2]) - max(p[0], q[0])
+        iy = min(p[1] + p[3], q[1] + q[3]) - max(p[1], q[1])
+        small, big = sorted([p[2] * p[3], q[2] * q[3]])
+        if ix > 0 and iy > 0 and ix * iy > 0.3 * small and big < 8 * small:
+            return True
+        hp, hq = p[3], q[3]
+        return (not solid and iy > 0.6 * min(hp, hq) and max(hp, hq) < 1.6 * min(hp, hq) and -ix < 0.9 * min(hp, hq))
+
     changed = True
     while changed:
         changed = False
         for i in range(len(groups)):
             for j in range(i + 1, len(groups)):
-                if len(merge_boxes([bbox(groups[i][0]), bbox(groups[j][0])], 3)) == 1:
+                if touch(bbox(groups[i][0]), bbox(groups[j][0]), fill(groups[i]) > 0.6 and fill(groups[j]) > 0.6):
                     groups[i] = (groups[i][0] + groups[j][0], groups[i][1] + groups[j][1])
                     del groups[j]
                     changed = True
@@ -228,6 +240,37 @@ def bands(m):
     return out
 
 
+def dotted(bs, m):
+    """Lines of a text layer (m: its own pixels, cropped to its box): on a line with no ascenders the dots over
+    i and j float as their own short band of small round blobs, and belong to the line below."""
+    out, k = [list(b) for b in bs], 0
+    while k + 1 < len(out):
+        (a0, a1), (b0, b1) = out[k], out[k + 1]
+        g = b1 - b0
+        if a1 - a0 < 0.3 * g and b0 - a1 < 0.4 * g:
+            _, _, st, _ = cv2.connectedComponentsWithStats(m[a0:a1].astype(np.uint8), connectivity=8)
+            _, _, body, _ = cv2.connectedComponentsWithStats(m[b0:b1].astype(np.uint8), connectivity=8)
+            st, body = st[1:], body[1:]
+            st = st[st[:, 4] >= max(6, 0.004 * g * g)]  # paper grain and JPEG specks are not dots
+            # each dot sits over a stem about as narrow as itself (the i or the j), not over a wide letter: a third of the
+            # way down the line, the run of ink under the dot's centre is short (tight tracking can join the letters)
+            row = m[b0 + max(1, int(0.33 * g))] > 0
+            def stem(d):
+                c = int(d[0] + d[2] / 2)
+                if c >= len(row) or not row[c]:
+                    return False
+                l, r = c, c
+                while l > 0 and row[l - 1]: l -= 1
+                while r + 1 < len(row) and row[r + 1]: r += 1
+                return r - l + 1 <= 2 * d[2]
+            if len(st) and (st[:, 2:4] <= 0.35 * g).all() and (st[:, 2:4] >= 0.1 * g).all() \
+                    and ((st[:, 2] / st[:, 3] > 0.5) & (st[:, 2] / st[:, 3] < 2)).all() and all(stem(d) for d in st):
+                out[k:k + 2] = [[a0, b1]]
+                continue
+        k += 1
+    return out
+
+
 def columns(m, min_gap):
     """Split a line into parts at column gaps of at least min_gap pixels."""
     cols = m.sum(0) > 0
@@ -276,6 +319,48 @@ def features(img, m, box):
     }
 
 
+def thin(m):
+    """Zhang-Suen thinning: a one-pixel skeleton of a mask."""
+    s = np.pad((m > 0).astype(np.uint8), 1)
+    while True:
+        changed = False
+        for step in (0, 1):
+            p = [np.roll(np.roll(s, -dy, 0), -dx, 1) for dy, dx in
+                 ((-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1))]  # P2..P9, clockwise
+            b = sum(p)
+            a = sum(((p[i] == 0) & (p[(i + 1) % 8] == 1)) for i in range(8))
+            if step == 0:
+                c = (p[0] * p[2] * p[4] == 0) & (p[2] * p[4] * p[6] == 0)
+            else:
+                c = (p[0] * p[2] * p[6] == 0) & (p[0] * p[4] * p[6] == 0)
+            kill = (s == 1) & (b >= 2) & (b <= 6) & (a == 1) & c
+            if kill.any():
+                s[kill] = 0
+                changed = True
+        if not changed:
+            return s[1:-1, 1:-1]
+
+
+def arrow_dir(m):
+    """Direction from an arrow's tail to its head, as a unit vector, or None for a line without a head.
+    On the skeleton, the head's two barbs end close together; the tail is the endpoint far from the others."""
+    sk = thin(m)
+    nb = sum(np.roll(np.roll(sk, dy, 0), dx, 1) for dy in (-1, 0, 1) for dx in (-1, 0, 1)) - sk
+    ys, xs = np.nonzero((sk == 1) & (nb == 1))
+    if len(xs) != 3:
+        return None
+    size = max(m.shape)
+    e = np.stack([xs, ys], 1).astype(float)
+    d = np.hypot(*(e[:, None] - e[None]).transpose(2, 0, 1))
+    i, j = np.unravel_index(np.argmin(d + np.eye(3) * 1e9), d.shape)
+    tail = 3 - i - j
+    if d[i, j] > 0.25 * size or min(d[tail, i], d[tail, j]) < 0.5 * size:
+        return None  # no clear head
+    v = (e[i] + e[j]) / 2 - e[tail]
+    n = float(np.hypot(*v))
+    return [round(float(v[0]) / n, 3), round(float(v[1]) / n, 3)]
+
+
 def textlike(f, box):
     w = box[2]
     if f["ncc"] < 2 or f["fill"] > 0.62 or not f["bands"] or f["mono"] < (0.4 if f["ncc"] >= 8 else 0.55):
@@ -292,6 +377,8 @@ def classify(f, box):
     aspect = w / h
     if min(w, h) <= 10 or (max(aspect, 1 / aspect) >= 6 and f["solid"] < 0.4 and f["ncc"] <= 3):
         return "stroke", "thin and long"
+    if f["ncc"] <= 2 and f["fill"] < 0.18 and f["mono"] > 0.6 and max(w, h) > 80 and f["solid"] < 0.5:  # thin: edges are a big share
+        return "stroke", "one drawn line or curve"
     if 0.78 <= aspect <= 1.28 and f["ellipse"] > 0.86 and min(w, h) >= 48:
         if f["ncol"] > 18 or f["inner_std"] > 34:
             return "avatar", "round, with photo detail"
@@ -479,6 +566,7 @@ def main():
         layers.append({"box": box, "kind": kind, "why": why, "f": f, "own": own, "scene": loose == "ocr"})
 
     # what Tesseract can read is text, even in two colours or with a logo beside it
+    inked = None
     if read:
         inked = np.zeros((H, W), bool)  # where read words are, a little padded for ascenders and tails
         for rx, ry, rw, rh in read:
@@ -492,6 +580,27 @@ def main():
                 elif share > 0.35:
                     L["named"] = True  # partly read: maybe a logo with its name, tried as a lockup below
 
+    # the dots over i and j on a line with no ascenders are a group of their own: they belong to the line below
+    for D in list(layers):
+        x, y, w, h = D["box"]
+        cs = D["f"]["comps"]
+        if not len(cs) or D["kind"] not in {"text", "shape", "icon"}:
+            continue
+        for T in layers:
+            if T is D or T["kind"] != "text" or not T["f"]["comp_h"]:
+                continue
+            tx, ty, tw, th = T["box"]
+            g = T["f"]["comp_h"]  # the line's glyph height: a dot is a small fraction of a letter, not of the block
+            tops = [ty + b0 for b0, _ in T["f"]["bands"]]  # any line of a block, not only its first
+            if (any(-2 <= t - (y + h) <= 0.5 * g for t in tops) and h <= 0.45 * g and tx - 0.1 * g <= x and x + w <= tx + tw + 0.1 * g
+                    and (cs[:, 2] <= 0.45 * g).all() and (cs[:, 3] <= 0.45 * g).all()):
+                T["own"] = T["own"] | D["own"]
+                ys, xs = np.nonzero(T["own"])
+                T["box"] = [int(xs.min()), int(ys.min()), int(xs.max() - xs.min() + 1), int(ys.max() - ys.min() + 1)]
+                T["f"] = features(img, T["own"], T["box"])
+                layers.remove(D)
+                break
+
     # text: one layer per line; a mark at the start of a line becomes its own logo layer
     split = []
     for L in layers:
@@ -501,7 +610,7 @@ def main():
             split.append(L)
             continue
         x, y, w, h = L["box"]
-        for b0, b1 in L["f"]["bands"]:
+        for b0, b1 in dotted(L["f"]["bands"], L["own"][y:y + h, x:x + w]):
             if b1 - b0 < 6:
                 continue
             xs = np.nonzero(L["own"][y + b0:y + b1, x:x + w].sum(0))[0]
@@ -528,7 +637,12 @@ def main():
                 rown = np.zeros((H, W), np.uint8)
                 rown[rb_[1]:rb_[1] + rb_[3], rb_[0]:rb_[0] + rb_[2]] = lown[rb_[1]:rb_[1] + rb_[3], rb_[0]:rb_[0] + rb_[2]]
                 rf = features(img, rown, rb_)
-                if (odd and 0.5 < mark[2] / mark[3] < 1.9 and re_ - rs > 1.5 * mark[2]
+                # a word in another colour ("is moving."), not a mark: glyphs side by side, no taller than the words,
+                # and (when Tesseract is there) read as words. Either alone also fits some logos (Tailwind, Supabase).
+                word = len(columns(mm.astype(np.uint8), 2)) >= 2 and mark[3] <= 1.1 * tall
+                if word and inked is not None:
+                    word = inked[mark[1]:mark[1] + mark[3], mark[0]:mark[0] + mark[2]][mm].mean() > 0.6
+                if (odd and not word and 0.5 < mark[2] / mark[3] < 1.9 and re_ - rs > 1.5 * mark[2]
                         and (not lockup or textlike(rf, rb_))):
                     mown = np.zeros((H, W), np.uint8)
                     mown[mark[1]:mark[1] + mark[3], mark[0]:mark[0] + mark[2]] = lown[mark[1]:mark[1] + mark[3], mark[0]:mark[0] + mark[2]]
@@ -588,6 +702,19 @@ def main():
                 if near and L["cap"] > 0.7 * M["cap"]:
                     L["kind"] = "headline"
 
+    # lines of one paragraph (same left edge, same line height, stacked) share one kind: the larger of theirs
+    rank = {"label": 0, "text": 1, "headline": 2}
+    for _ in range(2):
+        for L in texts:
+            for M in texts:
+                if L is M or L["kind"] not in rank or M["kind"] not in rank:
+                    continue
+                lx, ly, lw, lh = L["box"]; mx, my, mw, mh = M["box"]
+                stacked = 0 <= my - (ly + lh) < 0.8 * lh
+                if stacked and abs(lx - mx) <= 6 and max(lh, mh) < 1.3 * min(lh, mh):
+                    top_kind = max(L["kind"], M["kind"], key=rank.get)
+                    L["kind"] = M["kind"] = top_kind
+
     # keep the biggest elements when there are too many; small leftovers stay in the plate
     if len(layers) > a.max:
         layers.sort(key=lambda L: -(L["box"][2] * L["box"][3]) * (3 if L["kind"] in TEXT_KINDS else 1))
@@ -613,6 +740,10 @@ def main():
             if len(words) > 1:
                 item["parts"] = [[int(p), int(q)] for p, q in words]
         f = L["f"]
+        if k == "stroke":
+            d = arrow_dir(L["own"][y:y + h, x:x + w])
+            if d:
+                item["dir"] = d  # an arrow draws from its tail to its head
         if f.get("wordmark"):
             item["wordmark"] = True
         item["ink"] = f["tone"]

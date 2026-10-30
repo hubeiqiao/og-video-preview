@@ -143,6 +143,12 @@ def main():
     ga = cv2.GaussianBlur(glyph.astype(np.float32), (0, 0), 0.7)
     white = np.full((H, W, 3), 255, np.uint8)
     cv2.imwrite(os.path.join(d, "glyphs.png"), np.dstack([white, (ga * 255).clip(0, 255).astype(np.uint8)]))
+    # where an element is lighter than the background behind it: a picture that stays in place takes its light sweep
+    # through these parts only (the paper of a print, the glint on an object), never through its cut's soft edge
+    lum = lambda a: a.astype(np.float32) @ np.array([0.2126, 0.7152, 0.0722], np.float32)
+    lit = np.clip((lum(img) - lum(plate)) / 60, 0, 1) * (cv2.dilate(cut, np.ones((3, 3), np.uint8)) > 0)
+    lit = cv2.GaussianBlur(lit, (0, 0), 1.0)
+    cv2.imwrite(os.path.join(d, "light.png"), np.dstack([white, (lit * 255).clip(0, 255).astype(np.uint8)]))
     print(f"plate, layers and glyphs written ({int(hole.sum())} px refilled)")
 
 
