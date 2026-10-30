@@ -18,7 +18,7 @@ An open-source agent skill for Claude Code, OpenAI Codex, Cursor and every agent
 
 ## Overview
 
-A link preview is the first thing people see of your page in a chat. In iMessage and Discord it can be a video, and almost nobody uses that. OG Video Preview takes the still image you already approved and turns it into a short, seamless loop:
+A link preview is the first thing people see of your page in a chat. In iMessage, Discord and Telegram it can be a video, and almost nobody uses that. OG Video Preview takes the still image you already approved and turns it into a short, seamless loop:
 
 - **It reads the image.** Every element is found and classified (headline, label, logo, pill, photo, stroke and six more kinds), cut out cleanly over a refilled background, and given motion that suits what it is.
 - **Frame 0 is your image, pixel for pixel.** Apps that cannot play video show the same still they show today, so the preview is never worse than before.
@@ -133,7 +133,7 @@ Full detail, including styles (`rebuild`, `living`), energy levels and per-layer
 
 | Plays the video | Shows the still |
 |---|---|
-| **iMessage**: autoplays, muted, looping<br>**Discord**: inline player with a play button<br>**Telegram**: reports disagree, test on your device | Slack, X, Facebook, LinkedIn, WhatsApp, Signal, Bluesky, Mastodon, Matrix |
+| **iMessage**: autoplays, muted, looping<br>**Discord**: inline player with a play button<br>**Telegram**: plays it as a looping GIF | Slack, X, Facebook, LinkedIn, WhatsApp, Signal, Bluesky, Mastodon, Matrix |
 
 **Where video is not supported, nothing breaks:** the app shows your `og:image`, which is the same approved image as frame 0 of the video. Conditions and sources, checked 2026-10-30, are in [SKILL.md](SKILL.md#where-ogvideo-plays-checked-2026-10-30).
 

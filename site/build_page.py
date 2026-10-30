@@ -7,6 +7,7 @@ import hashlib
 import html
 import json
 import os
+import re
 from pathlib import Path
 import struct
 import zlib
@@ -54,7 +55,9 @@ def main():
                      f'<span><i class="sr-only">{safe_name}: </i>{domain}</span></button>')
     # the questions people ask, from README.md and SKILL.md (site/faq.json); eval numbers filled in from the results
     faq = [{'q': f['q'], 'a': f['a'].format(sites=len(names), passed=passed)} for f in json.loads((ROOT / 'site/faq.json').read_text())]
-    faq_html = '\n'.join(f'<details><summary>{html.escape(f["q"])}</summary><p>{html.escape(f["a"])}</p></details>' for f in faq)
+    def answer(a):  # a date never breaks across lines
+        return re.sub(r'(\d{4})-(\d\d)-(\d\d)', r'<span class="nw">\1-\2-\3</span>', html.escape(a))
+    faq_html = '\n'.join(f'<details><summary><span>{html.escape(f["q"])}</span></summary><p>{answer(f["a"])}</p></details>' for f in faq)
     page = (ROOT / 'site/index.html').read_text().replace('{{BASE}}', BASE)
     page = page.replace('<!-- faq -->', faq_html)
     page = page.replace('<!-- eval-grid -->', '<div class="grid">' + '\n'.join(tiles) + '</div>')
@@ -119,7 +122,7 @@ The skill reads and classifies elements in an approved image, cuts them over a r
 
 ## Where og:video plays
 
-The README and skill reference record support checked on 2026-10-30: iMessage autoplays muted and loops; Discord uses an inline player with a play button. Telegram reports disagree, so test on your own device. Slack, X, Facebook, LinkedIn, WhatsApp, Signal, Bluesky, Mastodon and Matrix show the still. See the skill reference for conditions and sources.
+The README and skill reference record support checked on 2026-10-30: iMessage autoplays muted and loops; Discord uses an inline player with a play button. Telegram played it as a looping GIF in our test on 2026-10-30. Slack, X, Facebook, LinkedIn, WhatsApp, Signal, Bluesky, Mastodon and Matrix show the still. See the skill reference for conditions and sources.
 
 ## Evaluation
 

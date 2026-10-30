@@ -2,7 +2,7 @@
   {"q": "What is an og:video?",
    "a": "A short, silent, looping MP4 that link previews can play in place of the share image (og:image). OG Video Preview makes one from the og:image you already have, so the link preview moves."},
   {"q": "Where do og:video link previews play?",
-   "a": "iMessage autoplays it, muted and looping. Discord shows an inline player with a play button. Reports for Telegram disagree, so test on your own device. Slack, X, Facebook, LinkedIn, WhatsApp, Signal, Bluesky, Mastodon and Matrix show the still image. Checked on 2026-10-30."},
+   "a": "iMessage autoplays it, muted and looping. Discord shows an inline player with a play button. Telegram plays it as a looping GIF, though an earlier device test saw only the still, so clients may differ. Slack, X, Facebook, LinkedIn, WhatsApp, Signal, Bluesky, Mastodon and Matrix show the still image. Checked on 2026-10-30."},
   {"q": "What happens in apps that cannot play video?",
    "a": "Nothing breaks. They show your og:image, which is the same approved image as frame 0 of the video, so the preview is never worse than it is today."},
   {"q": "Does it work on any image?",

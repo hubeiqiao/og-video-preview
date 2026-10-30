@@ -1,6 +1,6 @@
 # OG Video Preview
 
-An agent skill that turns an approved Open Graph image into a looping og:video, so link previews move where apps can play video (iMessage, Discord) and every other app shows the matching still. Frame 0 of the video is pixel-identical to the image.
+An agent skill that turns an approved Open Graph image into a looping og:video, so link previews move where apps can play video (iMessage, Discord, Telegram) and every other app shows the matching still. Frame 0 of the video is pixel-identical to the image.
 
 ## Install
 

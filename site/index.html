@@ -91,7 +91,7 @@ section { padding-top: clamp(96px, 12vw, 160px); }
 .hero h1 .w { display: inline-block; }
 .hero h1 .l { display: inline-block; will-change: transform; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: clamp(24px, 3vw, 36px); align-items: center; }
-.cmd { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 6px 6px 6px 16px; border-radius: 14px; background: var(--amber-soft);
+.cmd { display: inline-flex; align-items: center; gap: 16px; max-width: 100%; padding: 6px 6px 6px 16px; border-radius: 14px; background: var(--amber-soft);
   box-shadow: inset 0 0 0 1px var(--amber-line); font-family: var(--mono); font-size: 14px; color: var(--amber); }
 .cmd code { min-width: 0; overflow-wrap: break-word; }
 .cmd code::before { content: '$ '; opacity: 0.55; }
@@ -149,17 +149,28 @@ dialog .bar a { color: var(--amber); padding: 8px 0; }
 dialog .nav { display: flex; gap: 8px; }
 dialog .media { aspect-ratio: 1200 / 630; }
 
-/* questions: one line each, the answer opens under it */
-.qa { max-width: 860px; }
-.qa details { border-top: 1px solid oklch(1 0 0 / 0.08); }
+/* questions: numbered, one line each; the answer slides open under its question and focuses in */
+.qa { max-width: 860px; counter-reset: q; }
+.qa details { counter-increment: q; position: relative; border-top: 1px solid oklch(1 0 0 / 0.08); interpolate-size: allow-keywords; }
 .qa details:last-child { border-bottom: 1px solid oklch(1 0 0 / 0.08); }
-.qa summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 20px 0;
+.qa summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 20px; padding: 22px 0;
   font-size: clamp(18px, 1.6vw, 21px); font-weight: 550; letter-spacing: -0.01em; transition: color 160ms var(--ease); }
 .qa summary::-webkit-details-marker { display: none; }
-.qa summary::after { content: '+'; font-family: var(--mono); font-weight: 400; color: var(--amber); transition: transform 240ms var(--ease); flex: none; }
+.qa summary::before { content: counter(q, decimal-leading-zero); flex: none; width: 2.2em; font-family: var(--mono); font-size: 13px; font-weight: 400;
+  letter-spacing: 0; color: var(--text-3); font-variant-numeric: tabular-nums; transition: color 160ms var(--ease); }
+.qa summary span { flex: 1; min-width: 0; }
+.qa summary::after { content: '+'; flex: none; font-family: var(--mono); font-weight: 400; color: var(--amber); transition: transform 240ms var(--ease); }
 .qa details[open] summary::after { transform: rotate(45deg); }
-.qa summary:hover { color: var(--amber); }
-.qa p { color: var(--text-2); font-size: 17px; line-height: 1.6; padding: 0 0 22px; text-wrap: pretty; }
+.qa summary:hover, .qa details[open] summary { color: var(--amber); }
+.qa summary:hover::before, .qa details[open] summary::before { color: var(--amber); }
+.qa summary:focus-visible { outline: 2px solid var(--amber-line); outline-offset: 4px; border-radius: 6px; }
+.qa details::details-content { block-size: 0; overflow: clip;
+  transition: block-size 360ms var(--ease), content-visibility 360ms allow-discrete; }
+.qa details[open]::details-content { block-size: auto; }
+.qa p { color: var(--text-2); font-size: 17px; line-height: 1.6; padding: 0 0 24px calc(2.2em * 13 / 17 + 20px); text-wrap: pretty;
+  transition: opacity 320ms var(--ease), translate 320ms var(--ease), filter 320ms var(--ease); }
+.qa details:not([open]) p { opacity: 0; translate: 0 6px; filter: blur(2px); }
+@starting-style { .qa details[open] p { opacity: 0; translate: 0 6px; filter: blur(2px); } }
 
 /* textures (textures.dev, MIT): Settle behind the hero, Watch behind the end; each rests while off screen */
 .tex { position: absolute; z-index: 0; pointer-events: none; }
@@ -186,6 +197,7 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
 }
 @media (prefers-reduced-motion: reduce) {
   .in { animation: none; }
+  .qa details::details-content, .qa p { transition: none; }
   .tile .media { transition: none; }
 }
 </style>
