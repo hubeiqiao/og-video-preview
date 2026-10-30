@@ -199,7 +199,8 @@ function build() {
     [[0.24, 0.28, 0.5], [0.76, 0.7, 0.38]].forEach(([gx, gy, o], k) => {
       const g = document.createElement('div'); g.className = 'glow'; const r = 300;
       Object.assign(g.style, { width: 2 * r + 'px', height: 2 * r + 'px', background: `radial-gradient(circle, rgba(${GLOW},.5), rgba(${GLOW},0) 70%)` });
-      $('fx').appendChild(g); extras.push({ type: 'glow', el: g, x: gx * W, y: gy * H, r, o, k });
+      // above the layers: under them, each cut (opaque over its halo) would block the glow and show as a dark patch
+      $('top').insertBefore(g, $('flare')); extras.push({ type: 'glow', el: g, x: gx * W, y: gy * H, r, o, k });
     });
     const last = layers.filter(l => l.kind === 'headline').pop();
     if (last) for (let k = 0; k < 10; k++) {
