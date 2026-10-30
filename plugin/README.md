@@ -23,11 +23,11 @@ Everything runs on your machine, on files you give it. The skill contains readab
 - `scripts/render_frames.py` serves your working folder on 127.0.0.1 and captures frames with Playwright in your installed Google Chrome.
 - `scripts/encode.sh` runs `ffmpeg` and `ffprobe` on those frames.
 - `scripts/check_frame0.py` and `scripts/check_loop.py` compare frames locally.
-- `scripts/check_live.sh` is the only script that goes online: it uses `curl` to fetch the page URL you pass it and the og:image and og:video files that page names, to check status, type, size and the Range (206) answer.
+- `scripts/check_live.sh` is the only script that goes online: it uses `curl` to fetch the page URL you pass it and the og:image and og:video files that page names, to check status, type, size and the Range (206) answer. It writes nothing.
 - `template/og.html` (the HTML card route) loads two fonts from Google Fonts when it renders.
 - `worker/range-worker.js` is an example Cloudflare Worker you can deploy yourself to answer Range requests for `.mp4` files. The skill never deploys anything.
 
-Nothing installs packages, changes settings or sends data anywhere else.
+What it writes: `suggest_layers.py` and `make_plate.py` write the plate, cutouts, masks, `layers.js` and a preview into the output folder you name; `render_frames.py` writes PNG frames into the folder you name; `encode.sh` writes `<name>.mp4` and `<name>.jpg`, replacing files of that name; `check_frame0.py` writes `frame0-diff.png` in the current folder when frame 0 does not match. Nothing installs packages, changes settings or sends data anywhere else.
 
 ## Requirements
 

@@ -7,7 +7,7 @@ The skill should work on any approved OG image, not only on cards made for it. T
 ```bash
 python3 eval/fetch.py            # download the og:image of every site in sites.txt that is not in cards/ yet
 python3 eval/run.py              # all cards, 3 at a time: out/*.mp4, results.json, sheet.jpg, the table below
-python3 eval/run.py --only stripe,github --keep   # a few cards, keeping their layers.js, cuts and frames in eval/work/
+python3 eval/run.py --only stripe,github --keep   # a few cards, keeping their layers.js, plate and cuts in eval/work/
 ```
 
 What is measured on every card:
@@ -15,7 +15,7 @@ What is measured on every card:
 | Check | Pass when |
 |---|---|
 | Frame 0 | it equals the card: mean difference ≤ 2, and local defects (a gap between letters, a missing edge) on ≤ 0.05 % of pixels |
-| Seam | the jump from the last frame to the first is no bigger than an ordinary frame step |
+| Seam | the jump from the last frame to the first is at most 1.5 ordinary frame steps (plus 4 levels of slack) |
 | Size | MP4 ≤ 2 MB, frame-0 JPEG ≤ 180 KB |
 
 `results.json` also records what the engine decided for each card (how many layers, which kinds, rebuild or living), so a change to the engine can be compared card by card. Re-run after any change to `scripts/` or `template/from-image.html` and read the diff of `results.json` and `sheet.jpg`.

@@ -201,7 +201,9 @@ function build() {
   // a lone mark (one visual on an empty card: a logo, a symbol) becomes the hero: it is cut into slices that assemble,
   // a light rises behind it (or a shadow under it on a light card), a flare crosses once, and it turns slowly in 3D
   const marks = layers.filter(l => !TEXT.has(l.kind) && !['photo', 'panel'].includes(l.kind) && !l.settle);
-  const heroL = style === 'rebuild' && marks.length === 1 && layers.length <= 2 && marks[0].area < 0.3 ? marks[0] : null;
+  // beside a line of type only a real mark qualifies (an underline or a pill keeps its own motion)
+  const heroL = style === 'rebuild' && marks.length === 1 && marks[0].area < 0.3 &&
+    (layers.length === 1 || (layers.length === 2 && ['logo', 'icon', 'illustration', 'shape'].includes(marks[0].kind))) ? marks[0] : null;
   if (heroL) {
     const L = heroL, el0 = L.parts[0], N = 7, pad = CUT_REACH;
     L.hero = true; L.bandsH = L.w >= L.h * 0.8;
@@ -370,9 +372,9 @@ function exit(l, v, k = 0) {
 // idle: movement in place; zero at t = 0 and t = T so the loop closes
 function idle(l, t, living) {
   if (l.flow) return float(l, t);
-  if (l.hero) { const w = 2 * Math.PI * t / T, A = ENERGY.idle;  // a product shot: it turns slowly in 3D and breathes
+  if (l.hero) { const w = 2 * Math.PI * t / T, A = ENERGY.idle * (l.idle ?? 1);  // a product shot: it turns slowly in 3D and breathes
     return { ry: 10 * A * Math.sin(w), rx: 4 * A * Math.sin(2 * w), y: -4 * A * Math.sin(2 * w), s: 1 + 0.025 * A * env(t) }; }
-  const A = ENERGY.idle * (living ? 1.5 : 1), ph = l.i * 1.7, E = env(t);
+  const A = ENERGY.idle * (living ? 1.5 : 1) * (l.idle ?? 1), ph = l.i * 1.7, E = env(t);  // idle in layers.js: 0 keeps it still
   if (l.area > 0.35) return { s: 1 + 0.03 * A * E };  // a full-card image only pushes in: tilting it would show its corners
   switch (l.kind) {
     case 'avatar': return { y: -4 * A * E * Math.sin(2 * Math.PI * t / T * 2 + ph) };
@@ -387,8 +389,8 @@ function idle(l, t, living) {
 }
 
 // flow: every visual keeps moving through the whole loop, each on its own path, nearer (bigger) ones further, so
-// the card has depth; type stays still and readable. Every term is a sine of the loop, so frame 0 and the last frame
-// are the card itself and the loop closes.
+// the card has depth; type stays still and readable. Every term is a sine of the loop, so frame 0 is the card itself and
+// the loop closes on it.
 function float(l, t) {
   if (TEXT.has(l.kind)) return {};
   const w = 2 * Math.PI * t / T, A = ENERGY.idle * (l.idle ?? 1);  // idle in layers.js scales one layer: 0 keeps it still
@@ -432,7 +434,7 @@ window.render = function (t) {
         // type stays still and readable; light moves through it (the sweep below) while the camera breathes
         if (l.kind === 'stroke') { const un = away(P(t, 1.0, 0.35)), re = EASE.smooth(P(t, 1.45, 0.55));
           st = { clip: wipe(l, 0, 1 - un * (1 - re)) }; }
-        if (l.kind === 'logo') st = add(st, { r: 360 * EASE.inOut(P(t, 1.1, 1.0)) % 360 });
+        if (l.kind === 'logo' && !l.flow && (l.idle ?? 1) > 0) st = add(st, { r: 360 * EASE.inOut(P(t, 1.1, 1.0)) % 360 });
       } else if (t < EXIT_END) {
         const off = Math.min(0.1, Math.min(0.08, l.i * 0.012) + (l.kind === 'headline' ? k * 0.008 : 0));
         st = exit(l, P(t, off, EXIT_END - 0.1), k);

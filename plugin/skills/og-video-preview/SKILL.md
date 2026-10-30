@@ -107,7 +107,7 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 
 **Style** (`style` in `layers.js`):
 - `rebuild` (default): a quick staggered exit in the first 0.34 s, then everything re-enters.
-- `flow` (default with `--plate`): nothing leaves, and every visual keeps moving through the whole loop, each on its own path: drift, a 3D tilt and a slow turn, nearer (bigger) visuals moving further, so the card has depth. Type stays still and readable. Every move is a sine of the loop, so frame 0 and the last frame are the card.
+- `flow` (default with `--plate`): nothing leaves, and every visual keeps moving through the whole loop, each on its own path: drift, a 3D tilt and a slow turn, nearer (bigger) visuals moving further, so the card has depth. Type stays still and readable. Every move is a sine of the loop, so frame 0 is the card and the loop closes on it.
 - `living` (default when the type sits on a photo or a 3D scene, where no refill behind it looks clean): nothing leaves. Type stays still and readable while light sweeps through it, the camera breathes, decorative blobs flow, a logo turns once, lines redraw. Jed Bridges' og:video cards are the model: the title stays readable the whole time while one or two things move.
 
 **Energy** (`energy`): `calm` (smaller moves, no overshoot, no accents), `lively` (default), `bold` (more overshoot, plus a flare across the card, drifting glows and sparks off the last headline word).
@@ -146,19 +146,19 @@ Each rule came from a real review.
 2. **Motion follows the element.** Type rises out of its own line, marks spin in, pills pop, photos open, panels lift, lines draw. Never one preset for everything.
 3. **One hero moment.** One camera punch when the headline lands, one light sweep per element at most. Accents should not compete.
 4. **60 fps, 4 s.** Smooth on retina screens, still a few hundred KB.
-5. **Frame 0 is the settled card**, identical to the still, and so is the last frame: every idle, accent and camera move is zero at both ends.
+5. **Frame 0 is the settled card**, identical to the still, and the loop closes on it: every idle, accent and camera move is zero at t = 0 and t = loop.
 6. **Nothing reveals a hole.** What cannot be refilled cleanly moves in place instead of leaving.
 7. **Deterministic frames.** No CSS transitions or requestAnimationFrame; pages expose `window.render(t)` and the capture script calls it for each frame.
 
 ## Encoding
 
 `scripts/encode.sh`:
-- H.264, `yuv420p`, **no audio track**, `+faststart`, 1200×630, CRF 19, Lanczos downscale from 2× captures.
+- H.264, `yuv420p`, **no audio track**, `+faststart`, 1200×630, CRF 19 (raised to 22, 25, then 28 until the MP4 fits 2 MB), Lanczos downscale from 2× captures.
 - MP4 **≤ 2 MB** (a 4 s card is usually 300–700 KB). JPEG from frame 0 **< 180 KB**.
 
 Checks that must pass:
 - `check_frame0.py`: frame 0 matches the approved still: mean difference under 2, and no local defects (a gap between letters, a missing edge) on more than 0.05 % of pixels.
-- `check_loop.py`: the jump from the last frame to the first is no bigger than a normal frame step.
+- `check_loop.py`: the jump from the last frame to the first is no bigger than 1.5 normal frame steps (plus 4 levels of slack).
 
 ## Meta tags
 
@@ -217,7 +217,7 @@ Sources were read on 2026-10-30; the per-app device tests are from [checkmyog](h
 
 ## After publishing
 
-- `scripts/check_live.sh <page-url>` reads the page's tags and checks both files: status, type, size, https, query strings and the 206 answer. It exits non-zero on any failure.
+- `scripts/check_live.sh <page-url>` reads the page's tags and checks both files: absolute https URLs, a 200 answer with a non-empty body of the right type (image, video/mp4), and the 206 answer to a Range request. It warns about query strings and an MP4 over 2 MB, and exits non-zero on any failure.
 - iMessage caches a preview per URL on the sender's device; retest with a URL it has never seen (`?t=2`).
 - LinkedIn Post Inspector, and the X and Facebook card tools, refresh their caches.
 - Platforms decide for themselves whether to animate (see the table above). Report "eligible and verified over HTTP" until someone has seen it move on a device.

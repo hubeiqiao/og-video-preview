@@ -14,7 +14,7 @@
   {"q": "Why does my og:video only show a still in iMessage?",
    "a": "Apple's players first request Range: bytes=0-1 and play only when the server answers 206 Partial Content. Static assets on Cloudflare Workers answer 200 with the whole file, so the preview falls back to the still. The skill checks for this with scripts/check_live.sh and ships worker/range-worker.js to fix it."},
   {"q": "How long and how large is the video?",
-   "a": "A seamless 4-second loop at 60 fps whose first and last frames are the approved image. The eval keeps every MP4 under 2 MB and every frame-0 JPEG under 180 KB."},
+   "a": "A seamless 4-second loop at 60 fps that starts on the approved image and loops back to it. The eval keeps every MP4 under 2 MB and every frame-0 JPEG under 180 KB."},
   {"q": "Can every object in an illustration move?",
    "a": "Yes, with a clean background: the same image with every element removed, made with any image-edit tool and passed as --plate. Then nothing has to stay in place, and every visual keeps moving through the loop on its own path while type stays readable."},
   {"q": "Is it free?",

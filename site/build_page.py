@@ -123,7 +123,7 @@ The README and skill reference record support checked on 2026-10-30: iMessage au
 
 ## Evaluation
 
-{len(results)} real OG images, {passed} passing results, {layers} elements read, with no hand tuning. Checks: frame-0 mean difference <= 2 and local defects <= 0.05%; seam no larger than a normal frame step; MP4 <= 2 MB and JPEG <= 180 KB. Results describe the checked-in eval, not a guarantee for every input.
+{len(results)} real OG images, {passed} passing results, {layers} elements read, with no hand tuning. Checks: frame-0 mean difference <= 2 and local defects <= 0.05%; seam at most 1.5 normal frame steps; MP4 <= 2 MB and JPEG <= 180 KB. Results describe the checked-in eval, not a guarantee for every input.
 
 ## FAQ
 

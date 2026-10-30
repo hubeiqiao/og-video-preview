@@ -17,11 +17,23 @@ for u in "$IMG" "$VID"; do
   case "$u" in *\?*) echo "WARN $u has a query string; version by filename instead";; esac
   case "$u" in https://*) ;; *) echo "FAIL $u is not an absolute https URL"; fail=1;; esac
 done
+# fetch a file: it must answer 200 with a non-empty body of the expected type
+file() {  # label url type-prefix
+  read -r code bytes type <<EOT
+$(curl -s -o /dev/null -w "%{http_code} %{size_download} %{content_type}" "$2")
+EOT
+  echo "$1     $code $type $bytes bytes"
+  [ "$code" = "200" ] || { echo "FAIL $1 answers $code, not 200"; fail=1; }
+  case "$type" in "$3"*) ;; *) echo "FAIL $1 type is '$type', not $3*"; fail=1;; esac
+  [ "${bytes%.*}" -gt 0 ] 2>/dev/null || { echo "FAIL $1 is empty"; fail=1; }
+  size=${bytes%.*}
+}
 if [ -n "$IMG" ]; then
-  curl -s -o /dev/null -w "image     %{http_code} %{content_type} %{size_download} bytes\n" "$IMG"
+  file image "$IMG" image/
 fi
 if [ -n "$VID" ]; then
-  curl -s -o /dev/null -w "video     %{http_code} %{content_type} %{size_download} bytes\n" "$VID"
+  size=0; file video "$VID" video/mp4
+  [ "${size:-0}" -le 2097152 ] 2>/dev/null || echo "WARN video is over 2 MB, the budget encode.sh keeps to"
   code=$(curl -s -o /dev/null -H "Range: bytes=0-1" -w "%{http_code}" "$VID")
   echo "range     $code (must be 206)"
   [ "$code" = "206" ] || { echo "FAIL server ignores Range requests; iMessage and Safari will not play it (see worker/range-worker.js)"; fail=1; }

@@ -44,12 +44,16 @@ body { font-family:'Familjen Grotesk', sans-serif; color:var(--text); -webkit-fo
 <div id="bubble"><video id="play" muted playsinline preload="auto" src="../eval/out/stripe.mp4"></video><div class="cap">stripe.com</div></div>
 <div class="label" id="name"><b>og-video-preview</b> · agent skill</div>
 <div id="title">Make your link previews <span>move.</span></div>
-<div class="label" id="facts"><em>61</em> real OG images tested<br>frame 0 = your image<br>plays in iMessage and Discord</div>
+<div class="label" id="facts"><em>103</em> real OG images tested<br>frame 0 = your image<br>plays in iMessage and Discord</div>
 <script>
-const names = ['anthropic','arc','astro','bolt','bun','cal','calendly','clerk','cursor','deno','discord','dropbox','dub','excalidraw','figma','fly',
-  'framer','ghost','github','granola','gumroad','huggingface','intercom','linear','loom','mailchimp','mintlify','miro','mobbin','netlify','nextjs',
-  'notion','obsidian','perplexity','pitch','planetscale','posthog','railway','raycast','replit','resend','retool','rive','sentry','shopify','slack',
-  'spline','spotify','stripe','supabase','superhuman','tailwindcss','tldraw','typeform','v0','vercel','vite','warp','webflow','zapier','zed'];
+const names = ['a16z','accel','amd','anthropic','apple','arc','astro','bolt','bun','bvp','cal','calendly','canva','clerk','cloudflare',
+  'coatue','cognition','cohere','conviction','cursor','deno','discord','dropbox','dub','duolingo','elevenlabs','excalidraw','figma','fly',
+  'framer','generalcatalyst','ghost','github','glean','granola','greylock','groq','gumroad','gv','harvey','huggingface','ibm','ideogram',
+  'indexventures','insightpartners','intercom','kleinerperkins','linear','loom','lovable','lsvp','mailchimp','mintlify','miro','mistral',
+  'mobbin','netlify','nextjs','nfx','notion','obsidian','openai','perplexity','pika','pinterest','pitch','planetscale','posthog','railway',
+  'raycast','replit','resend','retool','rive','runwayml','salesforce','scale','sentry','sequoiacap','shopify','slack','spline','spotify',
+  'stability','stripe','suno','supabase','superhuman','tailwindcss','thrivecap','tldraw','together','typeform','v0','vercel','vite','warp',
+  'webflow','windsurf','x','ycombinator','zapier','zed'];
 const wall = document.getElementById('wall'), play = document.getElementById('play'), dot = document.querySelector('#live i');
 const imgs = Array.from({ length: 81 }, (_, k) => {
   const im = new Image(); im.src = `../eval/out/${names[(k * 23) % names.length]}.jpg`; wall.appendChild(im); return im;

@@ -393,7 +393,7 @@ const json = u => fetch(u).then(r => r.json()).catch(() => null);
 const shuffled = names.map(n => [Math.random(), n]).sort((a, b) => a[0] - b[0]).map(([, n]) => ({ key: n, domain: SITES[n], still: `eval/${n}.jpg`, video: `eval/${n}.mp4` }));
 playlist = [...own, ...shuffled];
 painted.then(() => json('media/boxes.json')).then(boxes => {
-  if (still) { va.src = own[0].video; va.style.clipPath = 'none'; va.play().catch(() => {}); siteEl.textContent = own[0].domain; return; }
+  if (still) { img.style.filter = 'none'; siteEl.textContent = own[0].domain; return; }  // reduced motion: the card, not its video
   stageLoop(boxes || {});
 });
 

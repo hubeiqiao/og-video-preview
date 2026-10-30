@@ -14,4 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sh tools/sync_plugin.sh
-      - run: git diff --exit-code plugin/ || { echo "plugin/ is out of date: run sh tools/sync_plugin.sh and commit"; exit 1; }
+      - run: |
+          if [ -n "$(git status --porcelain --untracked-files=all -- plugin/)" ]; then
+            git status --short -- plugin/; echo "plugin/ is out of date: run sh tools/sync_plugin.sh and commit"; exit 1
+          fi

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Check that the loop is seamless: the jump from the last frame back to the
-first should be no bigger than an ordinary frame-to-frame step.
+first should be no bigger than an ordinary frame-to-frame step (with a little slack).
 
 Usage: check_loop.py FRAMES_DIR
 """

@@ -10,10 +10,10 @@
  "style": "living",
  "frame0_mean": 0.364,
  "frame0_local_pct": 0.0,
- "seam": 0,
+ "seam": 1,
  "step": 2,
  "mp4_kb": 1249,
  "jpg_kb": 149,
- "seconds": 155.2,
+ "seconds": 145.0,
  "pass": true
 }

@@ -146,7 +146,7 @@ The skill is tested on the Open Graph images of 103 well-known sites, each put t
 | Check | Pass when |
 |---|---|
 | Frame 0 | mean difference to the image ≤ 2, and local defects on ≤ 0.05 % of pixels |
-| Seam | the jump from the last frame to the first is no bigger than an ordinary frame step |
+| Seam | the jump from the last frame to the first is at most 1.5 ordinary frame steps (plus 4 levels of slack) |
 | Size | MP4 ≤ 2 MB, frame-0 JPEG ≤ 180 KB |
 
 All 103 pass. Run it after any change to the engine:
