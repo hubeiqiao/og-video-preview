@@ -6,13 +6,14 @@ Standard library only, so Pages needs no additional Python dependencies.
 import hashlib
 import html
 import json
+import os
 from pathlib import Path
 import struct
 import zlib
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / '_site'
-BASE = 'https://hubeiqiao.github.io/og-video-preview/'
+BASE = os.environ.get('SITE_BASE', 'https://hubeiqiao.com/og-video-preview/')  # where the page is served
 REPO = 'https://github.com/hubeiqiao/og-video-preview'
 INSTALL = 'npx skills add hubeiqiao/og-video-preview'
 DESCRIPTION = 'An open-source agent skill that turns any approved og:image into a looping og:video, so link previews move.'
@@ -51,7 +52,11 @@ def main():
         tiles.append(f'<button class="tile" data-name="{safe_name}" data-index="{result_order[name]}" data-domain="{domain}" aria-label="Open the og:video of {domain}">'
                      f'<div class="media"><img data-src="media/posters/{safe_name}.webp" alt="" width="1200" height="630" loading="lazy" decoding="async"><noscript><img src="media/posters/{safe_name}.webp" alt="" loading="lazy" style="position:absolute;inset:0"></noscript></div>'
                      f'<span><i class="sr-only">{safe_name}: </i>{domain}</span></button>')
-    page = (ROOT / 'site/index.html').read_text()
+    # the questions people ask, from README.md and SKILL.md (site/faq.json); eval numbers filled in from the results
+    faq = [{'q': f['q'], 'a': f['a'].format(sites=len(names), passed=passed)} for f in json.loads((ROOT / 'site/faq.json').read_text())]
+    faq_html = '\n'.join(f'<details><summary>{html.escape(f["q"])}</summary><p>{html.escape(f["a"])}</p></details>' for f in faq)
+    page = (ROOT / 'site/index.html').read_text().replace('{{BASE}}', BASE)
+    page = page.replace('<!-- faq -->', faq_html)
     page = page.replace('<!-- eval-grid -->', '<div class="grid">' + '\n'.join(tiles) + '</div>')
     page = page.replace('Real sites. <span', f'{len(names)} real sites. <span')
     page = page.replace("Each card made by the skill from the site's own og:image.", stats)
@@ -61,7 +66,14 @@ def main():
          'operatingSystem': 'Requires Python 3, Google Chrome, ffmpeg and ffprobe',
          'license': 'https://opensource.org/license/mit/', 'codeRepository': REPO,
          'offers': {'@type': 'Offer', 'price': 0},
-         'author': {'@type': 'Person', 'name': 'Joe Hu', 'url': 'https://x.com/hubeiqiao'}},
+         'author': {'@id': 'https://hubeiqiao.com/#joe'}},
+        {'@type': 'Person', '@id': 'https://hubeiqiao.com/#joe', 'name': 'Joe Hu', 'url': 'https://hubeiqiao.com',
+         'sameAs': ['https://x.com/hubeiqiao', 'https://github.com/hubeiqiao']},
+        {'@type': 'SoftwareSourceCode', '@id': BASE + '#code', 'name': 'og-video-preview', 'codeRepository': REPO,
+         'programmingLanguage': ['Python', 'JavaScript'], 'license': 'https://opensource.org/license/mit/',
+         'author': {'@id': 'https://hubeiqiao.com/#joe'}, 'targetProduct': {'@id': BASE + '#software'}},
+        {'@type': 'FAQPage', '@id': BASE + '#faq', 'mainEntity': [{'@type': 'Question', 'name': f['q'],
+         'acceptedAnswer': {'@type': 'Answer', 'text': f['a']}} for f in faq]},
         {'@type': 'WebSite', '@id': BASE + '#website', 'url': BASE, 'name': 'OG Video Preview',
          'description': DESCRIPTION, 'about': {'@id': BASE + '#software'}}]}
     page = page.replace('<!-- structured-data -->', '<script type="application/ld+json">' + json.dumps(graph, separators=(',', ':')) + '</script>')
@@ -109,6 +121,10 @@ The README and skill reference record support checked on 2026-10-30: iMessage au
 
 {len(results)} real OG images, {passed} passing results, {layers} elements read, with no hand tuning. Checks: frame-0 mean difference <= 2 and local defects <= 0.05%; seam no larger than a normal frame step; MP4 <= 2 MB and JPEG <= 180 KB. Results describe the checked-in eval, not a guarantee for every input.
 
+## FAQ
+
+''' + '\n\n'.join(f'### {f["q"]}\n\n{f["a"]}' for f in faq) + f'''
+
 ## Links
 
 - [Landing page]({BASE})
@@ -144,7 +160,7 @@ The README and skill reference record support checked on 2026-10-30: iMessage au
 {INSTALL}
 ```
 
-[GitHub]({REPO}) · [Inspired by @pfista](https://x.com/pfista/status/2113288415546638515) · [Built by Joe Hu](https://x.com/hubeiqiao) · [MIT]({REPO}/blob/main/LICENSE)
+[GitHub]({REPO}) · [Inspired by @pfista](https://x.com/pfista/status/2113288415546638515) · [Built by Joe Hu](https://hubeiqiao.com) · [MIT]({REPO}/blob/main/LICENSE)
 
 ---
 

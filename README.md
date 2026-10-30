@@ -10,7 +10,7 @@ An open-source agent skill for Claude Code, OpenAI Codex, Cursor and every agent
 [![Eval: 103 of 103](https://img.shields.io/badge/eval-103%20of%20103%20pass-f6b93b.svg)](eval/)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-f6b93b.svg)](https://agentskills.io)
 
-[Website](https://hubeiqiao.github.io/og-video-preview/) · [20-second film](social/promo.mp4) · [Eval](eval/) · [Skill reference](SKILL.md)
+[Website](https://hubeiqiao.com/og-video-preview/) · [20-second film](social/promo.mp4) · [Eval](eval/) · [Skill reference](SKILL.md)
 
 ![A grey still photo goes into a small brass machine and comes out as bright video cards with a play button](social/hero.gif)
 
@@ -168,7 +168,7 @@ python3 eval/run.py --only stripe,github --keep  # a few cards, keeping their in
 | ![Living style](examples/living-blobs/out/preview.gif) | ![HTML card](examples/demo-joespeaking/out/preview.gif) |
 | **Living style**: nothing leaves, the blobs flow and settle | **Route B**: a card built in HTML |
 
-Rebuild them with `bash examples/build-examples.sh`. The [website](https://hubeiqiao.github.io/og-video-preview/)'s own link preview is made by the skill itself from its approved still, with a clean background (`--plate`) so every object can move (`site/og/build.sh`).
+Rebuild them with `bash examples/build-examples.sh`. The [website](https://hubeiqiao.com/og-video-preview/)'s own link preview is made by the skill itself from its approved still, with a clean background (`--plate`) so every object can move (`site/og/build.sh`).
 
 ## Serving requirements
 

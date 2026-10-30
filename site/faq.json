@@ -1,0 +1,22 @@
+[
+  {"q": "What is an og:video?",
+   "a": "A short, silent, looping MP4 that link previews can play in place of the share image (og:image). OG Video Preview makes one from the og:image you already have, so the link preview moves."},
+  {"q": "Where do og:video link previews play?",
+   "a": "iMessage autoplays it, muted and looping. Discord shows an inline player with a play button. Reports for Telegram disagree, so test on your own device. Slack, X, Facebook, LinkedIn, WhatsApp, Signal, Bluesky, Mastodon and Matrix show the still image. Checked on 2026-10-30."},
+  {"q": "What happens in apps that cannot play video?",
+   "a": "Nothing breaks. They show your og:image, which is the same approved image as frame 0 of the video, so the preview is never worse than it is today."},
+  {"q": "Does it work on any image?",
+   "a": "It works from any approved PNG or JPG, made in Figma, Canva or code, or from an HTML card. It reads what each element is (headline, label, logo, pill, photo, line and more), cuts it out over a refilled background and gives each kind its own motion. It is tested on the OG images of {sites} well-known sites with no hand tuning, and {passed} of them pass every check."},
+  {"q": "How do I install it?",
+   "a": "Run npx skills add hubeiqiao/og-video-preview, install it as a Claude Code plugin, or clone the repository into your skills folder. It works with Claude Code, OpenAI Codex, Cursor and other agents that support the Agent Skills standard. Then ask: Use /og-video-preview to make my og:image move."},
+  {"q": "What does it need to run?",
+   "a": "Python 3 with playwright, Pillow, opencv-python and numpy; Google Chrome; ffmpeg and ffprobe. Tesseract is optional and helps it read type on photos."},
+  {"q": "Why does my og:video only show a still in iMessage?",
+   "a": "Apple's players first request Range: bytes=0-1 and play only when the server answers 206 Partial Content. Static assets on Cloudflare Workers answer 200 with the whole file, so the preview falls back to the still. The skill checks for this with scripts/check_live.sh and ships worker/range-worker.js to fix it."},
+  {"q": "How long and how large is the video?",
+   "a": "A seamless 4-second loop at 60 fps whose first and last frames are the approved image. The eval keeps every MP4 under 2 MB and every frame-0 JPEG under 180 KB."},
+  {"q": "Can every object in an illustration move?",
+   "a": "Yes, with a clean background: the same image with every element removed, made with any image-edit tool and passed as --plate. Then nothing has to stay in place, and every visual keeps moving through the loop on its own path while type stays readable."},
+  {"q": "Is it free?",
+   "a": "Yes. OG Video Preview is open source under the MIT License. The eval images belong to their owners and are used only as test inputs."}
+]

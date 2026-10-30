@@ -5,24 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OG Video Preview: make your link previews move</title>
 <meta name="description" content="An open-source agent skill that turns any og:image into a looping og:video. Tested on 103 real OG images with no hand tuning.">
-<link rel="canonical" href="https://hubeiqiao.github.io/og-video-preview/">
+<link rel="canonical" href="{{BASE}}">
 <!-- the preview of this page: made by the skill itself from the approved still (site/og/build.sh) -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="OG Video Preview">
 <meta property="og:title" content="OG Video Preview: make your link previews move">
 <meta property="og:description" content="An open-source agent skill that turns any og:image into a looping og:video. Tested on 103 real OG images.">
-<meta property="og:url" content="https://hubeiqiao.github.io/og-video-preview/">
-<meta property="og:image" content="https://hubeiqiao.github.io/og-video-preview/og/og-v5.jpg">
+<meta property="og:url" content="{{BASE}}">
+<meta property="og:image" content="{{BASE}}og/og-v5.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="A grey still photo goes into a small brass machine and comes out as bright video cards with a play button">
-<meta property="og:video" content="https://hubeiqiao.github.io/og-video-preview/og/og-v5.mp4">
-<meta property="og:video:secure_url" content="https://hubeiqiao.github.io/og-video-preview/og/og-v5.mp4">
+<meta property="og:video" content="{{BASE}}og/og-v5.mp4">
+<meta property="og:video:secure_url" content="{{BASE}}og/og-v5.mp4">
 <meta property="og:video:type" content="video/mp4">
 <meta property="og:video:width" content="1200">
 <meta property="og:video:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://hubeiqiao.github.io/og-video-preview/og/og-v5.jpg">
+<meta name="twitter:image" content="{{BASE}}og/og-v5.jpg">
 <meta name="twitter:image:alt" content="A grey still photo goes into a small brass machine and comes out as bright video cards with a play button">
 <meta name="theme-color" content="#0b0a09">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -30,6 +30,8 @@
 <link rel="icon" href="favicon-16.png" type="image/png" sizes="16x16">
 <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180">
 <link rel="manifest" href="site.webmanifest">
+<link rel="alternate" type="text/markdown" href="index.md" title="This page in Markdown">
+<link rel="alternate" type="text/plain" href="llms.txt" title="Summary for AI agents">
 <meta name="twitter:title" content="OG Video Preview: make your link previews move">
 <meta name="twitter:description" content="An open-source agent skill that turns any og:image into a looping og:video. Tested on 103 real OG images.">
 <!-- structured-data -->
@@ -147,6 +149,18 @@ dialog .bar a { color: var(--amber); padding: 8px 0; }
 dialog .nav { display: flex; gap: 8px; }
 dialog .media { aspect-ratio: 1200 / 630; }
 
+/* questions: one line each, the answer opens under it */
+.qa { max-width: 860px; }
+.qa details { border-top: 1px solid oklch(1 0 0 / 0.08); }
+.qa details:last-child { border-bottom: 1px solid oklch(1 0 0 / 0.08); }
+.qa summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 20px 0;
+  font-size: clamp(18px, 1.6vw, 21px); font-weight: 550; letter-spacing: -0.01em; transition: color 160ms var(--ease); }
+.qa summary::-webkit-details-marker { display: none; }
+.qa summary::after { content: '+'; font-family: var(--mono); font-weight: 400; color: var(--amber); transition: transform 240ms var(--ease); flex: none; }
+.qa details[open] summary::after { transform: rotate(45deg); }
+.qa summary:hover { color: var(--amber); }
+.qa p { color: var(--text-2); font-size: 17px; line-height: 1.6; padding: 0 0 22px; text-wrap: pretty; }
+
 /* textures (textures.dev, MIT): Settle behind the hero, Watch behind the end; each rests while off screen */
 .tex { position: absolute; z-index: 0; pointer-events: none; }
 .tex .host { position: absolute; inset: 0; }
@@ -236,6 +250,11 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
     <div id="groups"><!-- eval-grid --></div>
   </section>
 
+  <section class="faq" id="faq">
+    <div class="head"><h2>Questions</h2></div>
+    <div class="qa"><!-- faq --></div>
+  </section>
+
   <section class="end" id="end">
     <div class="tex" data-motion="ambient" aria-hidden="true"><div class="host" data-texture="watch" data-ink="oklch(0.82 0.15 78 / 0.5)" data-field="transparent"></div></div>
     <h2>One command. <span class="nw">Any <span class="amber">og:image.</span></span></h2>
@@ -245,7 +264,7 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
     </div>
     <footer>
       <a href="https://x.com/pfista/status/2113288415546638515" target="_blank" rel="noopener">Inspired by @pfista</a>
-      <a class="by" href="https://x.com/hubeiqiao" target="_blank" rel="noopener"><span class="face"><img src="media/joe.webp" alt="" width="28" height="28" loading="lazy" decoding="async"></span>Built by Joe Hu</a>
+      <a class="by" href="https://hubeiqiao.com" target="_blank" rel="noopener"><span class="face"><img src="media/joe.webp" alt="" width="28" height="28" loading="lazy" decoding="async"></span>Built by Joe Hu</a>
       <a href="https://github.com/hubeiqiao/og-video-preview/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a>
     </footer>
   </section>
@@ -453,6 +472,11 @@ document.querySelectorAll('.copy').forEach(b => b.addEventListener('click', asyn
   try { await navigator.clipboard.writeText('npx skills add hubeiqiao/og-video-preview'); b.textContent = 'Copied'; } catch { b.textContent = 'Select it'; }
   setTimeout(() => { b.textContent = 'Copy'; }, 1600);
 }));
+
+// analytics (the same GA4 property as hubeiqiao.com), loaded after the page so it never slows the first screen
+window.dataLayer = window.dataLayer || []; function gtag() { dataLayer.push(arguments); }
+gtag('js', new Date()); gtag('config', 'G-VQ547NMRXN');
+addEventListener('load', () => setTimeout(() => { const g = document.createElement('script'); g.async = true; g.src = 'https://www.googletagmanager.com/gtag/js?id=G-VQ547NMRXN'; document.head.appendChild(g); }, 2500));
 
 // the textures load after the page has painted; each one rests while off screen
 const later = window.requestIdleCallback || (f => setTimeout(f, 1200));
