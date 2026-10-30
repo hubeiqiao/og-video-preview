@@ -22,7 +22,7 @@ Everything runs on your machine, on files you give it. The skill contains readab
 - `scripts/suggest_layers.py` and `scripts/make_plate.py` read your image with OpenCV, NumPy and Pillow, and optionally Tesseract (through `pytesseract`) to read type. `suggest_layers.py` runs `make_plate.py` itself.
 - `scripts/render_frames.py` serves your working folder on 127.0.0.1 and captures frames with Playwright in your installed Google Chrome.
 - `scripts/encode.sh` runs `ffmpeg` and `ffprobe` on those frames.
-- `scripts/check_frame0.py` and `scripts/check_loop.py` compare frames locally.
+- `scripts/check_frame0.py` and `scripts/check_loop.py` compare frames locally. `scripts/check_collide.py` opens your working folder in Playwright on 127.0.0.1 to measure how close elements come while they move; with `--fix` it rewrites that folder's `layers.js`.
 - `scripts/check_live.sh` is the only script that goes online: it uses `curl` to fetch the page URL you pass it and the og:image and og:video files that page names, to check status, type, size and the Range (206) answer. It writes nothing.
 - `template/og.html` (the HTML card route) loads two fonts from Google Fonts when it renders.
 - `worker/range-worker.js` is an example Cloudflare Worker you can deploy yourself to answer Range requests for `.mp4` files. The skill never deploys anything.

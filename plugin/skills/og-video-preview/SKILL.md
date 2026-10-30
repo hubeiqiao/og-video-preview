@@ -30,6 +30,7 @@ python3 $SKILL/scripts/render_frames.py og/from-image.html og/frames --frames 0,
 python3 $SKILL/scripts/check_frame0.py og/card.jpg og/frames/f0000.png
 python3 $SKILL/scripts/render_frames.py og/from-image.html og/frames                 # all frames
 python3 $SKILL/scripts/check_loop.py og/frames
+python3 $SKILL/scripts/check_collide.py og                       # nothing touches while it moves (--fix calms the mover)
 bash    $SKILL/scripts/encode.sh og/frames public/og/home-v1 # home-v1.mp4 + home-v1.jpg
 ```
 
@@ -170,6 +171,17 @@ Each rule came from a real review.
 Checks that must pass:
 - `check_frame0.py`: frame 0 matches the approved still: mean difference under 2, and no local defects (a gap between letters, a missing edge) on more than 0.05 % of pixels.
 - `check_loop.py`: the jump from the last frame to the first is no bigger than 1.5 normal frame steps (plus 4 levels of slack).
+- `check_collide.py OUT_DIR`: no two elements that are apart in the approved card touch while they move (closest approach under 3 px, measured on each element's own outline through the transform the template applies, and against what stays in the plate). On a rebuild card only the loop after everything has landed counts. With `--fix` it calms the moving element (its `idle` lowered 15 % at a time, recorded in `layers.js` as `fixed`) until nothing touches; then render again. A floating orb beside an arrow is the classic case: on Joe Speaking's cards `--fix` settled the orb at the same idle (0.62) that was chosen by eye.
+
+## Many cards from one template
+
+A site's cards usually come from one template (one layout, different words). Treat them as a family:
+- **Read the family once, by its geometry.** Find each element by where the template puts it (badge, headline lines, visual, footer) instead of reading every card afresh, and write the same layer order, kinds and `idle` for every card. Then all cards move alike and a fix made on one (an orb calmed) holds for all.
+- **Build all, review all, then publish.** Render every card, run the frame-0, loop and collision checks on each, and look at a contact sheet or a review page with every video before anything goes live.
+- **Version every file by its content** (`og/v/<card>-<sha8>.mp4`), never overwrite one, and after uploading check each URL for 200, a 206 answer to a Range request and its sha256.
+- **Cards made from data go stale.** A card that shows the latest release, the newest issue or the current season changes with its data; keep a fingerprint of each card beside its video and fail a test when they no longer match ("card changed: regenerate its og:video").
+
+Joe Speaking made 74 og:videos this way, one for every social card in five languages.
 
 ## Meta tags
 
@@ -244,6 +256,7 @@ Sources were read on 2026-10-30; the per-app device tests are from [checkmyog](h
 | `scripts/render_frames.py` | Captures frames at 2× through a local server; prints element edges |
 | `scripts/check_frame0.py` | Frame 0 against the approved still |
 | `scripts/check_loop.py` | Seam against a normal frame step |
+| `scripts/check_collide.py` | No two elements touch while they move; `--fix` calms the mover |
 | `scripts/encode.sh` | Frames to MP4 and frame-0 JPEG, with size limits |
 | `scripts/check_live.sh` | Live tags, files, https and Range check |
 | `worker/range-worker.js` | Cloudflare Worker adding Range / 206 for `.mp4` |
