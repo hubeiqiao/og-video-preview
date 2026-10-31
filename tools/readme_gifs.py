@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The README's before-and-after GIFs: the approved og:image on the left, the og:video the skill made on the right.
 
-  social/hero.gif           this project's own card, then joespeaking.com, large, for the top of the README
+  social/hero.gif           this project's own og:video (a still in, a video out), for the top of the README
   social/pairs/<name>.gif   one card per GIF, for Examples
   social/eval-pairs.gif     six eval cards in one grid, for Evaluation
 
@@ -20,13 +20,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WORK = os.path.join(ROOT, ".cache", "readme-gifs")
 PY = sys.executable
 
-EXAMPLES = [  # name, still, video, caption
-    ("og-video-preview", "site/og/out/og.jpg", "site/og/out/og.mp4", "hubeiqiao.com/og-video-preview"),
-    ("joespeaking", "site/media/joespeaking.jpg", "site/media/joespeaking-og.mp4", "joespeaking.com"),
-] + [(n, f"eval/out/{n}.jpg", f"eval/out/{n}.mp4", d) for n, d in [
-    ("shopify", "shopify.com"), ("elevenlabs", "elevenlabs.io"), ("apple", "apple.com"),
-    ("planetscale", "planetscale.com"), ("groq", "groq.com"), ("stripe", "stripe.com")]]
-EVAL = ["openai", "notion", "cal", "github", "raycast", "cloudflare"]
+EXAMPLES = [(n, f"eval/out/{n}.jpg", f"eval/out/{n}.mp4", d) for n, d in [  # name, still, video, caption
+    ("ycombinator", "ycombinator.com"), ("x", "x.ai"), ("shopify", "shopify.com"),
+    ("slack", "slack.com"), ("pitch", "pitch.com"), ("notion", "notion.com")]]
+EVAL = ["openai", "stripe", "cal", "github", "raycast", "cloudflare"]
 
 PAGE = """<!doctype html><html><head><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Fragment+Mono&display=block" rel="stylesheet">
@@ -104,7 +101,7 @@ def clip(name, W, H, body, slots, width, R=10):
     return out
 
 
-def gif(clips, out):
+def gif(clips, out, width=None):
     """One GIF from one or more clips played in turn, with one palette."""
     src = clips[0]
     if len(clips) > 1:
@@ -113,8 +110,9 @@ def gif(clips, out):
         src = os.path.join(WORK, os.path.basename(out) + ".mp4")
         subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", src], check=True)
     pal = out + ".pal.png"
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", src, "-vf", "palettegen=stats_mode=diff", pal], check=True)
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", src, "-i", pal, "-lavfi", "paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle",
+    pre = f"fps=15,scale={width}:-1:flags=lanczos," if width else ""
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", src, "-vf", pre + "palettegen=stats_mode=diff", pal], check=True)
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", src, "-i", pal, "-lavfi", f"[0:v]{pre}null[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle",
                     "-loop", "0", out], check=True)
     os.remove(pal)
     print(f"{os.path.relpath(out, ROOT)}  {os.path.getsize(out) // 1024} KB")
@@ -125,12 +123,8 @@ def main():
     for name, still, video, site in EXAMPLES:
         body, ch, slot = pair(24, 40, 360, still, video, site, 15, True)
         gif([clip(name, 24 * 2 + 360 * 2 + 56, 40 + ch + 40, body, [slot], 560)], os.path.join(ROOT, "social", "pairs", name + ".gif"))
-    # the hero: the first two examples, large, in turn
-    hero = []
-    for name, still, video, site in EXAMPLES[:2]:
-        body, ch, slot = pair(28, 44, 420, still, video, site, 15, True)
-        hero.append(clip("hero-" + name, 28 * 2 + 420 * 2 + 56, 44 + ch + 44, body, [slot], 880))
-    gif(hero, os.path.join(ROOT, "social", "hero.gif"))
+    # the hero: the project's own og:video (site/og/build.sh), which says it all: a still in, a video out
+    gif([os.path.join(ROOT, "site", "og", "out", "og.mp4")], os.path.join(ROOT, "social", "hero.gif"), width=880)
     # the eval grid: two pairs a row, three rows
     cw, gapx, x0, y0, rowh = 250, 60, 24, 44, 0
     parts, slots = [], []

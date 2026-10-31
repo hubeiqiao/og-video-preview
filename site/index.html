@@ -12,18 +12,18 @@
 <meta property="og:title" content="OG Video Preview: make your link previews move">
 <meta property="og:description" content="An open-source agent skill that turns any og:image into a looping og:video. Tested on 103 real OG images.">
 <meta property="og:url" content="{{BASE}}">
-<meta property="og:image" content="{{BASE}}og/og-v5.jpg">
+<meta property="og:image" content="{{BASE}}og/og-v6.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="A grey still photo goes into a small brass machine and comes out as bright video cards with a play button">
-<meta property="og:video" content="{{BASE}}og/og-v5.mp4">
-<meta property="og:video:secure_url" content="{{BASE}}og/og-v5.mp4">
+<meta property="og:image:alt" content="Make your link previews move: a still og:image on the left, an arrow, and the og:video made from it on the right">
+<meta property="og:video" content="{{BASE}}og/og-v6.mp4">
+<meta property="og:video:secure_url" content="{{BASE}}og/og-v6.mp4">
 <meta property="og:video:type" content="video/mp4">
 <meta property="og:video:width" content="1200">
 <meta property="og:video:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="{{BASE}}og/og-v5.jpg">
-<meta name="twitter:image:alt" content="A grey still photo goes into a small brass machine and comes out as bright video cards with a play button">
+<meta name="twitter:image" content="{{BASE}}og/og-v6.jpg">
+<meta name="twitter:image:alt" content="Make your link previews move: a still og:image on the left, an arrow, and the og:video made from it on the right">
 <meta name="theme-color" content="#0b0a09">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
@@ -139,6 +139,7 @@ section { padding-top: clamp(96px, 12vw, 160px); }
 /* the eval cards: light tile videos play by themselves while on screen; a click opens the full one */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: clamp(10px, 1.2vw, 16px); }
 .tile { text-align: left; }
+#jsgrid .tile span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .tile .media { aspect-ratio: 1200 / 630; border-radius: 10px; box-shadow: 0 0 0 0.5px oklch(1 0 0 / 0.06), 0 6px 18px oklch(0 0 0 / 0.25); transition: transform 240ms var(--ease); }
 .tile:hover .media { transform: translateY(-2px); }
@@ -255,6 +256,14 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
         <figcaption><a href="https://hubeiqiao.com" target="_blank" rel="noopener">hubeiqiao.com ↗</a><span class="on"><i></i>og:video live</span></figcaption>
       </figure>
     </div>
+  </section>
+
+  <section id="cards">
+    <div class="head">
+      <h2>One site, <span class="amber nw">every card.</span></h2>
+      <p class="sub">joespeaking.com · {{JS_CARDS}} og:videos, one for every social card in five languages, all made with this skill</p>
+    </div>
+    <div id="jsgrid"><!-- js-grid --></div>
   </section>
 
   <section id="eval">
@@ -464,6 +473,21 @@ tiles.map(b => [Math.random(), b]).sort((a, b) => a[0] - b[0]).forEach(([, b]) =
   }
   grid.appendChild(b);
   tileImages.observe(b.querySelector('img'));
+});
+
+// Joe Speaking's cards: the same tiles, playing their own og:video under the pointer
+document.querySelectorAll('#jsgrid .tile').forEach(b => {
+  tileImages.observe(b.querySelector('img'));
+  if (!hover || still) return;
+  b.addEventListener('pointerenter', () => {
+    if (!tileVideo) { tileVideo = document.createElement('video'); tileVideo.muted = true; tileVideo.loop = true; tileVideo.playsInline = true; tileVideo.setAttribute('aria-hidden', 'true'); tileVideo.style.cssText = 'position:absolute;inset:0'; }
+    tileVideo.pause(); tileVideo.src = b.dataset.tile;
+    b.querySelector('.media').appendChild(tileVideo); tileVideo.play().catch(() => {});
+  });
+  b.addEventListener('pointerleave', () => {
+    if (!tileVideo || !b.contains(tileVideo)) return;
+    tileVideo.pause(); tileVideo.removeAttribute('src'); tileVideo.load(); tileVideo.remove();
+  });
 });
 
 // the viewer

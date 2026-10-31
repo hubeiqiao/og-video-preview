@@ -4,10 +4,9 @@
  "kinds": {
   "text": 1,
   "headline": 1,
-  "pill": 9,
-  "illustration": 1,
-  "label": 4,
-  "icon": 2
+  "icon": 6,
+  "illustration": 3,
+  "label": 7
  },
  "background": "flat",
  "style": "rebuild",
@@ -15,8 +14,8 @@
  "frame0_local_pct": 0.0,
  "seam": 1,
  "step": 1,
- "mp4_kb": 228,
+ "mp4_kb": 263,
  "jpg_kb": 53,
- "seconds": 39.4,
+ "seconds": 39.3,
  "pass": true
 }

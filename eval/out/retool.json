@@ -2,19 +2,18 @@
  "name": "retool",
  "layers": 6,
  "kinds": {
-  "text": 2,
-  "label": 1,
-  "headline": 2,
-  "shape": 1
+  "text": 1,
+  "shape": 1,
+  "label": 4
  },
  "background": "detailed",
  "style": "living",
- "frame0_mean": 0.378,
+ "frame0_mean": 0.377,
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
- "mp4_kb": 698,
+ "mp4_kb": 682,
  "jpg_kb": 86,
- "seconds": 128.3,
+ "seconds": 121.0,
  "pass": true
 }

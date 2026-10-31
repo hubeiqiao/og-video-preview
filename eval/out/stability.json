@@ -1,7 +1,9 @@
 {
  "name": "stability",
- "layers": 4,
+ "layers": 6,
  "kinds": {
+  "label": 1,
+  "text": 1,
   "shape": 1,
   "pill": 1,
   "headline": 1,
@@ -9,12 +11,12 @@
  },
  "background": "detailed",
  "style": "living",
- "frame0_mean": 0.414,
+ "frame0_mean": 0.416,
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
- "mp4_kb": 1032,
+ "mp4_kb": 1026,
  "jpg_kb": 128,
- "seconds": 144.8,
+ "seconds": 137.6,
  "pass": true
 }

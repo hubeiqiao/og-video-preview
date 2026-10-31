@@ -2,12 +2,13 @@
  "name": "webflow",
  "layers": 18,
  "kinds": {
-  "icon": 4,
+  "icon": 2,
   "illustration": 6,
+  "label": 4,
   "logo": 1,
   "headline": 1,
-  "label": 4,
-  "stroke": 2
+  "stroke": 2,
+  "text": 2
  },
  "background": "graded",
  "style": "rebuild",
@@ -15,8 +16,8 @@
  "frame0_local_pct": 0.0,
  "seam": 1,
  "step": 3,
- "mp4_kb": 872,
+ "mp4_kb": 927,
  "jpg_kb": 90,
- "seconds": 56.6,
+ "seconds": 53.1,
  "pass": true
 }

@@ -2,13 +2,12 @@
  "name": "sentry",
  "layers": 18,
  "kinds": {
-  "label": 5,
+  "label": 3,
+  "icon": 3,
   "shape": 1,
-  "icon": 1,
-  "stroke": 4,
-  "illustration": 3,
-  "text": 2,
-  "pill": 2
+  "stroke": 3,
+  "illustration": 7,
+  "pill": 1
  },
  "background": "detailed",
  "style": "living",
@@ -16,8 +15,8 @@
  "frame0_local_pct": 0.0,
  "seam": 1,
  "step": 2,
- "mp4_kb": 537,
+ "mp4_kb": 545,
  "jpg_kb": 86,
- "seconds": 87.5,
+ "seconds": 81.7,
  "pass": true
 }

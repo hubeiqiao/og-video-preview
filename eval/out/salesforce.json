@@ -1,18 +1,18 @@
 {
  "name": "salesforce",
- "layers": 2,
+ "layers": 5,
  "kinds": {
-  "headline": 1,
+  "icon": 4,
   "shape": 1
  },
  "background": "flat",
  "style": "rebuild",
  "frame0_mean": 0.048,
  "frame0_local_pct": 0.0,
- "seam": 1,
+ "seam": 0,
  "step": 1,
- "mp4_kb": 129,
+ "mp4_kb": 183,
  "jpg_kb": 28,
- "seconds": 29.0,
+ "seconds": 27.8,
  "pass": true
 }

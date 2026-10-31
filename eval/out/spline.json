@@ -1,9 +1,9 @@
 {
  "name": "spline",
- "layers": 3,
+ "layers": 4,
  "kinds": {
+  "label": 2,
   "illustration": 1,
-  "label": 1,
   "stroke": 1
  },
  "background": "flat",
@@ -14,6 +14,6 @@
  "step": 1,
  "mp4_kb": 98,
  "jpg_kb": 28,
- "seconds": 38.4,
+ "seconds": 37.1,
  "pass": true
 }

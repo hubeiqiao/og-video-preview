@@ -2,17 +2,16 @@
  "name": "accel",
  "layers": 3,
  "kinds": {
-  "headline": 1,
-  "text": 2
+  "illustration": 3
  },
  "background": "flat",
  "style": "rebuild",
  "frame0_mean": 0.163,
  "frame0_local_pct": 0.0,
- "seam": 0,
- "step": 3,
- "mp4_kb": 127,
+ "seam": 1,
+ "step": 4,
+ "mp4_kb": 316,
  "jpg_kb": 33,
- "seconds": 28.9,
+ "seconds": 33.2,
  "pass": true
 }

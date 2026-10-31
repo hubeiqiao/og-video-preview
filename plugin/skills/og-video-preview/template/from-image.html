@@ -103,7 +103,7 @@ const FX = {
 };
 
 // ---- build ----
-let layers = [], extras = [], FOCAL = [W / 2, H / 2], WALL = null;
+let layers = [], extras = [], FOCAL = [W / 2, H / 2], WALL = null, SPARSE = false;
 // a busy machine can drop a request: try each image three times before giving up
 const load = (src, tries = 3) => new Promise((ok, no) => {
   const i = new Image();
@@ -354,6 +354,9 @@ function build() {
   // beside a line of type only a real mark qualifies (an underline or a pill keeps its own motion)
   const heroL = style === 'rebuild' && marks.length === 1 && marks[0].area < 0.3 &&
     (layers.length === 1 || (layers.length === 2 && ['logo', 'icon', 'illustration', 'shape'].includes(marks[0].kind))) ? marks[0] : null;
+  // a sparse card (a logo lockup, one line of type) is still for most of its loop once it has landed: the camera pushes
+  // in slowly and its marks move more, so it keeps breathing
+  SPARSE = !heroL && style === 'rebuild' && layers.length <= 3;
   if (heroL) {
     const L = heroL, el0 = L.parts[0], pad = CUT_REACH;
     L.hero = true; L.bandsH = L.w >= L.h * 0.8;
@@ -544,7 +547,7 @@ function idle(l, t, living) {
   if (l.calm) return { s: 1 + 0.012 * ENERGY.idle * (l.idle ?? 1) * env(t) };
   if (l.hero) { const w = 2 * Math.PI * t / T, A = ENERGY.idle * (l.idle ?? 1);  // a product shot: it turns slowly in 3D and breathes
     return { ry: 10 * A * Math.sin(w), rx: 4 * A * Math.sin(2 * w), y: -4 * A * Math.sin(2 * w), s: 1 + 0.025 * A * env(t) }; }
-  const A = ENERGY.idle * (living ? 1.5 : 1) * (l.idle ?? 1), ph = l.i * 1.7, E = env(t);  // idle in layers.js: 0 keeps it still
+  const A = ENERGY.idle * (living ? 1.5 : SPARSE ? 2 : 1) * (l.idle ?? 1), ph = l.i * 1.7, E = env(t);  // idle in layers.js: 0 keeps it still
   if (l.area > 0.35) return { s: 1 + 0.03 * A * E };  // a full-card image only pushes in: tilting it would show its corners
   switch (l.kind) {
     case 'avatar': return { y: -4 * A * E * Math.sin(2 * Math.PI * t / T * 2 + ph) };
@@ -592,6 +595,7 @@ window.render = function (t) {
   // on a graded or pictorial background the whole card breathes: a slow push-in of the camera,
   // so background and layers move together and nothing slides against what is behind it
   if (C.background === 'graded' || C.background === 'detailed') cam *= 1 + 0.022 * ENERGY.idle * env(t);
+  else if (SPARSE) cam *= 1 + 0.035 * ENERGY.idle * env(t);
   $('cam').style.transform = cam === 1 ? 'none' : `scale(${cam.toFixed(5)})`;
   $('cam').style.transformOrigin = hero ? `${hero.x + hero.w / 2}px ${hero.y + hero.h / 2}px` : '50% 50%';
 

@@ -2,20 +2,21 @@
  "name": "cohere",
  "layers": 18,
  "kinds": {
-  "headline": 2,
-  "label": 10,
-  "stroke": 4,
-  "icon": 1,
+  "label": 7,
+  "logo": 1,
+  "headline": 1,
+  "icon": 2,
+  "stroke": 6,
   "illustration": 1
  },
  "background": "detailed",
  "style": "living",
- "frame0_mean": 0.402,
+ "frame0_mean": 0.399,
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
- "mp4_kb": 1742,
+ "mp4_kb": 1740,
  "jpg_kb": 123,
- "seconds": 93.1,
+ "seconds": 101.1,
  "pass": true
 }

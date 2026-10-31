@@ -1,11 +1,10 @@
 {
  "name": "pika",
- "layers": 7,
+ "layers": 6,
  "kinds": {
   "shape": 4,
   "icon": 1,
-  "headline": 1,
-  "text": 1
+  "headline": 1
  },
  "background": "detailed",
  "style": "living",
@@ -13,8 +12,8 @@
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 1,
- "mp4_kb": 657,
+ "mp4_kb": 665,
  "jpg_kb": 86,
- "seconds": 129.5,
+ "seconds": 119.2,
  "pass": true
 }

@@ -1,18 +1,18 @@
 {
  "name": "mintlify",
- "layers": 4,
+ "layers": 5,
  "kinds": {
   "stroke": 3,
-  "headline": 1
+  "icon": 2
  },
  "background": "flat",
  "style": "rebuild",
  "frame0_mean": 0.077,
  "frame0_local_pct": 0.0,
  "seam": 0,
- "step": 0,
- "mp4_kb": 78,
+ "step": 1,
+ "mp4_kb": 41,
  "jpg_kb": 26,
- "seconds": 28.7,
+ "seconds": 29.7,
  "pass": true
 }

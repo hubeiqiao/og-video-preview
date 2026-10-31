@@ -3,21 +3,19 @@
  "layers": 18,
  "kinds": {
   "icon": 2,
-  "headline": 1,
-  "stroke": 3,
-  "shape": 4,
-  "pill": 1,
-  "label": 4,
-  "illustration": 3
+  "illustration": 5,
+  "label": 7,
+  "shape": 3,
+  "pill": 1
  },
  "background": "flat",
  "style": "rebuild",
- "frame0_mean": 0.197,
+ "frame0_mean": 0.199,
  "frame0_local_pct": 0.0,
- "seam": 0,
+ "seam": 1,
  "step": 2,
- "mp4_kb": 287,
+ "mp4_kb": 320,
  "jpg_kb": 42,
- "seconds": 42.4,
+ "seconds": 40.9,
  "pass": true
 }

@@ -4,7 +4,7 @@
 # and the element boxes the skill read on each card (site/media/boxes.json).
 # Light versions for the page are made here and cached in .cache/: small tile videos for the grid (480 px, 30 fps)
 # and a 720p film, so a page full of moving cards stays smooth.
-# The og files carry a version in their name (og-v5): bump it in index.html and here when the card changes.
+# The og files carry a version in their name (og-v6): bump it in index.html and here when the card changes.
 set -e
 cd "$(dirname "$0")/.."
 OUT=_site
@@ -25,11 +25,12 @@ webp() {
 }
 
 cp_ site/index.html site/textures.js "$OUT/"
-cp_ site/og/out/og.jpg "$OUT/og/og-v5.jpg"
-cp_ site/og/out/og.mp4 "$OUT/og/og-v5.mp4"
+cp_ site/og/out/og.jpg "$OUT/og/og-v6.jpg"
+cp_ site/og/out/og.mp4 "$OUT/og/og-v6.mp4"
 # joespeaking.com's og:video as the skill now makes it (it goes live with Joe Speaking v1.2.0)
 cp_ site/media/boxes.json site/media/sites.json site/media/promo-poster.jpg site/media/joe.webp site/media/joespeaking-og.mp4 "$OUT/media/"
 cp_ site/fonts/* "$OUT/fonts/"
+mkdir -p "$OUT/media/js-cards" && cp_ site/media/js-cards/* "$OUT/media/js-cards/"
 cp_ eval/out/*.mp4 eval/out/*.jpg eval/results.json "$OUT/eval/"
 
 # Small stills stay images until hover, so 103 tiles need neither full JPEGs nor video decoders.

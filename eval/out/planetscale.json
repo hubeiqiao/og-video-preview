@@ -3,11 +3,9 @@
  "layers": 18,
  "kinds": {
   "headline": 1,
-  "text": 4,
-  "logo": 5,
-  "label": 4,
-  "shape": 3,
-  "icon": 1
+  "illustration": 1,
+  "text": 10,
+  "label": 6
  },
  "background": "flat",
  "style": "rebuild",
@@ -15,8 +13,8 @@
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
- "mp4_kb": 310,
+ "mp4_kb": 355,
  "jpg_kb": 62,
- "seconds": 100.9,
+ "seconds": 93.7,
  "pass": true
 }

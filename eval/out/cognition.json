@@ -1,20 +1,21 @@
 {
  "name": "cognition",
- "layers": 7,
+ "layers": 8,
  "kinds": {
   "stroke": 2,
   "illustration": 3,
+  "label": 1,
   "panel": 1,
   "headline": 1
  },
  "background": "flat",
  "style": "rebuild",
- "frame0_mean": 0.271,
+ "frame0_mean": 0.272,
  "frame0_local_pct": 0.0,
- "seam": 0,
+ "seam": 1,
  "step": 1,
- "mp4_kb": 492,
+ "mp4_kb": 501,
  "jpg_kb": 80,
- "seconds": 121.3,
+ "seconds": 134.6,
  "pass": true
 }

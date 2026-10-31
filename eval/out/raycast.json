@@ -1,13 +1,13 @@
 {
  "name": "raycast",
- "layers": 17,
+ "layers": 18,
  "kinds": {
-  "logo": 1,
+  "logo": 2,
   "text": 1,
-  "headline": 1,
-  "icon": 8,
-  "label": 5,
-  "illustration": 1
+  "headline": 2,
+  "icon": 10,
+  "illustration": 2,
+  "label": 1
  },
  "background": "flat",
  "style": "rebuild",
@@ -15,8 +15,8 @@
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 1,
- "mp4_kb": 284,
+ "mp4_kb": 250,
  "jpg_kb": 59,
- "seconds": 76.2,
+ "seconds": 70.7,
  "pass": true
 }

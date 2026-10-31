@@ -1,29 +1,20 @@
 #!/bin/sh
-# The landing page's own og:video, made by the skill itself from the approved still (route A):
-#   source.jpg  the approved og:image (a still photo goes into a machine and comes out as moving video cards)
-#   plate.png   the same image with every object removed, from an image-edit tool (suggest_layers.py --plate)
-# Each object's idle is set by where it sits: the grey still on the left barely moves, the machine a little, the video
-# cards on the right the most, so the card itself says "a still in, a video out". Output: site/og/out/og.mp4 and og.jpg.
+# The landing page's own og:video, made with the skill's route B (an HTML card, card.html): a still og:image on the
+# left, an arrow, and on the right the og:video the skill made from that same image (joespeaking.com's card), playing.
+# The right card plays the real video frame by frame, so the loop closes where the video's own loop does.
+# Output: site/og/out/og.mp4 and og.jpg (frame 0, the still).
 set -e
 cd "$(dirname "$0")"
 PY=${PYTHON:-python3}
 SKILL=../..
 W=work
-rm -rf "$W" && mkdir -p out
-"$PY" "$SKILL/scripts/suggest_layers.py" source.jpg "$W" --plate plate.png --energy bold
-"$PY" - "$W/layers.js" <<'PYEOF'
-import json, sys
-p = sys.argv[1]; head, body = open(p).read().split("window.OG = ", 1)
-c = json.loads(body.rstrip().rstrip(";"))
-for l in c["layers"]:
-    cx = (l["box"][0] + l["box"][2] / 2) / c["width"]
-    l["idle"] = 0.12 if cx < 0.2 else 0.35 if cx < 0.45 else 1.0 if cx < 0.75 else 1.5
-open(p, "w").write(head + "window.OG = " + json.dumps(c, indent=1) + ";\n")
-PYEOF
-cp "$SKILL/template/from-image.html" "$W/"
-"$PY" "$SKILL/scripts/render_frames.py" "$W/from-image.html" "$W/frames"
-"$PY" "$SKILL/scripts/check_frame0.py" "$W/card.jpg" "$W/frames/f0000.png"
-"$PY" "$SKILL/scripts/check_loop.py" "$W/frames"
-bash "$SKILL/scripts/encode.sh" "$W/frames" out/og
-cp "$W/layers-preview.png" out/
+rm -rf "$W" && mkdir -p "$W/frames" out && rm -f out/layers-preview.png
+cp ../media/joespeaking.jpg "$W/still.jpg"
+# the video's 4 s loop at 30 fps: card frame t shows video frame t
+ffmpeg -v error -y -i ../media/joespeaking-og.mp4 -vf "fps=30,scale=940:494:flags=lanczos" -q:v 2 -start_number 0 "$W/frames/f%04d.jpg"
+echo "window.FRAMES = $(ls "$W/frames" | wc -l | tr -d ' ');" > "$W/frames.js"
+# 30 fps, one card frame per video frame (at 60 the loop check would measure a normal step between two copies)
+"$PY" "$SKILL/scripts/render_frames.py" card.html "$W/out" --root .. --fps 30 --seconds 4
+"$PY" "$SKILL/scripts/check_loop.py" "$W/out"
+bash "$SKILL/scripts/encode.sh" "$W/out" out/og 30
 rm -rf "$W"

@@ -12,7 +12,7 @@ An open-source agent skill for Claude Code, OpenAI Codex, Cursor and every agent
 
 [Website](https://hubeiqiao.com/og-video-preview/) · [20-second film](social/promo.mp4) · [Eval](eval/) · [Skill reference](SKILL.md)
 
-![Before and after: the approved og:image on the left, the og:video the skill made from it playing on the right, for this project's own page and for joespeaking.com](social/hero.gif)
+![On the left a still og:image, on the right the og:video the skill made from that same image, playing](social/hero.gif)
 
 </div>
 
@@ -161,21 +161,21 @@ python3 eval/run.py --only stripe,github --keep  # a few cards, keeping their in
 
 ## Examples
 
-Each pair is the site's approved `og:image` on the left and the `og:video` the skill made from it on the right, with no hand tuning unless noted.
+Each pair is the site's own `og:image` on the left and the `og:video` the skill made from it on the right, with no hand tuning.
 
-| ![This project's page: og:image and og:video](social/pairs/og-video-preview.gif) | ![joespeaking.com: og:image and og:video](social/pairs/joespeaking.gif) |
+| ![ycombinator.com: og:image and og:video](social/pairs/ycombinator.gif) | ![x.ai: og:image and og:video](social/pairs/x.gif) |
 |---|---|
-| **[This project's page](https://hubeiqiao.com/og-video-preview/)**: an illustration with a clean background (`--plate`), so every object moves | **[joespeaking.com](https://joespeaking.com)**: the flow style, with the arrow's cut corrected by hand |
-| ![shopify.com: og:image and og:video](social/pairs/shopify.gif) | ![elevenlabs.io: og:image and og:video](social/pairs/elevenlabs.gif) |
-| **shopify.com**: the globe turns | **elevenlabs.io**: the line texture moves as one surface |
-| ![apple.com: og:image and og:video](social/pairs/apple.gif) | ![planetscale.com: og:image and og:video](social/pairs/planetscale.gif) |
-| **apple.com**: a lone mark, revealed like a product | **planetscale.com**: a logo wall, a pop and a band of light |
-| ![groq.com: og:image and og:video](social/pairs/groq.gif) | ![stripe.com: og:image and og:video](social/pairs/stripe.gif) |
-| **groq.com**: a flat graphic behind the type moves | **stripe.com**: the headline rises out of its own line |
+| **ycombinator.com** | **x.ai** |
+| ![shopify.com: og:image and og:video](social/pairs/shopify.gif) | ![slack.com: og:image and og:video](social/pairs/slack.gif) |
+| **shopify.com**: the globe turns | **slack.com** |
+| ![pitch.com: og:image and og:video](social/pairs/pitch.gif) | ![notion.com: og:image and og:video](social/pairs/notion.gif) |
+| **pitch.com** | **notion.com** |
 
-The six site cards are from the [eval](eval/); their images belong to their owners and are used only as test inputs. More worked examples, with their inputs (a living-style card and a card built in HTML), are in [`examples/`](examples/). Regenerate these GIFs with `python3 tools/readme_gifs.py`.
+These cards are from the [eval](eval/); their images belong to their owners and are used only as test inputs. Regenerate the GIFs with `python3 tools/readme_gifs.py`.
 
-Rebuild them with `bash examples/build-examples.sh`. The [website](https://hubeiqiao.com/og-video-preview/)'s own link preview is made by the skill itself from its approved still, with a clean background (`--plate`) so every object can move (`site/og/build.sh`).
+**A whole site:** [joespeaking.com](https://joespeaking.com) made 74 og:videos with this skill, one for every social card in five languages; they are on the [website](https://hubeiqiao.com/og-video-preview/#cards). How to do that for your own site is in [SKILL.md](SKILL.md#many-cards-from-one-template).
+
+More worked examples, with their inputs (a living-style card and a card built in HTML), are in [`examples/`](examples/). Rebuild them with `bash examples/build-examples.sh`. The [website](https://hubeiqiao.com/og-video-preview/)'s own link preview is an HTML card made with the skill's route B (`site/og/build.sh`).
 
 ## Serving requirements
 

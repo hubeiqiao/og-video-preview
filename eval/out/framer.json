@@ -1,22 +1,21 @@
 {
  "name": "framer",
- "layers": 18,
+ "layers": 16,
  "kinds": {
-  "headline": 6,
-  "illustration": 2,
-  "shape": 3,
-  "stroke": 1,
-  "label": 4,
-  "icon": 2
+  "stroke": 4,
+  "icon": 5,
+  "illustration": 3,
+  "headline": 1,
+  "shape": 3
  },
  "background": "detailed",
  "style": "living",
- "frame0_mean": 0.499,
+ "frame0_mean": 0.497,
  "frame0_local_pct": 0.0,
  "seam": 0,
- "step": 3,
- "mp4_kb": 950,
+ "step": 2,
+ "mp4_kb": 893,
  "jpg_kb": 151,
- "seconds": 111.9,
+ "seconds": 109.1,
  "pass": true
 }

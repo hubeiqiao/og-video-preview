@@ -1,19 +1,18 @@
 {
  "name": "supabase",
- "layers": 4,
+ "layers": 3,
  "kinds": {
-  "logo": 1,
-  "text": 1,
+  "illustration": 1,
   "headline": 2
  },
  "background": "flat",
  "style": "rebuild",
  "frame0_mean": 0.142,
  "frame0_local_pct": 0.0,
- "seam": 0,
- "step": 1,
- "mp4_kb": 134,
+ "seam": 1,
+ "step": 3,
+ "mp4_kb": 226,
  "jpg_kb": 35,
- "seconds": 29.4,
+ "seconds": 27.0,
  "pass": true
 }

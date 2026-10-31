@@ -1,9 +1,9 @@
 {
  "name": "a16z",
- "layers": 5,
+ "layers": 4,
  "kinds": {
   "headline": 1,
-  "text": 3,
+  "text": 2,
   "icon": 1
  },
  "background": "detailed",
@@ -12,8 +12,8 @@
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
- "mp4_kb": 1272,
+ "mp4_kb": 1263,
  "jpg_kb": 149,
- "seconds": 116.4,
+ "seconds": 128.4,
  "pass": true
 }

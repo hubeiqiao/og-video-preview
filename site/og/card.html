@@ -1,0 +1,72 @@
+<!doctype html>
+<!-- The landing page's own link preview, made with the skill's route B (an HTML card with window.render(t)): what the
+     skill does, said as plainly as possible. A still og:image on the left, an arrow, and on the right the og:video the
+     skill made from that same image, playing. Frame 0 is the still; the right card plays the real video frame by frame
+     (work/frames/, extracted by build.sh), so the loop closes where the video's own loop closes. -->
+<html><head><meta charset="utf-8">
+<script>window.OG = { width: 1200, height: 630, loop: 4 };</script>
+<script src="work/frames.js"></script>
+<style>
+@font-face { font-family: 'Familjen Grotesk'; font-weight: 400 700; src: url('../fonts/familjen-grotesk-latin-v11.woff2') format('woff2'); }
+@font-face { font-family: 'Fragment Mono'; font-weight: 400; src: url('../fonts/fragment-mono-latin-v6.woff2') format('woff2'); }
+:root {
+  --ink: oklch(0.145 0.006 60); --text: oklch(0.97 0.004 60); --text-2: oklch(0.82 0.008 60); --text-3: oklch(0.72 0.01 60);
+  --amber: oklch(0.82 0.15 78); --live: oklch(0.66 0.21 28);
+  --shadow: 0 0 0 1px oklch(1 0 0 / 0.1), 0 1px 2px oklch(0 0 0 / 0.3), 0 14px 36px oklch(0 0 0 / 0.38), 0 40px 90px oklch(0 0 0 / 0.42);
+}
+* { margin:0; box-sizing:border-box; }
+html, body { width:1200px; height:630px; overflow:hidden; background:var(--ink); }
+body { font-family:'Familjen Grotesk', sans-serif; color:var(--text); -webkit-font-smoothing:antialiased; font-synthesis:none; position:relative; }
+h1 { position:absolute; left:60px; top:58px; font-size:70px; font-weight:700; line-height:1; letter-spacing:-0.035em; white-space:nowrap; }
+h1 span { color:var(--amber); }
+.tag { position:absolute; top:182px; font-family:'Fragment Mono', monospace; font-size:21px; color:var(--text-2); display:flex; align-items:center; gap:10px; }
+.tag b { font-weight:400; color:var(--text); }
+#tin { left:60px; } #tout { left:670px; }
+#tout b { color:var(--amber); }
+#tout i { width:11px; height:11px; border-radius:50%; background:var(--live); }
+.card { position:absolute; top:226px; width:470px; height:247px; border-radius:14px; overflow:hidden; box-shadow:var(--shadow); }
+.card img { width:100%; height:100%; display:block; }
+#in { left:60px; } #out { left:670px; }
+#arrow { position:absolute; left:546px; top:330px; width:108px; height:40px; overflow:visible; }
+.foot { position:absolute; top:520px; font-family:'Fragment Mono', monospace; font-size:20px; color:var(--text-3); }
+#cmd { left:60px; } #cmd b { color:var(--amber); font-weight:400; }
+#url { right:60px; }
+</style></head>
+<body>
+<h1>Make your link previews <span>move.</span></h1>
+<div class="tag" id="tin"><b>og:image</b> your still</div>
+<div class="tag" id="tout"><i></i><b>og:video</b> made from it</div>
+<div class="card" id="in"><img src="work/still.jpg" alt=""></div>
+<svg id="arrow" viewBox="0 0 108 40" fill="none">
+  <defs><linearGradient id="g" x1="0" x2="108" y1="0" y2="0" gradientUnits="userSpaceOnUse">
+    <stop id="s0" offset="0" stop-color="oklch(0.82 0.15 78)"/><stop id="s1" offset="0" stop-color="oklch(0.97 0.06 85)"/>
+    <stop id="s2" offset="0" stop-color="oklch(0.82 0.15 78)"/></linearGradient></defs>
+  <path d="M6 20 H96 M80 7 L97 20 L80 33" stroke="url(#g)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+<div class="card" id="out"><img id="play" src="work/frames/f0000.jpg" alt=""></div>
+<div class="foot" id="cmd"><b>$</b> npx skills add hubeiqiao/og-video-preview</div>
+<div class="foot" id="url">hubeiqiao.com/og-video-preview</div>
+<script>
+const T = OG.loop, N = window.FRAMES || 120, play = document.getElementById('play');
+const stops = ['s0', 's1', 's2'].map(id => document.getElementById(id));
+const cache = {};
+const frame = k => `work/frames/f${String(k).padStart(4, '0')}.jpg`;
+const load = src => cache[src] || (cache[src] = new Promise(r => { const i = new Image(); i.onload = () => i.decode().then(r, r); i.onerror = r; i.src = src; }));
+window.render = async function (t) {
+  t = ((t % T) + T) % T;
+  // the arrow: a light runs along it once a second, from the still to the video; it fades in and out with each pass,
+  // so it is fully off at every whole second and frame 0 (and the loop point) is the plain arrow
+  const p = t % 1, glow = Math.sin(Math.PI * p) ** 2, c = -0.1 + 1.2 * p;
+  stops[0].setAttribute('offset', Math.max(0, Math.min(1, c - 0.18)).toFixed(4));
+  stops[1].setAttribute('offset', Math.max(0, Math.min(1, c)).toFixed(4));
+  stops[2].setAttribute('offset', Math.max(0, Math.min(1, c + 0.18)).toFixed(4));
+  stops[1].setAttribute('stop-color', `color-mix(in oklch, oklch(0.97 0.06 85) ${(100 * glow).toFixed(1)}%, oklch(0.82 0.15 78))`);
+  // the video, frame by frame
+  const src = frame(Math.min(N - 1, Math.round(t / T * N)) % N);
+  await load(src);
+  play.src = src;
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+};
+window.ready = Promise.all([document.fonts.ready, load('work/still.jpg'), load(frame(0))]).then(() => window.render(0)).then(() => { window.readyDone = true; });
+</script>
+</body></html>
