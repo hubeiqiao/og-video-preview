@@ -40,7 +40,7 @@ Each unit is a box in card pixels and a role. Everything the reading found insid
 | `button` | a call to action: a pill or a box with words in it | a pointer glides in, hovers, clicks; the button presses and a ripple spreads inside it |
 | `scribble` | a brush stroke, a hand-drawn line or arrow | draws itself at a pen's pace; `dir` gives the way (`[1, 0]` left to right, `[0, -1]` upward); `ink` (a hex colour) takes only that colour from the box |
 | `medallion` | a coin, a relief, a seal | leans in slowly while light glides across it |
-| `float` | a sticker, a balloon, a print in a scattered collage | never leaves: drifts on its own path all through the loop (a little sideways, up and down, a slight turn and 3D tilt); `"cut": "rect"` takes the whole box (a photo tile) instead of its foreground |
+| `float` | a sticker, a balloon, a print in a scattered collage | never leaves: drifts on its own path all through the loop (a little sideways, up and down, a slight turn and 3D tilt); `"cut": "rect"` takes the whole box (a photo tile) instead of its foreground, for tiles that stand apart: tiles that overlap leave seams of each other in the plate |
 | `typing` | the text in a prompt box, a search field, a chat input | deleted a letter at a time, a caret blinking, then typed again; whole at both ends of the loop. Box the text and its caret; `caret` sets the caret's colour. The input's own fill goes behind it |
 | `blob` | a soft decorative blob of colour | its edge flows like liquid and settles back; the only unit that ever warps |
 | `logo`, `headline`, `text`, `illustration`, `photo`, `shape`, `icon` | anything the reading split or merged wrongly | as that kind. Give a mark the move that fits what it shows with `turn`: `spin` for a gear or a round badge, `wobble` for a bell, `nudge` for an arrow (`back` for one pointing left), `beat` for a heart or a bolt, `pop` for anything else |
@@ -49,7 +49,7 @@ Each unit is a box in card pixels and a role. Everything the reading found insid
 | `list` (region) | a word rotator: a column of lines with one highlighted | scrolls through the highlight by `pitch` (the row height), `center` is the highlighted row's centre, `bar` its highlight; each line darkens in the highlight and fades away from it, as on the card |
 | `shine` (region) | a lamp, a glass orb, a star | a soft light swells there twice |
 
-A region moves a part of the card itself, sampled from the card, so nothing the refill made turns into view. The eval keeps its plans in `eval/scenes/` (Webflow's windows, Cloudflare's button, OpenAI's scribbles and floating stickers, Deno's list, Ghost's orbit, Y Combinator's carousel, a16z's medallion, Warp's floating prints, Fly's Sign up button, Lovable's prompt being typed) and shows each of those cards both ways.
+A region moves a part of the card itself, sampled from the card, so nothing the refill made turns into view. The eval keeps its plans in `eval/scenes/` (Webflow's windows, Cloudflare's button, OpenAI's scribbles and floating stickers, Deno's list, Ghost's orbit, Y Combinator's carousel, a16z's medallion, Fly's Sign up button, Lovable's prompt being typed) and shows each of those cards both ways.
 
 Read for what a person would expect to move: a call to action is clicked, a prompt is typed, a drawn line draws, a carousel slides, a list scrolls, things scattered around a mark drift or orbit, an app window is one piece. Leave alone what should hold still: a wordmark is one shape (never letters), a cloud or any wide mark never spins, a portrait never comes apart.
 

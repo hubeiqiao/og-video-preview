@@ -108,28 +108,6 @@
   "pass": true
  },
  {
-  "name": "netlify-read",
-  "layers": 16,
-  "kinds": {
-   "icon": 8,
-   "text": 1,
-   "illustration": 1,
-   "headline": 2,
-   "avatar": 3,
-   "shape": 1
-  },
-  "background": "graded",
-  "style": "rebuild",
-  "frame0_mean": 0.272,
-  "frame0_local_pct": 0.0,
-  "seam": 1,
-  "step": 3,
-  "mp4_kb": 513,
-  "jpg_kb": 60,
-  "seconds": 70.2,
-  "pass": true
- },
- {
   "name": "openai-read",
   "layers": 18,
   "kinds": {
@@ -146,28 +124,9 @@
   "frame0_local_pct": 0.0,
   "seam": 133,
   "step": 137,
-  "mp4_kb": 766,
+  "mp4_kb": 739,
   "jpg_kb": 122,
-  "seconds": 60.7,
-  "pass": true
- },
- {
-  "name": "warp-read",
-  "layers": 14,
-  "kinds": {
-   "illustration": 10,
-   "icon": 2,
-   "shape": 2
-  },
-  "background": "flat",
-  "style": "rebuild",
-  "frame0_mean": 0.221,
-  "frame0_local_pct": 0.0,
-  "seam": 157,
-  "step": 173,
-  "mp4_kb": 463,
-  "jpg_kb": 65,
-  "seconds": 70.4,
+  "seconds": 62.2,
   "pass": true
  },
  {

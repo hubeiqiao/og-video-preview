@@ -88,7 +88,7 @@ The images in `cards/` were fetched from each site's `og:image` by `fetch.py` (`
 | [nfx](out/nfx.mp4) | 1 | shape 1 | rebuild | 0.085 / 0.0% | 64 / 63 | 428 KB | yes |
 | [notion](out/notion.mp4) | 9 | headline 2, illustration 2, stroke 2, logo 1, icon 1, label 1 | rebuild | 0.376 / 0.0% | 0 / 3 | 401 KB | yes |
 | [obsidian](out/obsidian.mp4) | 3 | illustration 1, headline 1, text 1 | rebuild | 0.158 / 0.0% | 1 / 3 | 280 KB | yes |
-| [openai](out/openai.mp4) | 14 | icon 7, shape 3, headline 2, illustration 1, logo 1 | rebuild | 0.45 / 0.0% | 1 / 2 | 689 KB | yes |
+| [openai](out/openai.mp4) | 14 | icon 7, shape 3, headline 2, illustration 1, logo 1 | rebuild | 0.45 / 0.0% | 1 / 2 | 692 KB | yes |
 | [perplexity](out/perplexity.mp4) | 3 | icon 1, headline 1, illustration 1 | rebuild | 0.119 / 0.0% | 1 / 2 | 246 KB | yes |
 | [pika](out/pika.mp4) | 1 | headline 1 | living | 0.256 / 0.0% | 0 / 1 | 646 KB | yes |
 | [pinterest](out/pinterest.mp4) | 13 | illustration 9, label 2, icon 1, shape 1 | rebuild | 0.431 / 0.0% | 1 / 3 | 835 KB | yes |
@@ -137,7 +137,7 @@ The images in `cards/` were fetched from each site's `og:image` by `fetch.py` (`
 The table above is the skill with no help: it reads every card on its own. The skill's workflow starts with a reading step, where the agent looks at the card, says what it shows and writes a short plan (`eval/scenes/<name>.json`): which parts are whole units and what each one is, for example a window, a button, a scribble, a list, a ring of avatars or a row of logos. Cards whose automatic reading missed what they show are run again with their plan, as `out/<name>-read.mp4`:
 
 <!-- read -->
-**11 of 11 cards pass.**
+**9 of 9 cards pass.**
 
 | Card | Layers | Kinds | Style | Frame 0 (mean / local) | Seam / step | MP4 | Pass |
 |---|---|---|---|---|---|---|---|
@@ -147,9 +147,7 @@ The table above is the skill with no help: it reads every card on its own. The s
 | [fly-read](out/fly-read.mp4) | 10 | icon 4, headline 3, avatar 1, text 1, pill 1 | rebuild | 0.373 / 0.0% | 0 / 3 | 688 KB | yes |
 | [ghost-read](out/ghost-read.mp4) | 0 |  | rebuild | 0.236 / 0.0% | 240 / 243 | 736 KB | yes |
 | [lovable-read](out/lovable-read.mp4) | 1 | illustration 1 | living | 0.313 / 0.0% | 0 / 2 | 706 KB | yes |
-| [netlify-read](out/netlify-read.mp4) | 16 | icon 8, avatar 3, headline 2, text 1, illustration 1, shape 1 | rebuild | 0.272 / 0.0% | 1 / 3 | 513 KB | yes |
-| [openai-read](out/openai-read.mp4) | 18 | illustration 6, icon 4, stroke 3, shape 2, headline 2, logo 1 | rebuild | 0.457 / 0.0% | 133 / 137 | 766 KB | yes |
-| [warp-read](out/warp-read.mp4) | 14 | illustration 10, icon 2, shape 2 | rebuild | 0.221 / 0.0% | 157 / 173 | 463 KB | yes |
+| [openai-read](out/openai-read.mp4) | 18 | illustration 6, icon 4, stroke 3, shape 2, headline 2, logo 1 | rebuild | 0.457 / 0.0% | 133 / 137 | 739 KB | yes |
 | [webflow-read](out/webflow-read.mp4) | 8 | panel 7, logo 1 | living | 0.368 / 0.0% | 1 / 2 | 893 KB | yes |
 | [ycombinator-read](out/ycombinator-read.mp4) | 3 | headline 2, icon 1 | rebuild | 0.353 / 0.0% | 237 / 234 | 739 KB | yes |
 <!-- /read -->
