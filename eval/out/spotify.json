@@ -1,10 +1,7 @@
 {
  "name": "spotify",
- "layers": 10,
+ "layers": 3,
  "kinds": {
-  "stroke": 1,
-  "label": 1,
-  "icon": 5,
   "illustration": 2,
   "shape": 1
  },
@@ -14,8 +11,8 @@
  "frame0_local_pct": 0.0,
  "seam": 1,
  "step": 2,
- "mp4_kb": 1088,
+ "mp4_kb": 1086,
  "jpg_kb": 99,
- "seconds": 63.7,
+ "seconds": 61.5,
  "pass": true
 }

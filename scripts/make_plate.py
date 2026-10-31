@@ -275,6 +275,29 @@ def main():
             if any(M is not L and over(M) for M in holders):
                 L["settle"] = True
                 poor.append(f"{L.get('id')} (on something that stays)")
+        # a line that runs behind or into something left in the plate (an axis through a cube): its cut takes that
+        # thing's edge with it, so it stays
+        for lid, x0, y0, x1, y1, m, _ in own_cut:
+            L = by_id.get(lid)
+            if L is None or L.get("kind") != "stroke" or L.get("settle") or L.get("role"):
+                continue
+            full = np.zeros((H, W), np.uint8); full[y0:y1, x0:x1] = m
+            ring = (cv2.dilate(full, np.ones((7, 7), np.uint8)) > 0) & ~(full > 0) & ~(cut > 0)
+            # (a dark face beside a dark card differs only faintly: a line is thin, so even that shows along its cut)
+            off_ = float((dist(img[ring], B[ring]) > 12).mean()) if ring.sum() else 0
+            if os.environ.get("PLATE_DEBUG"): print(lid, "line ring off-background", round(off_, 3), int(ring.sum()))
+            if off_ * ring.sum() > 30:  # a line is long: what counts is how much of it touches something, not its share
+                L["settle"] = True
+                poor.append(f"{lid} (a line touching something that stays)")
+        # a small part among small parts that stay (a label in a screenshot whose other parts hold) stays too
+        small_held = [M for M in cfg["layers"] if M.get("settle") and M.get("kind") not in ("headline", "text", "label") and M["box"][2] * M["box"][3] < 0.04 * W * H]
+        for L in cfg["layers"]:
+            if L.get("settle") or L.get("role") or L.get("kind") in ("headline",) or L["box"][2] * L["box"][3] > 0.04 * W * H:
+                continue
+            lx, ly, lw, lh = L["box"]
+            if any(max(M["box"][0] - (lx + lw), lx - (M["box"][0] + M["box"][2]), M["box"][1] - (ly + lh), ly - (M["box"][1] + M["box"][3])) < 40 for M in small_held):
+                L["settle"] = True
+                poor.append(f"{L.get('id')} (among parts that stay)")
         # type is one block: if one line has to stay, they all do (half a paragraph leaving reads as broken)
         TEXTISH = {"headline", "text", "label"}
         if any(by_id.get(p_.split(" ")[0], {}).get("kind") in TEXTISH for p_ in poor):

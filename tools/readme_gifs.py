@@ -27,7 +27,8 @@ def best(n):  # a card the reading step was run on shows that version
 
 EXAMPLES = [(n, f"eval/out/{n}.jpg", best(n), d) for n, d in [  # name, still, video, caption
     ("ycombinator", "ycombinator.com"), ("x", "x.ai"), ("shopify", "shopify.com"),
-    ("slack", "slack.com"), ("pitch", "pitch.com"), ("notion", "notion.com")]]
+    ("slack", "slack.com"), ("pitch", "pitch.com"), ("notion", "notion.com"),
+    ("lovable", "lovable.dev"), ("chatbase", "chatbase.co")]]
 EVAL = ["openai", "stripe", "cal", "github", "raycast", "cloudflare"]
 SHOWCASE = ["ycombinator", "x", "shopify", "stripe", "openai", "notion", "slack", "pitch", "elevenlabs"]
 

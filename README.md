@@ -7,7 +7,7 @@
 An open-source agent skill for Claude Code, OpenAI Codex, Cursor and every agent that supports [Agent Skills](https://agentskills.io).
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-f6b93b.svg)](LICENSE)
-[![Eval: 103 of 103](https://img.shields.io/badge/eval-103%20of%20103%20pass-f6b93b.svg)](eval/)
+[![Eval: 104 of 104](https://img.shields.io/badge/eval-104%20of%20104%20pass-f6b93b.svg)](eval/)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-f6b93b.svg)](https://agentskills.io)
 
 [Website](https://hubeiqiao.com/og-video-preview/) · [20-second film](social/promo.mp4) · [Eval](eval/) · [Skill reference](SKILL.md)
@@ -148,7 +148,7 @@ Full detail, including styles (`rebuild`, `living`), energy levels and per-layer
 
 ![Six eval cards, each with the site's own og:image on the left and the og:video the skill made from it on the right](social/eval-pairs.gif)
 
-The skill is tested on the Open Graph images of 103 well-known sites, each put through the whole pipeline with no hand tuning and scored automatically. They cover developer tools and products (61), venture capital firms such as Y Combinator, a16z and Sequoia (16), AI companies such as OpenAI, Mistral and ElevenLabs (18), and technology companies such as Apple, IBM and Cloudflare (8).
+The skill is tested on the Open Graph images of 104 well-known sites, each put through the whole pipeline with no hand tuning and scored automatically. They cover developer tools and products (61), venture capital firms such as Y Combinator, a16z and Sequoia (16), AI companies such as OpenAI, Mistral and ElevenLabs (19), and technology companies such as Apple, IBM and Cloudflare (8).
 
 | Check | Pass when |
 |---|---|
@@ -156,7 +156,7 @@ The skill is tested on the Open Graph images of 103 well-known sites, each put t
 | Seam | the jump from the last frame to the first is at most 1.5 ordinary frame steps (plus 4 levels of slack) |
 | Size | MP4 ≤ 2 MB, frame-0 JPEG ≤ 180 KB |
 
-All 103 pass. The checks above are numbers; a video can pass them and still look broken in the middle of its loop (half a line on screen, a wordmark missing a letter, a smear where an icon left). So every video is also reviewed by eye, at nine moments of its loop, and each kind of defect found becomes a rule in the engine (listed in [SKILL.md](SKILL.md#3-motion-comes-from-the-kind) under "Safeguards").
+All 104 pass. The checks above are numbers; a video can pass them and still look broken in the middle of its loop (half a line on screen, a wordmark missing a letter, a smear where an icon left). So every video is also reviewed by eye, at nine moments of its loop, and each kind of defect found becomes a rule in the engine (listed in [SKILL.md](SKILL.md#3-motion-comes-from-the-kind) under "Safeguards").
 
 Run it after any change to the engine:
 
@@ -170,7 +170,7 @@ python3 eval/run.py --only stripe,github --keep  # a few cards, keeping their in
 
 ## Examples
 
-Each pair is the site's own `og:image` on the left and the `og:video` the skill made from it on the right. ycombinator.com went through the reading step: its rows of logos are a carousel, so they slide.
+Each pair is the site's own `og:image` on the left and the `og:video` the skill made from it on the right. ycombinator.com, lovable.dev and chatbase.co went through the reading step: Y Combinator's rows of logos are a carousel, Lovable's prompt is typed, and Chatbase's coloured tiles are pieces on a board.
 
 | ![ycombinator.com: og:image and og:video](social/pairs/ycombinator.gif) | ![x.ai: og:image and og:video](social/pairs/x.gif) |
 |---|---|
@@ -179,6 +179,8 @@ Each pair is the site's own `og:image` on the left and the `og:video` the skill 
 | **shopify.com**: the globe turns | **slack.com** |
 | ![pitch.com: og:image and og:video](social/pairs/pitch.gif) | ![notion.com: og:image and og:video](social/pairs/notion.gif) |
 | **pitch.com** | **notion.com** |
+| ![lovable.dev: og:image and og:video](social/pairs/lovable.gif) | ![chatbase.co: og:image and og:video](social/pairs/chatbase.gif) |
+| **lovable.dev**: the prompt is typed | **chatbase.co**: the tiles slide on their lattice |
 
 These cards are from the [eval](eval/); their images belong to their owners and are used only as test inputs. Regenerate the GIFs with `python3 tools/readme_gifs.py`.
 
@@ -207,7 +209,7 @@ og-video-preview/
 │   ├── encode.sh            MP4 and JPEG within the size budgets
 │   └── check_live.sh        live tags, files and Range support
 ├── worker/range-worker.js   206 Partial Content on Cloudflare Workers
-├── eval/                    103 real OG images, the fetcher, the runner and the results
+├── eval/                    104 real OG images, the fetcher, the runner and the results
 ├── examples/                worked examples for both routes
 ├── site/                    the website; its own og:video is made with the skill
 └── social/                  the film and the social preview

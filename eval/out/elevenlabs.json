@@ -1,18 +1,18 @@
 {
  "name": "elevenlabs",
- "layers": 7,
+ "layers": 16,
  "kinds": {
-  "label": 6,
+  "label": 15,
   "headline": 1
  },
  "background": "flat",
- "style": "living",
- "frame0_mean": 0.21,
+ "style": "rebuild",
+ "frame0_mean": 0.211,
  "frame0_local_pct": 0.0,
- "seam": 0,
- "step": 0,
- "mp4_kb": 262,
+ "seam": 2,
+ "step": 3,
+ "mp4_kb": 473,
  "jpg_kb": 59,
- "seconds": 55.8,
+ "seconds": 57.9,
  "pass": true
 }

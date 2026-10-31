@@ -1,23 +1,22 @@
 {
  "name": "webflow",
- "layers": 15,
+ "layers": 9,
  "kinds": {
   "illustration": 4,
-  "label": 3,
-  "icon": 2,
+  "label": 1,
+  "icon": 1,
   "logo": 1,
   "headline": 1,
-  "stroke": 3,
-  "text": 1
+  "stroke": 1
  },
  "background": "graded",
  "style": "living",
- "frame0_mean": 0.355,
+ "frame0_mean": 0.354,
  "frame0_local_pct": 0.0,
  "seam": 1,
  "step": 2,
- "mp4_kb": 1235,
- "jpg_kb": 91,
- "seconds": 54.2,
+ "mp4_kb": 1234,
+ "jpg_kb": 90,
+ "seconds": 53.7,
  "pass": true
 }

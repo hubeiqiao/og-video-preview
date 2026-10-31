@@ -32,7 +32,7 @@ cp_ site/media/boxes.json site/media/sites.json site/media/promo-poster.jpg site
 cp_ site/fonts/* "$OUT/fonts/"
 cp_ eval/out/*.mp4 eval/out/*.jpg eval/results.json "$OUT/eval/"
 
-# Small stills stay images until hover, so 103 tiles need neither full JPEGs nor video decoders.
+# Small stills stay images until hover, so 104 tiles need neither full JPEGs nor video decoders.
 for f in eval/out/*.jpg; do
   t="$CACHE/posters/$(basename "$f" .jpg).webp"
   if newer "$f" "$t"; then

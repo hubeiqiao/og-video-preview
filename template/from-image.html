@@ -113,12 +113,12 @@ const load = (src, tries = 3) => new Promise((ok, no) => {
 });
 const keep = [];  // decoded images stay referenced for the whole capture
 // every image a frame can show is loaded and decoded before the first frame is captured
-const images = [C.plate.src, C.layerImage, C.glyphs, C.sphere || (C.regions || []).some(r => r.role === 'orbit' || r.role === 'marquee') ? C.image : null, ...(C.cuts && window.CUTS ? C.layers.filter(l => window.CUTS[l.id]).map(l => `${C.cuts}${l.id}.png`) : []),
+const images = [C.plate.src, C.layerImage, C.glyphs, C.sphere || (C.regions || []).some(r => r.role === 'orbit' || r.role === 'marquee' || r.role === 'slide') ? C.image : null, ...(C.cuts && window.CUTS ? C.layers.filter(l => window.CUTS[l.id]).map(l => `${C.cuts}${l.id}.png`) : []),
   ...(C.cuts && window.CUTS ? C.layers.filter(l => window.CUTS[l.id + '-ink']).map(l => `${C.cuts}${l.id}-ink.png`) : [])].filter(Boolean);
 window.ready = Promise.all(images.map(s => load(s))).then(imgs => { keep.push(...imgs); return imgs; }).then(([pl, , , card]) => {
   const plate = $('plate'); plate.width = W; plate.height = H; plate.getContext('2d').drawImage(pl, 0, 0, W, H);
   build();
-  if (C.texture || C.sphere || (WALL && DARK) || (C.regions || []).some(r => r.role === 'orbit' || r.role === 'marquee')) textureSetup(plate, C.sphere || (C.regions || []).some(r => r.role === 'orbit' || r.role === 'marquee') ? card : null);  // the card is in the list only with a sphere
+  if (C.texture || C.sphere || (WALL && DARK) || (C.regions || []).some(r => r.role === 'orbit' || r.role === 'marquee' || r.role === 'slide')) textureSetup(plate, C.sphere || (C.regions || []).some(r => r.role === 'orbit' || r.role === 'marquee' || r.role === 'slide') ? card : null);  // the card is in the list only with a sphere
   window.render(0); window.readyDone = true;
 });
 
@@ -144,7 +144,7 @@ function textureSetup(canvas, card) {
 }
 function textureFrame(t) {
   if (C.sphere) return sphereFrame(t);
-  if ((C.regions || []).some(r => r.role === 'orbit' || r.role === 'marquee')) return regionFrame(t);
+  if ((C.regions || []).some(r => r.role === 'orbit' || r.role === 'marquee' || r.role === 'slide')) return regionFrame(t);
   if (!C.texture) return wallFrame(t);
   const { ctx, src, out, calm, fx, fy, form } = TEX, A = 7 * ENERGY.idle * env(t);
   if (A < 0.02) { ctx.putImageData(src, 0, 0); return; }  // at rest: the plate exactly
@@ -228,6 +228,28 @@ function regionFrame(t) {
           sample((y * W + x) * 4, x - ox, y - oy);
         }
       });
+    } else if (R.role === 'slide') {
+      // a piece on a board (a tile in a lattice) slides one cell over, holds, and slides back; the cell it leaves shows
+      // what the card has in the empty cell it moves to (the lattice's own lines and grain), so nothing is refilled
+      const [mx, my] = R.move, k0 = (C.regions.indexOf(R) % 4) * 0.22;
+      const k = EASE.smooth(P(t, 0.7 + k0, 0.55)) * (1 - EASE.smooth(P(t, 2.5 + k0, 0.55)));
+      if (k < 1e-4) continue;
+      const ink = hexRgb(R.ink).split(',').map(Number);
+      const alpha = (x, y) => { if (x < bx || y < by || x >= bx + bw || y >= by + bh) return 0;
+        const p = (Math.round(y) * W + Math.round(x)) * 4, d = Math.hypot(s[p] - ink[0], s[p + 1] - ink[1], s[p + 2] - ink[2]);
+        return clamp((190 - d) / 50); };  // its anti-aliased rim goes with it, or a coloured outline stays in the cell
+      const ox = mx * k, oy = my * k;
+      const x0 = Math.max(0, Math.min(bx, bx + Math.floor(mx)) - 2), x1 = Math.min(W - 1, Math.max(bx + bw, bx + bw + Math.ceil(mx)) + 2);
+      const y0 = Math.max(0, Math.min(by, by + Math.floor(my)) - 2), y1 = Math.min(H - 1, Math.max(by + bh, by + bh + Math.ceil(my)) + 2);
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+        const q = (y * W + x) * 4, a0 = alpha(x, y), a1 = alpha(x - ox, y - oy);
+        if (a0 <= 0 && a1 <= 0) continue;
+        const bg = [0, 0, 0];
+        if (a0 > 0) { sample(q, x + mx, y + my); for (let c = 0; c < 3; c++) bg[c] = o[q + c]; }  // all of its cell, rim included, is the empty cell's
+        else for (let c = 0; c < 3; c++) bg[c] = s[q + c];
+        if (a1 > 0) { sample(q, x - ox, y - oy); for (let c = 0; c < 3; c++) o[q + c] = o[q + c] * a1 + bg[c] * (1 - a1); }
+        else for (let c = 0; c < 3; c++) o[q + c] = bg[c];
+      }
     } else if (R.role === 'marquee') {
       if (R.pitch && !R._whole) {  // where the whole logos start and end: the gaps between logos, found on the card
         const paper = hexRgb(C.paper || '#000000').split(',').map(Number);
@@ -742,6 +764,8 @@ window.render = function (t) {
   // so background and layers move together and nothing slides against what is behind it
   if (C.background === 'graded' || C.background === 'detailed') cam *= 1 + 0.022 * ENERGY.idle * env(t);
   else if (SPARSE) cam *= 1 + 0.035 * ENERGY.idle * env(t);
+  // a card where nothing can move on its own still breathes: the camera pushes in and back, plate and layers together
+  else if (layers.length && layers.every(l => l.settle)) cam *= 1 + 0.03 * ENERGY.idle * env(t);
   $('cam').style.transform = cam === 1 ? 'none' : `scale(${cam.toFixed(5)})`;
   $('cam').style.transformOrigin = hero ? `${hero.x + hero.w / 2}px ${hero.y + hero.h / 2}px` : '50% 50%';
 

@@ -1,22 +1,22 @@
 {
  "name": "cal",
- "layers": 18,
+ "layers": 13,
  "kinds": {
   "text": 1,
   "headline": 1,
-  "icon": 6,
+  "icon": 3,
   "illustration": 1,
-  "label": 6,
-  "shape": 3
+  "shape": 3,
+  "label": 4
  },
  "background": "flat",
- "style": "rebuild",
+ "style": "living",
  "frame0_mean": 0.272,
  "frame0_local_pct": 0.0,
  "seam": 1,
- "step": 0,
- "mp4_kb": 150,
+ "step": 1,
+ "mp4_kb": 63,
  "jpg_kb": 53,
- "seconds": 38.4,
+ "seconds": 38.1,
  "pass": true
 }

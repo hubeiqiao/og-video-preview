@@ -1,17 +1,18 @@
 {
  "name": "lsvp",
- "layers": 3,
+ "layers": 10,
  "kinds": {
   "icon": 1,
-  "headline": 2
+  "headline": 2,
+  "stroke": 7
  },
  "background": "flat",
- "style": "living",
+ "style": "rebuild",
  "frame0_mean": 0.07,
  "frame0_local_pct": 0.0,
  "seam": 0,
- "step": 0,
- "mp4_kb": 26,
+ "step": 1,
+ "mp4_kb": 93,
  "jpg_kb": 33,
  "seconds": 29.8,
  "pass": true

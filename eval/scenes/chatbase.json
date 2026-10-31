@@ -1,0 +1,50 @@
+{
+ "note": "A headline beside a lattice of outlined diamonds, three of them filled in colour like pieces on a board: each slides one cell along the lattice and back.",
+ "units": [
+  {
+   "box": [
+    872,
+    17,
+    96,
+    96
+   ],
+   "role": "slide",
+   "move": [
+    95,
+    0
+   ],
+   "ink": "#fd6c3a",
+   "note": "the orange diamond, one cell right"
+  },
+  {
+   "box": [
+    1062,
+    112,
+    96,
+    96
+   ],
+   "role": "slide",
+   "move": [
+    0,
+    95
+   ],
+   "ink": "#b90686",
+   "note": "the magenta diamond, one cell down"
+  },
+  {
+   "box": [
+    967,
+    304,
+    96,
+    96
+   ],
+   "role": "slide",
+   "move": [
+    0,
+    -95
+   ],
+   "ink": "#fcb730",
+   "note": "the yellow diamond, one cell up"
+  }
+ ]
+}

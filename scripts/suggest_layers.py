@@ -43,7 +43,7 @@ KINDS = ["headline", "text", "label", "logo", "pill", "icon", "avatar", "photo",
 TEXT_KINDS = {"headline", "text", "label"}
 # roles a reading of the card (--scene) can give: a unit that moves as one layer, or a region of the card that moves
 ROLE_KIND = {"window": "panel", "panel": "panel", "button": "pill", "scribble": "stroke", "medallion": "photo", "float": "illustration", "typing": "illustration"}
-REGION_ROLES = {"orbit", "marquee", "list", "shine"}
+REGION_ROLES = {"orbit", "marquee", "list", "shine", "slide"}
 # how much of what lies just around an element must be the card's plain background for the element to leave: anything
 # less (a faint grid, a map, a pattern, a neighbour's shadow) and its hole would show, so it moves in place instead.
 # 0.75 let grids and maps through; the frame-by-frame review found them all
@@ -791,6 +791,58 @@ def main():
             texts = [L for L in layers if L["kind"] in TEXT_KINDS]
             print(f"texture: {len(pieces)} pieces of a fine line pattern stay in the plate and move as one surface")
 
+    # a screenshot of an app on the card (an editor, a calendar, a chat) reads as a crowd of small pieces close together:
+    # labels, toolbar icons, lines of code, thin rules. They are its content, not elements of their own: cut out one by one
+    # they leave the screenshot in fragments, with a smear wherever one was. So a crowd stays whole in the plate, and the
+    # card's larger elements and its camera carry the motion (a reading can still name the window and move it whole)
+    def crumb(L):
+        x_, y_, w_, h_ = L["box"]
+        if L.get("role") or (L["kind"] == "headline" and h_ >= 28):
+            return False
+        return w_ * h_ < 0.015 * W * H or min(w_, h_) < 22
+    small = [L for L in layers if crumb(L)]
+    group = {id(L): k for k, L in enumerate(small)}
+    def root(k):
+        while group[id(small[k])] != k:
+            k = group[id(small[k])]
+        return k
+    for p_, L in enumerate(small):
+        for q_, M in enumerate(small[:p_]):
+            lx, ly, lw, lh = L["box"]; mx, my, mw, mh = M["box"]
+            if max(mx - (lx + lw), lx - (mx + mw), my - (ly + lh), ly - (my + mh)) < 36:
+                group[id(small[root(p_)])] = root(q_)
+    crowds = {}
+    busy = False  # a screenshot of an app on the card
+    for k in range(len(small)):
+        crowds.setdefault(root(k), []).append(small[k])
+    for members in crowds.values():
+        hs_ = np.array([L["box"][3] for L in members], float)
+        if len(members) >= 8 and hs_.std() < 0.3 * hs_.mean():
+            continue  # a wall of logos (one size, in rows), not a screenshot: it keeps its own motion
+        if np.median([L["box"][2] / max(1, L["box"][3]) for L in members]) < 2:
+            continue  # a field of dots, avatars or lights: a screenshot is mostly lines of text and rules
+        tones_ = np.array([L["f"].get("tone_rgb", [0, 0, 0]) for L in members], np.float32)
+        if (np.abs(tones_ - np.median(tones_, 0)).max(1) < 30).all():
+            continue  # one colour throughout: the bars of one mark (IBM), not a screenshot's mixed parts
+        if len(members) >= 4:
+            for _ in range(3):  # what else lies within the screenshot (a block of code, a sidebar) is its content too
+                xs = [L["box"][0] for L in members] + [L["box"][0] + L["box"][2] for L in members]
+                ys = [L["box"][1] for L in members] + [L["box"][1] + L["box"][3] for L in members]
+                hx0, hy0, hx1, hy1 = min(xs) - 24, min(ys) - 24, max(xs) + 24, max(ys) + 24
+                # type inside it too (a chat message, a block of code): it is the screenshot's, not the card's headline
+                def inside_(L):
+                    lx, ly, lw, lh = L["box"]
+                    ov = max(0, min(hx1, lx + lw) - max(hx0, lx)) * max(0, min(hy1, ly + lh) - max(hy0, ly))
+                    return ov > 0.8 * lw * lh
+                more = [L for L in layers if L not in members and not L.get("role") and inside_(L) and L["box"][2] * L["box"][3] < 0.15 * W * H]
+                if not more:
+                    break
+                members = members + more
+            layers = [L for L in layers if L not in members]
+            busy = True
+            print(f"crowd: {len(members)} small pieces of a screenshot at {[min(xs), min(ys), max(xs) - min(xs), max(ys) - min(ys)]} stay whole in the plate")
+    texts = [L for L in layers if L["kind"] in TEXT_KINDS]
+
     # letters of a wordmark read as separate shapes (tldraw: t, l, d, ra, w): same colour, sitting on one baseline,
     # letter-spaced. They are one word: cut apart, a letter leaves alone and the word reads "ldraw"
     def tone_of(L):
@@ -1059,55 +1111,6 @@ def main():
                 if stacked and abs(lx - mx) <= 6 and max(lh, mh) < 1.3 * min(lh, mh):
                     top_kind = max(L["kind"], M["kind"], key=rank.get)
                     L["kind"] = M["kind"] = top_kind
-
-    # a screenshot of an app on the card (an editor, a calendar, a chat) reads as a crowd of small pieces close together:
-    # labels, toolbar icons, lines of code, thin rules. They are its content, not elements of their own: cut out one by one
-    # they leave the screenshot in fragments, with a smear wherever one was. So a crowd stays whole in the plate, and the
-    # card's larger elements and its camera carry the motion (a reading can still name the window and move it whole)
-    def crumb(L):
-        x_, y_, w_, h_ = L["box"]
-        if L.get("role") or (L["kind"] == "headline" and h_ >= 28):
-            return False
-        return w_ * h_ < 0.015 * W * H or min(w_, h_) < 22
-    small = [L for L in layers if crumb(L)]
-    group = {id(L): k for k, L in enumerate(small)}
-    def root(k):
-        while group[id(small[k])] != k:
-            k = group[id(small[k])]
-        return k
-    for p_, L in enumerate(small):
-        for q_, M in enumerate(small[:p_]):
-            lx, ly, lw, lh = L["box"]; mx, my, mw, mh = M["box"]
-            if max(mx - (lx + lw), lx - (mx + mw), my - (ly + lh), ly - (my + mh)) < 36:
-                group[id(small[root(p_)])] = root(q_)
-    crowds = {}
-    busy = False  # a screenshot of an app on the card
-    for k in range(len(small)):
-        crowds.setdefault(root(k), []).append(small[k])
-    for members in crowds.values():
-        hs_ = np.array([L["box"][3] for L in members], float)
-        if len(members) >= 8 and hs_.std() < 0.3 * hs_.mean():
-            continue  # a wall of logos (one size, in rows), not a screenshot: it keeps its own motion
-        if np.median([L["box"][2] / max(1, L["box"][3]) for L in members]) < 2:
-            continue  # a field of dots, avatars or lights: a screenshot is mostly lines of text and rules
-        if len(members) >= 4:
-            for _ in range(3):  # what else lies within the screenshot (a block of code, a sidebar) is its content too
-                xs = [L["box"][0] for L in members] + [L["box"][0] + L["box"][2] for L in members]
-                ys = [L["box"][1] for L in members] + [L["box"][1] + L["box"][3] for L in members]
-                hx0, hy0, hx1, hy1 = min(xs) - 24, min(ys) - 24, max(xs) + 24, max(ys) + 24
-                # type inside it too (a chat message, a block of code): it is the screenshot's, not the card's headline
-                def inside_(L):
-                    lx, ly, lw, lh = L["box"]
-                    ov = max(0, min(hx1, lx + lw) - max(hx0, lx)) * max(0, min(hy1, ly + lh) - max(hy0, ly))
-                    return ov > 0.8 * lw * lh
-                more = [L for L in layers if L not in members and not L.get("role") and inside_(L) and L["box"][2] * L["box"][3] < 0.15 * W * H]
-                if not more:
-                    break
-                members = members + more
-            layers = [L for L in layers if L not in members]
-            busy = True
-            print(f"crowd: {len(members)} small pieces of a screenshot at {[min(xs), min(ys), max(xs) - min(xs), max(ys) - min(ys)]} stay whole in the plate")
-    texts = [L for L in layers if L["kind"] in TEXT_KINDS]
 
     # the reading of the card, when there is one: each unit becomes one layer with its role (everything found inside
     # its box joins it, so a window never comes apart), or a region of the card that moves as a whole
