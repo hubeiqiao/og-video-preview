@@ -13,7 +13,7 @@ Or, for any agent that supports Agent Skills: `npx skills add hubeiqiao/og-video
 Then ask your agent: "Use /og-video-preview to make my og:image move."
 
 Website: https://hubeiqiao.com/og-video-preview/
-Source, examples and the 103-card eval: https://github.com/hubeiqiao/og-video-preview
+Source, examples and the 104-card eval: https://github.com/hubeiqiao/og-video-preview
 
 ## What it runs
 

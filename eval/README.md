@@ -16,6 +16,7 @@ What is measured on every card:
 |---|---|
 | Frame 0 | it equals the card: mean difference ≤ 2, and local defects (a gap between letters, a missing edge) on ≤ 0.05 % of pixels |
 | Seam | the jump from the last frame to the first is at most 1.5 ordinary frame steps (plus 4 levels of slack) |
+| Motion | some frame differs from frame 0 by a mean of 0.2 levels or more (a frozen video is seamless too) |
 | Size | MP4 ≤ 2 MB, frame-0 JPEG ≤ 180 KB |
 
 `results.json` also records what the engine decided for each card (how many layers, which kinds, rebuild or living), so a change to the engine can be compared card by card. Re-run after any change to `scripts/` or `template/from-image.html` and read the diff of `results.json` and `sheet.jpg`.
@@ -35,99 +36,99 @@ The images in `cards/` were fetched from each site's `og:image` by `fetch.py` (`
 | [arc](out/arc.mp4) | 2 | illustration 1, headline 1 | rebuild | 0.131 / 0.0% | 53 / 52 | 175 KB | yes |
 | [astro](out/astro.mp4) | 12 | illustration 8, headline 2, text 1, pill 1 | rebuild | 0.397 / 0.0% | 0 / 2 | 674 KB | yes |
 | [bolt](out/bolt.mp4) | 1 | headline 1 | rebuild | 0.17 / 0.0% | 0 / 1 | 241 KB | yes |
-| [bun](out/bun.mp4) | 6 | label 3, avatar 1, illustration 1, headline 1 | rebuild | 0.326 / 0.0% | 2 / 4 | 383 KB | yes |
+| [bun](out/bun.mp4) | 6 | label 3, avatar 1, illustration 1, headline 1 | rebuild | 0.326 / 0.0% | 2 / 4 | 382 KB | yes |
 | [bvp](out/bvp.mp4) | 0 |  | living | 0.432 / 0.0% | 0 / 1 | 1128 KB | yes |
-| [cal](out/cal.mp4) | 13 | label 4, icon 3, shape 3, text 1, headline 1, illustration 1 | living | 0.272 / 0.0% | 1 / 1 | 63 KB | yes |
-| [calendly](out/calendly.mp4) | 4 | logo 1, headline 1, label 1, illustration 1 | living | 0.28 / 0.0% | 0 / 2 | 761 KB | yes |
+| [cal](out/cal.mp4) | 13 | label 4, icon 3, shape 3, text 1, headline 1, illustration 1 | living | 0.272 / 0.0% | 2 / 4 | 618 KB | yes |
+| [calendly](out/calendly.mp4) | 4 | logo 1, headline 1, label 1, illustration 1 | living | 0.28 / 0.0% | 1 / 2 | 762 KB | yes |
 | [canva](out/canva.mp4) | 6 | illustration 5, stroke 1 | rebuild | 0.275 / 0.0% | 1 / 2 | 617 KB | yes |
 | [chatbase](out/chatbase.mp4) | 6 | shape 3, headline 2, text 1 | rebuild | 0.39 / 0.0% | 1 / 3 | 707 KB | yes |
-| [clerk](out/clerk.mp4) | 4 | headline 2, logo 1, stroke 1 | living | 0.238 / 0.0% | 0 / 0 | 55 KB | yes |
+| [clerk](out/clerk.mp4) | 4 | headline 2, logo 1, stroke 1 | living | 0.238 / 0.0% | 2 / 4 | 422 KB | yes |
 | [cloudflare](out/cloudflare.mp4) | 0 |  | living | 0.358 / 0.0% | 0 / 1 | 1085 KB | yes |
 | [coatue](out/coatue.mp4) | 1 | headline 1 | rebuild | 0.088 / 0.0% | 1 / 2 | 105 KB | yes |
-| [cognition](out/cognition.mp4) | 5 | illustration 3, panel 1, headline 1 | rebuild | 0.274 / 0.0% | 2 / 3 | 546 KB | yes |
+| [cognition](out/cognition.mp4) | 5 | illustration 3, panel 1, headline 1 | rebuild | 0.274 / 0.0% | 2 / 3 | 547 KB | yes |
 | [cohere](out/cohere.mp4) | 2 | label 1, headline 1 | living | 0.399 / 0.0% | 0 / 2 | 1773 KB | yes |
-| [conviction](out/conviction.mp4) | 1 | shape 1 | rebuild | 0.195 / 0.0% | 114 / 131 | 426 KB | yes |
+| [conviction](out/conviction.mp4) | 1 | shape 1 | rebuild | 0.195 / 0.0% | 114 / 131 | 429 KB | yes |
 | [cursor](out/cursor.mp4) | 2 | logo 1, headline 1 | rebuild | 0.064 / 0.0% | 38 / 38 | 73 KB | yes |
 | [deno](out/deno.mp4) | 9 | headline 7, text 1, illustration 1 | rebuild | 0.191 / 0.0% | 0 / 1 | 182 KB | yes |
 | [discord](out/discord.mp4) | 18 | icon 10, label 2, headline 1, shape 1, logo 1, text 1, stroke 1, illustration 1 | living | 0.274 / 0.0% | 0 / 2 | 823 KB | yes |
 | [dropbox](out/dropbox.mp4) | 1 | logo 1 | rebuild | 0.039 / 0.0% | 1 / 1 | 196 KB | yes |
-| [dub](out/dub.mp4) | 8 | icon 3, headline 2, stroke 2, illustration 1 | living | 0.325 / 0.0% | 0 / 0 | 77 KB | yes |
+| [dub](out/dub.mp4) | 8 | icon 3, headline 2, stroke 2, illustration 1 | living | 0.325 / 0.0% | 2 / 4 | 713 KB | yes |
 | [duolingo](out/duolingo.mp4) | 3 | shape 2, illustration 1 | rebuild | 0.091 / 0.0% | 1 / 3 | 221 KB | yes |
 | [elevenlabs](out/elevenlabs.mp4) | 16 | label 15, headline 1 | rebuild | 0.211 / 0.0% | 2 / 3 | 473 KB | yes |
 | [excalidraw](out/excalidraw.mp4) | 16 | label 6, icon 5, shape 2, logo 1, headline 1, text 1 | rebuild | 0.174 / 0.0% | 0 / 1 | 207 KB | yes |
-| [figma](out/figma.mp4) | 5 | headline 3, illustration 1, icon 1 | rebuild | 0.297 / 0.0% | 1 / 2 | 200 KB | yes |
+| [figma](out/figma.mp4) | 5 | headline 3, illustration 1, icon 1 | rebuild | 0.297 / 0.0% | 1 / 2 | 201 KB | yes |
 | [fly](out/fly.mp4) | 9 | icon 4, headline 3, avatar 1, text 1 | rebuild | 0.372 / 0.0% | 0 / 3 | 685 KB | yes |
 | [framer](out/framer.mp4) | 1 | headline 1 | living | 0.495 / 0.0% | 0 / 2 | 1123 KB | yes |
 | [generalcatalyst](out/generalcatalyst.mp4) | 0 |  | living | 0.233 / 0.0% | 0 / 1 | 583 KB | yes |
-| [ghost](out/ghost.mp4) | 18 | icon 13, illustration 2, logo 2, avatar 1 | rebuild | 0.241 / 0.0% | 0 / 2 | 228 KB | yes |
-| [github](out/github.mp4) | 10 | shape 4, illustration 3, headline 2, icon 1 | rebuild | 0.236 / 0.0% | 1 / 2 | 216 KB | yes |
+| [ghost](out/ghost.mp4) | 18 | icon 13, illustration 2, logo 2, avatar 1 | rebuild | 0.241 / 0.0% | 0 / 2 | 227 KB | yes |
+| [github](out/github.mp4) | 10 | shape 4, illustration 3, headline 2, icon 1 | rebuild | 0.236 / 0.0% | 1 / 2 | 218 KB | yes |
 | [glean](out/glean.mp4) | 16 | label 10, icon 2, stroke 1, shape 1, illustration 1, text 1 | rebuild | 0.151 / 0.0% | 0 / 1 | 366 KB | yes |
 | [granola](out/granola.mp4) | 8 | icon 4, headline 4 | rebuild | 0.504 / 0.0% | 0 / 2 | 751 KB | yes |
 | [greylock](out/greylock.mp4) | 10 | label 4, headline 3, text 2, shape 1 | rebuild | 0.184 / 0.0% | 0 / 1 | 185 KB | yes |
 | [groq](out/groq.mp4) | 4 | headline 3, icon 1 | living | 0.133 / 0.0% | 0 / 2 | 246 KB | yes |
 | [gumroad](out/gumroad.mp4) | 6 | illustration 5, headline 1 | rebuild | 0.413 / 0.0% | 0 / 2 | 652 KB | yes |
-| [gv](out/gv.mp4) | 1 | shape 1 | rebuild | 0.049 / 0.0% | 58 / 61 | 155 KB | yes |
+| [gv](out/gv.mp4) | 1 | shape 1 | rebuild | 0.049 / 0.0% | 58 / 61 | 220 KB | yes |
 | [harvey](out/harvey.mp4) | 1 | headline 1 | rebuild | 0.053 / 0.0% | 1 / 3 | 71 KB | yes |
 | [huggingface](out/huggingface.mp4) | 3 | headline 2, illustration 1 | rebuild | 0.165 / 0.0% | 1 / 3 | 343 KB | yes |
 | [ibm](out/ibm.mp4) | 1 | illustration 1 | rebuild | 0.165 / 0.0% | 1 / 3 | 162 KB | yes |
 | [ideogram](out/ideogram.mp4) | 3 | label 2, headline 1 | living | 0.391 / 0.0% | 0 / 1 | 1263 KB | yes |
 | [indexventures](out/indexventures.mp4) | 6 | pill 5, illustration 1 | rebuild | 0.064 / 0.0% | 3 / 5 | 46 KB | yes |
 | [insightpartners](out/insightpartners.mp4) | 2 | headline 1, text 1 | rebuild | 0.045 / 0.0% | 0 / 1 | 89 KB | yes |
-| [intercom](out/intercom.mp4) | 9 | headline 2, text 2, icon 2, panel 1, illustration 1, photo 1 | rebuild | 0.416 / 0.0% | 1 / 2 | 366 KB | yes |
+| [intercom](out/intercom.mp4) | 9 | headline 2, text 2, icon 2, panel 1, illustration 1, photo 1 | rebuild | 0.416 / 0.0% | 1 / 2 | 365 KB | yes |
 | [kleinerperkins](out/kleinerperkins.mp4) | 3 | headline 2, panel 1 | rebuild | 0.145 / 0.0% | 1 / 4 | 145 KB | yes |
 | [linear](out/linear.mp4) | 1 | headline 1 | rebuild | 0.078 / 0.0% | 0 / 2 | 189 KB | yes |
-| [loom](out/loom.mp4) | 10 | icon 5, headline 3, illustration 1, shape 1 | living | 0.263 / 0.0% | 1 / 2 | 494 KB | yes |
+| [loom](out/loom.mp4) | 10 | icon 5, headline 3, illustration 1, shape 1 | living | 0.263 / 0.0% | 1 / 2 | 495 KB | yes |
 | [lovable](out/lovable.mp4) | 0 |  | living | 0.313 / 0.0% | 0 / 2 | 736 KB | yes |
 | [lsvp](out/lsvp.mp4) | 10 | stroke 7, headline 2, icon 1 | rebuild | 0.07 / 0.0% | 0 / 1 | 93 KB | yes |
 | [mailchimp](out/mailchimp.mp4) | 3 | headline 2, logo 1 | rebuild | 0.133 / 0.0% | 2 / 4 | 225 KB | yes |
 | [mintlify](out/mintlify.mp4) | 1 | icon 1 | rebuild | 0.077 / 0.0% | 1 / 2 | 130 KB | yes |
-| [miro](out/miro.mp4) | 1 | shape 1 | rebuild | 0.048 / 0.0% | 1 / 2 | 127 KB | yes |
-| [mistral](out/mistral.mp4) | 5 | stroke 2, logo 1, headline 1, illustration 1 | rebuild | 0.169 / 0.0% | 1 / 2 | 268 KB | yes |
+| [miro](out/miro.mp4) | 1 | shape 1 | rebuild | 0.048 / 0.0% | 0 / 2 | 126 KB | yes |
+| [mistral](out/mistral.mp4) | 5 | stroke 2, logo 1, headline 1, illustration 1 | rebuild | 0.169 / 0.0% | 1 / 2 | 267 KB | yes |
 | [mobbin](out/mobbin.mp4) | 16 | icon 7, headline 4, illustration 2, shape 1, pill 1, avatar 1 | rebuild | 0.316 / 0.0% | 0 / 1 | 196 KB | yes |
 | [netlify](out/netlify.mp4) | 11 | avatar 5, headline 2, icon 1, text 1, illustration 1, shape 1 | rebuild | 0.273 / 0.0% | 1 / 3 | 468 KB | yes |
 | [nextjs](out/nextjs.mp4) | 2 | headline 1, icon 1 | rebuild | 0.049 / 0.0% | 46 / 45 | 36 KB | yes |
 | [nfx](out/nfx.mp4) | 1 | shape 1 | rebuild | 0.085 / 0.0% | 64 / 63 | 428 KB | yes |
-| [notion](out/notion.mp4) | 7 | headline 2, illustration 2, logo 1, stroke 1, label 1 | living | 0.376 / 0.0% | 0 / 0 | 66 KB | yes |
+| [notion](out/notion.mp4) | 7 | headline 2, illustration 2, logo 1, stroke 1, label 1 | living | 0.376 / 0.0% | 1 / 3 | 736 KB | yes |
 | [obsidian](out/obsidian.mp4) | 3 | illustration 1, headline 1, text 1 | rebuild | 0.159 / 0.0% | 1 / 3 | 282 KB | yes |
 | [openai](out/openai.mp4) | 14 | icon 7, shape 3, headline 2, illustration 1, logo 1 | rebuild | 0.45 / 0.0% | 1 / 2 | 691 KB | yes |
 | [perplexity](out/perplexity.mp4) | 3 | icon 1, headline 1, illustration 1 | rebuild | 0.119 / 0.0% | 1 / 2 | 246 KB | yes |
 | [pika](out/pika.mp4) | 1 | headline 1 | living | 0.256 / 0.0% | 0 / 1 | 646 KB | yes |
-| [pinterest](out/pinterest.mp4) | 12 | illustration 9, label 2, icon 1 | rebuild | 0.433 / 0.0% | 1 / 2 | 1112 KB | yes |
+| [pinterest](out/pinterest.mp4) | 12 | illustration 9, label 2, icon 1 | rebuild | 0.433 / 0.0% | 1 / 2 | 1111 KB | yes |
 | [pitch](out/pitch.mp4) | 1 | headline 1 | rebuild | 0.07 / 0.0% | 0 / 2 | 260 KB | yes |
 | [planetscale](out/planetscale.mp4) | 18 | text 7, label 4, logo 3, headline 1, illustration 1, icon 1, shape 1 | rebuild | 0.374 / 0.0% | 1 / 2 | 757 KB | yes |
 | [posthog](out/posthog.mp4) | 8 | icon 3, headline 2, stroke 1, illustration 1, pill 1 | rebuild | 0.32 / 0.0% | 0 / 2 | 532 KB | yes |
 | [railway](out/railway.mp4) | 15 | icon 4, label 4, headline 3, illustration 2, text 1, logo 1 | rebuild | 0.241 / 0.0% | 1 / 2 | 159 KB | yes |
 | [raycast](out/raycast.mp4) | 18 | icon 12, illustration 2, logo 1, text 1, headline 1, label 1 | rebuild | 0.284 / 0.0% | 2 / 4 | 536 KB | yes |
-| [replit](out/replit.mp4) | 13 | label 6, illustration 2, icon 2, shape 1, headline 1, text 1 | living | 0.236 / 0.0% | 1 / 1 | 491 KB | yes |
-| [resend](out/resend.mp4) | 4 | illustration 2, shape 1, label 1 | living | 0.2 / 0.0% | 1 / 0 | 59 KB | yes |
+| [replit](out/replit.mp4) | 13 | label 6, illustration 2, icon 2, shape 1, headline 1, text 1 | living | 0.236 / 0.0% | 1 / 1 | 488 KB | yes |
+| [resend](out/resend.mp4) | 4 | illustration 2, shape 1, label 1 | living | 0.2 / 0.0% | 2 / 3 | 728 KB | yes |
 | [retool](out/retool.mp4) | 5 | label 4, text 1 | living | 0.377 / 0.0% | 0 / 2 | 681 KB | yes |
-| [rive](out/rive.mp4) | 13 | stroke 4, icon 4, headline 3, label 1, illustration 1 | rebuild | 0.325 / 0.0% | 1 / 2 | 173 KB | yes |
+| [rive](out/rive.mp4) | 13 | stroke 4, icon 4, headline 3, label 1, illustration 1 | rebuild | 0.325 / 0.0% | 1 / 2 | 172 KB | yes |
 | [runwayml](out/runwayml.mp4) | 2 | headline 1, text 1 | rebuild | 0.148 / 0.0% | 0 / 2 | 296 KB | yes |
 | [salesforce](out/salesforce.mp4) | 1 | logo 1 | rebuild | 0.048 / 0.0% | 44 / 43 | 159 KB | yes |
 | [scale](out/scale.mp4) | 3 | text 2, headline 1 | rebuild | 0.178 / 0.0% | 1 / 3 | 310 KB | yes |
-| [sentry](out/sentry.mp4) | 1 | logo 1 | living | 0.261 / 0.0% | 1 / 2 | 627 KB | yes |
-| [sequoiacap](out/sequoiacap.mp4) | 2 | illustration 1, panel 1 | living | 0.641 / 0.0% | 1 / 2 | 1731 KB | yes |
+| [sentry](out/sentry.mp4) | 1 | logo 1 | living | 0.261 / 0.0% | 1 / 2 | 628 KB | yes |
+| [sequoiacap](out/sequoiacap.mp4) | 2 | illustration 1, panel 1 | living | 0.641 / 0.0% | 1 / 2 | 1730 KB | yes |
 | [shopify](out/shopify.mp4) | 5 | icon 4, headline 1 | rebuild | 0.275 / 0.0% | 0 / 11 | 430 KB | yes |
 | [slack](out/slack.mp4) | 3 | logo 1, headline 1, illustration 1 | rebuild | 0.084 / 0.0% | 1 / 2 | 138 KB | yes |
 | [spline](out/spline.mp4) | 4 | label 2, illustration 1, stroke 1 | rebuild | 0.071 / 0.0% | 1 / 2 | 147 KB | yes |
-| [spotify](out/spotify.mp4) | 3 | illustration 2, shape 1 | living | 0.398 / 0.0% | 1 / 2 | 1086 KB | yes |
+| [spotify](out/spotify.mp4) | 3 | illustration 2, shape 1 | living | 0.398 / 0.0% | 1 / 2 | 1087 KB | yes |
 | [stability](out/stability.mp4) | 3 | label 1, text 1, headline 1 | living | 0.416 / 0.0% | 0 / 2 | 1019 KB | yes |
 | [stripe](out/stripe.mp4) | 1 | headline 1 | rebuild | 0.24 / 0.0% | 0 / 1 | 515 KB | yes |
 | [suno](out/suno.mp4) | 2 | headline 2 | rebuild | 0.402 / 0.0% | 0 / 1 | 941 KB | yes |
 | [supabase](out/supabase.mp4) | 3 | headline 2, illustration 1 | rebuild | 0.142 / 0.0% | 1 / 3 | 234 KB | yes |
 | [superhuman](out/superhuman.mp4) | 9 | label 4, illustration 2, icon 2, avatar 1 | living | 0.378 / 0.0% | 0 / 1 | 916 KB | yes |
-| [tailwindcss](out/tailwindcss.mp4) | 12 | icon 4, logo 2, illustration 2, label 1, stroke 1, headline 1, shape 1 | living | 0.27 / 0.0% | 1 / 1 | 87 KB | yes |
+| [tailwindcss](out/tailwindcss.mp4) | 12 | icon 4, logo 2, illustration 2, label 1, stroke 1, headline 1, shape 1 | living | 0.27 / 0.0% | 2 / 4 | 749 KB | yes |
 | [thrivecap](out/thrivecap.mp4) | 1 | stroke 1 | rebuild | 0.026 / 0.0% | 1 / 1 | 42 KB | yes |
-| [tldraw](out/tldraw.mp4) | 2 | panel 1, logo 1 | rebuild | 0.108 / 0.0% | 0 / 1 | 151 KB | yes |
+| [tldraw](out/tldraw.mp4) | 2 | panel 1, logo 1 | rebuild | 0.108 / 0.0% | 0 / 1 | 152 KB | yes |
 | [together](out/together.mp4) | 4 | headline 2, illustration 1, label 1 | rebuild | 0.151 / 0.0% | 0 / 1 | 156 KB | yes |
 | [typeform](out/typeform.mp4) | 1 | headline 1 | rebuild | 0.052 / 0.0% | 1 / 3 | 80 KB | yes |
 | [v0](out/v0.mp4) | 2 | headline 1, illustration 1 | rebuild | 0.116 / 0.0% | 174 / 173 | 250 KB | yes |
-| [vercel](out/vercel.mp4) | 1 | illustration 1 | rebuild | 0.046 / 0.0% | 1 / 1 | 141 KB | yes |
+| [vercel](out/vercel.mp4) | 1 | illustration 1 | rebuild | 0.046 / 0.0% | 1 / 1 | 142 KB | yes |
 | [vite](out/vite.mp4) | 9 | label 7, illustration 1, text 1 | living | 0.526 / 0.0% | 0 / 2 | 1186 KB | yes |
-| [warp](out/warp.mp4) | 4 | illustration 1, shape 1, icon 1, panel 1 | rebuild | 0.222 / 0.0% | 1 / 3 | 433 KB | yes |
-| [webflow](out/webflow.mp4) | 9 | illustration 4, label 1, icon 1, logo 1, headline 1, stroke 1 | living | 0.354 / 0.0% | 1 / 2 | 1234 KB | yes |
+| [warp](out/warp.mp4) | 4 | illustration 1, shape 1, icon 1, panel 1 | rebuild | 0.222 / 0.0% | 1 / 3 | 434 KB | yes |
+| [webflow](out/webflow.mp4) | 9 | illustration 4, label 1, icon 1, logo 1, headline 1, stroke 1 | living | 0.354 / 0.0% | 1 / 2 | 1235 KB | yes |
 | [windsurf](out/windsurf.mp4) | 7 | label 6, headline 1 | living | 0.467 / 0.0% | 0 / 2 | 1622 KB | yes |
-| [x](out/x.mp4) | 1 | shape 1 | rebuild | 0.027 / 0.0% | 52 / 53 | 124 KB | yes |
+| [x](out/x.mp4) | 1 | shape 1 | rebuild | 0.027 / 0.0% | 52 / 53 | 166 KB | yes |
 | [ycombinator](out/ycombinator.mp4) | 18 | avatar 15, headline 2, illustration 1 | rebuild | 0.354 / 0.0% | 0 / 2 | 207 KB | yes |
 | [zapier](out/zapier.mp4) | 3 | headline 2, text 1 | living | 0.313 / 0.0% | 0 / 2 | 335 KB | yes |
 | [zed](out/zed.mp4) | 6 | illustration 4, icon 1, label 1 | living | 0.379 / 0.0% | 0 / 2 | 1314 KB | yes |
@@ -142,14 +143,14 @@ The table above is the skill with no help: it reads every card on its own. The s
 
 | Card | Layers | Kinds | Style | Frame 0 (mean / local) | Seam / step | MP4 | Pass |
 |---|---|---|---|---|---|---|---|
-| [a16z-read](out/a16z-read.mp4) | 4 | text 2, headline 1, photo 1 | living | 0.53 / 0.0% | 1 / 3 | 1159 KB | yes |
+| [a16z-read](out/a16z-read.mp4) | 4 | text 2, headline 1, photo 1 | living | 0.53 / 0.0% | 1 / 3 | 1160 KB | yes |
 | [chatbase-read](out/chatbase-read.mp4) | 3 | headline 2, text 1 | rebuild | 0.39 / 0.0% | 1 / 3 | 713 KB | yes |
-| [cloudflare-read](out/cloudflare-read.mp4) | 2 | logo 1, pill 1 | living | 0.358 / 0.0% | 0 / 1 | 993 KB | yes |
+| [cloudflare-read](out/cloudflare-read.mp4) | 2 | logo 1, pill 1 | living | 0.358 / 0.0% | 0 / 1 | 997 KB | yes |
 | [deno-read](out/deno-read.mp4) | 11 | text 10, headline 1 | rebuild | 0.478 / 0.011% | 0 / 0 | 351 KB | yes |
 | [fly-read](out/fly-read.mp4) | 10 | icon 4, headline 3, avatar 1, text 1, pill 1 | rebuild | 0.373 / 0.0% | 0 / 3 | 696 KB | yes |
 | [ghost-read](out/ghost-read.mp4) | 0 |  | rebuild | 0.236 / 0.0% | 240 / 243 | 736 KB | yes |
 | [lovable-read](out/lovable-read.mp4) | 1 | illustration 1 | living | 0.313 / 0.0% | 0 / 2 | 706 KB | yes |
-| [openai-read](out/openai-read.mp4) | 18 | illustration 5, icon 4, shape 3, stroke 3, headline 2, logo 1 | rebuild | 0.457 / 0.0% | 94 / 94 | 766 KB | yes |
+| [openai-read](out/openai-read.mp4) | 18 | illustration 5, icon 4, shape 3, stroke 3, headline 2, logo 1 | rebuild | 0.457 / 0.0% | 94 / 94 | 769 KB | yes |
 | [webflow-read](out/webflow-read.mp4) | 8 | panel 7, logo 1 | living | 0.369 / 0.0% | 1 / 2 | 884 KB | yes |
 | [ycombinator-read](out/ycombinator-read.mp4) | 3 | headline 2, icon 1 | rebuild | 0.353 / 0.0% | 237 / 234 | 738 KB | yes |
 <!-- /read -->

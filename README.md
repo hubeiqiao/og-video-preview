@@ -26,7 +26,7 @@ A link preview is the first thing people see of your page in a chat. In iMessage
 
 - **It reads the image.** Every element is found and classified (headline, label, logo, pill, photo, stroke and six more kinds), cut out cleanly over a refilled background, and given motion that suits what it is.
 - **Frame 0 is your image, pixel for pixel.** Apps that cannot play video show the same still they show today, so the preview is never worse than before.
-- **It is checked, not hoped for.** Every render is tested for frame-0 identity, a seamless loop and file-size budgets, and the live server is tested for the HTTP Range support Apple's players require.
+- **It is checked, not hoped for.** Every render is tested for frame-0 identity, a seamless loop, real motion and file-size budgets, and the live server is tested for the HTTP Range support Apple's players require.
 
 ```bash
 npx skills add hubeiqiao/og-video-preview
@@ -154,6 +154,7 @@ The skill is tested on the Open Graph images of 104 well-known sites, each put t
 |---|---|
 | Frame 0 | mean difference to the image ≤ 2, and local defects on ≤ 0.05 % of pixels |
 | Seam | the jump from the last frame to the first is at most 1.5 ordinary frame steps (plus 4 levels of slack) |
+| Motion | some frame differs from frame 0 by a mean of 0.2 levels or more (a frozen video is seamless too) |
 | Size | MP4 ≤ 2 MB, frame-0 JPEG ≤ 180 KB |
 
 All 104 pass. The checks above are numbers; a video can pass them and still look broken in the middle of its loop (half a line on screen, a wordmark missing a letter, a smear where an icon left). So every video is also reviewed by eye, at nine moments of its loop, and each kind of defect found becomes a rule in the engine (listed in [SKILL.md](SKILL.md#3-motion-comes-from-the-kind) under "Safeguards").
@@ -205,7 +206,7 @@ og-video-preview/
 │   ├── make_plate.py        refilled plate, per-element cuts, light and glyph masks
 │   ├── render_frames.py     frame capture with Playwright
 │   ├── check_frame0.py      frame 0 against the approved image
-│   ├── check_loop.py        seam check
+│   ├── check_loop.py        seam and motion check
 │   ├── encode.sh            MP4 and JPEG within the size budgets
 │   └── check_live.sh        live tags, files and Range support
 ├── worker/range-worker.js   206 Partial Content on Cloudflare Workers

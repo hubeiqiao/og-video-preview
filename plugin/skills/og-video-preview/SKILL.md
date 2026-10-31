@@ -154,7 +154,7 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 - Faint colourless scenery behind everything (the islands of a map, a watermark) is background: it stays in the plate.
 - A thing inside another thing (the 7 on a calendar, a symbol on a badge) moves with it; a part just outside a scene that stays in the plate (an owl's foot) stays with it; what lies on something that holds still, or runs onto it (a heading in an app window, a word over a window), holds still too, and so does that thing: it does not drift, turn or take a light. A screenshot's icons are never a wall of logos.
 - An element leaves only when at least 90 % of what lies just around it is the card's plain background and its refill would not show: refilled from the background, not smeared from its neighbours; no grain, picture, grid lines or colour step at the edge; and the card's background model and the surroundings' own refill agree there. Otherwise it moves in place; if one line of type has to, all of them do. On a flat surface of its own (type on a notepad) the hole takes that surface's colour.
-- A lone mark is never cut into sliding bands, logos never warp, no stars or rings are added beside type, marks or avatars, no beam of light crosses the card, and no light sweeps through something that holds still.
+- A lone mark is cut into sliding bands only when it is one compact symbol alone on a flat black card (x.ai): bands across a wordmark or a line of type tear its letters apart. Logos never warp, no stars or rings are added beside type, marks or avatars, no beam of light crosses the card, and no light sweeps through something that holds still.
 - A line that runs into something left in the plate (an axis out of a cube) holds still: its cut would take that thing's edge.
 - A texture warps only around the solid things left in its plate (a button on a dot grid holds still), and a big flat graphic (a bolt) never warps.
 - When there are more elements than layers, what the reading named is kept first.
@@ -216,7 +216,7 @@ Each rule came from a real review.
 
 Checks that must pass:
 - `check_frame0.py`: frame 0 matches the approved still: mean difference under 2, and no local defects (a gap between letters, a missing edge) on more than 0.05 % of pixels.
-- `check_loop.py`: the jump from the last frame to the first is no bigger than 1.5 normal frame steps (plus 4 levels of slack).
+- `check_loop.py`: the jump from the last frame to the first is no bigger than 1.5 normal frame steps (plus 4 levels of slack), and the video moves: some frame differs from frame 0 by a mean of at least 0.2 levels. A card read as a screenshot keeps its parts in place, so its camera breathes instead.
 - `check_collide.py OUT_DIR`: no two elements that are apart in the approved card touch while they move (closest approach under 3 px, measured on each element's own outline through the transform the template applies, and against what stays in the plate). On a rebuild card only the loop after everything has landed counts. With `--fix` it calms the moving element (its `idle` lowered 15 % at a time, recorded in `layers.js` as `fixed`) until nothing touches; then render again. A floating orb beside an arrow is the classic case: on Joe Speaking's cards `--fix` settled the orb at the same idle (0.62) that was chosen by eye.
 
 ## Many cards from one template
@@ -301,7 +301,7 @@ Sources were read on 2026-10-30; the per-app device tests are from [checkmyog](h
 | `scripts/make_plate.py` | Clean plate, element cutouts and glyph masks (re-run after editing boxes) |
 | `scripts/render_frames.py` | Captures frames at 2× through a local server; prints element edges |
 | `scripts/check_frame0.py` | Frame 0 against the approved still |
-| `scripts/check_loop.py` | Seam against a normal frame step |
+| `scripts/check_loop.py` | Seam against a normal frame step; the video moves at all |
 | `scripts/check_collide.py` | No two elements touch while they move; `--fix` calms the mover |
 | `scripts/encode.sh` | Frames to MP4 and frame-0 JPEG, with size limits |
 | `scripts/check_live.sh` | Live tags, files, https and Range check |

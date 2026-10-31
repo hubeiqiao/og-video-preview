@@ -496,8 +496,10 @@ function build() {
   if (WALL) { const ws = layers.filter(l => l.wall), m = Math.max(1, ...ws.map(l => l.dist)); ws.forEach(l => { l.wallD = l.dist / m; }); }
   schedule(style);
 
-  // a lone mark (one visual on an empty card: a logo, a symbol) becomes the hero: it assembles in one piece out of a blur,
-  // a light rises behind it (or a shadow under it on a light card), and it turns slowly in 3D
+  // a lone mark (one visual on an empty card: a logo, a symbol) becomes the hero. A compact light mark alone on a black
+  // card (x.ai) is cut into slices that assemble and a strong light rises behind it; elsewhere it
+  // assembles in one piece out of a blur, with a soft glow on a dark card or a shadow under it on a light one. Then it
+  // turns slowly in 3D
   const marks = layers.filter(l => !TEXT.has(l.kind) && !['photo', 'panel'].includes(l.kind) && !l.settle);
   // beside a line of type only a real mark qualifies (an underline or a pill keeps its own motion)
   const heroL = style === 'rebuild' && marks.length === 1 && marks[0].area < 0.3 &&
@@ -511,7 +513,13 @@ function build() {
     // a colourless mark on a light card (an Apple, a quiet wordmark) is revealed like a product, not assembled:
     // it focuses in out of a soft blur, a slow reflection slides across it, and it barely breathes
     L.calm = !DARK && !L.tone;
-    const N = 1;  // one piece: a mark cut into sliding bands reads as a glitch, never as the brand
+    const paper = hexRgb(C.paper || '#000000').split(',').reduce((m, v) => m + +v, 0) / 3;
+    const ink = L.ink ? hexRgb(L.ink).split(',').reduce((m, v) => m + +v, 0) / 3 : 255;
+    const lit = ink > paper + 30;  // a light mark on a darker card
+    // an empty black stage with one compact symbol on it: the mark can make an entrance. Bands across a wordmark or a
+    // line of type tear its letters apart
+    const stage = lit && layers.length === 1 && L.w <= 3 * L.h && C.background === 'flat' && paper < 30;
+    const N = stage ? 7 : 1;
     const ew = L.w + 2 * pad, eh = L.h + 2 * pad;
     L.parts = Array.from({ length: N }, (_, k) => {
       const el = el0.cloneNode(true); el0.parentNode.insertBefore(el, el0);
@@ -527,15 +535,13 @@ function build() {
       sh.style.backgroundSize = '320% 100%';
       glyphMask(sh, L.x, L.y); $('top').appendChild(sh); L.sheen = sh;
     }
-    const paper = hexRgb(C.paper || '#000000').split(',').reduce((m, v) => m + +v, 0) / 3;
-    const ink = L.ink ? hexRgb(L.ink).split(',').reduce((m, v) => m + +v, 0) / 3 : 255;
     const halo = document.createElement('div'); halo.className = 'glow';
     const r = Math.max(L.w, L.h) * 1.15, cx = L.x + L.w / 2, cy = L.y + L.h / 2;
-    if (ink > paper + 30) {  // a light mark on a dark card: its own colour glows behind it (above the layers, screen blend)
+    if (lit) {  // a light mark on a dark card: its own colour glows behind it (above the layers, screen blend)
       const c = L.tone ? hexRgb(L.tone) : ACCENT || '255,255,255';
-      Object.assign(halo.style, { left: cx - r + 'px', top: cy - r + 'px', width: 2 * r + 'px', height: 2 * r + 'px', background: `radial-gradient(circle, rgba(${c},.16) 0%, rgba(${c},.07) 28%, rgba(${c},.02) 48%, rgba(${c},0) 70%)` });
+      Object.assign(halo.style, { left: cx - r + 'px', top: cy - r + 'px', width: 2 * r + 'px', height: 2 * r + 'px', background: `radial-gradient(circle, ${stage ? `rgba(${c},.3) 0%, rgba(${c},.14) 28%, rgba(${c},.05) 48%` : `rgba(${c},.16) 0%, rgba(${c},.07) 28%, rgba(${c},.02) 48%`}, rgba(${c},0) 70%)` });
       $('top').insertBefore(halo, $('flare'));
-      // (no flare across the card: on a plain dark card a beam reads as a stage light, not as the brand)
+      // (no flare across it: a beam sweeping the card reads as a stage light passing, not as the mark's own light)
     } else {  // a dark mark on a light card: a soft shadow grows under it as it lifts
       Object.assign(halo.style, { left: cx - r * 0.6 + 'px', top: L.y + L.h + 6 + 'px', width: 1.2 * r + 'px', height: 0.22 * r + 'px', mixBlendMode: 'multiply',
         background: 'radial-gradient(closest-side, rgba(0,0,0,.18), rgba(0,0,0,0))' });
@@ -764,8 +770,9 @@ window.render = function (t) {
   // so background and layers move together and nothing slides against what is behind it
   if (C.background === 'graded' || C.background === 'detailed') cam *= 1 + 0.022 * ENERGY.idle * env(t);
   else if (SPARSE) cam *= 1 + 0.035 * ENERGY.idle * env(t);
-  // a card where nothing can move on its own still breathes: the camera pushes in and back, plate and layers together
-  else if (layers.length && layers.every(l => l.settle)) cam *= 1 + 0.03 * ENERGY.idle * env(t);
+  // a card where nothing can move on its own still breathes: the camera pushes in and back, plate and layers together.
+  // A screenshot (busy) is one: its parts keep their places and its type does not leave, so without this it would freeze
+  else if (C.busy || (layers.length && layers.every(l => l.settle))) cam *= 1 + 0.03 * ENERGY.idle * env(t);
   $('cam').style.transform = cam === 1 ? 'none' : `scale(${cam.toFixed(5)})`;
   $('cam').style.transformOrigin = hero ? `${hero.x + hero.w / 2}px ${hero.y + hero.h / 2}px` : '50% 50%';
 

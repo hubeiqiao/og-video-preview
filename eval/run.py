@@ -5,6 +5,7 @@ For each card: read it (suggest_layers.py), cut it (make_plate.py), render 4 s a
 then measure what must hold for every OG video:
   frame0   the first frame equals the card (mean difference, share of local defects)
   seam     the jump from the last frame to the first, against an ordinary frame step
+  motion   that it moves at all: the most a frame differs from frame 0 (a frozen video is seamless too)
   size     the encoded MP4 and frame-0 JPEG against the 2 MB / 180 KB limits
 and record what the engine decided (layers, kinds, style) so changes can be compared.
 
@@ -54,6 +55,12 @@ def seam_score(frames):
     return d(frames[-1], frames[0]), max(d(frames[0], frames[1]), d(frames[-3], frames[-2]))
 
 
+def motion_score(frames):  # the same measure as scripts/check_loop.py
+    small = lambda p: np.asarray(Image.open(p).convert("L").resize((240, 126)), np.int16)
+    f0 = small(frames[0])
+    return max(float(np.abs(small(p) - f0).mean()) for p in frames[:: max(1, len(frames) // 24)])
+
+
 def one(card, keep, resume, scene=None):
     name = os.path.splitext(os.path.basename(card))[0] + ("-read" if scene else "")
     done = os.path.join(HERE, "out", name + ".json")
@@ -69,6 +76,7 @@ def one(card, keep, resume, scene=None):
     frames = sorted(glob.glob(os.path.join(work, "frames", "f*.png")))
     mean, local = frame0_scores(os.path.join(work, "card.jpg"), frames[0])
     seam, step = seam_score(frames)
+    moved = motion_score(frames)
     os.makedirs(os.path.join(HERE, "out"), exist_ok=True)
     run(["bash", os.path.join(ROOT, "scripts", "encode.sh"), os.path.join(work, "frames"), os.path.join(HERE, "out", name)])
     src = open(os.path.join(work, "layers.js")).read()
@@ -80,11 +88,12 @@ def one(card, keep, resume, scene=None):
     res = {
         "name": name, "layers": len(cfg["layers"]), "kinds": kinds, "background": cfg["background"], "style": style,
         "frame0_mean": round(mean, 3), "frame0_local_pct": round(local, 3), "seam": seam, "step": step,
+        "motion": round(moved, 2),
         "mp4_kb": os.path.getsize(os.path.join(HERE, "out", name + ".mp4")) // 1024,
         "jpg_kb": os.path.getsize(os.path.join(HERE, "out", name + ".jpg")) // 1024,
         "seconds": round(time.time() - t0, 1),
     }
-    res["pass"] = (mean <= 2 and local <= 0.05 and seam <= step * 1.5 + 4 and res["mp4_kb"] <= 2048 and res["jpg_kb"] <= 180)
+    res["pass"] = (mean <= 2 and local <= 0.05 and seam <= step * 1.5 + 4 and moved >= 0.2 and res["mp4_kb"] <= 2048 and res["jpg_kb"] <= 180)
     if not keep:
         shutil.rmtree(work, ignore_errors=True)
     else:
@@ -143,7 +152,7 @@ def main():
     read = []
     with cf.ThreadPoolExecutor(a.jobs) as ex:
         for (c, sc), r in zip(jobs, ex.map(lambda j: safe(*j), jobs)):
-            print(f"{r['name']:<18} {r['layers']:>2} layers  {r['style']:<8} frame0 {r['frame0_mean']:.2f}/{r['frame0_local_pct']:.3f}%  seam {r['seam']}/{r['step']}  {r['mp4_kb']} KB  {'pass' if r['pass'] else 'FAIL'}", flush=True)
+            print(f"{r['name']:<18} {r['layers']:>2} layers  {r['style']:<8} frame0 {r['frame0_mean']:.2f}/{r['frame0_local_pct']:.3f}%  seam {r['seam']}/{r['step']}  motion {r.get('motion', -1)}  {r['mp4_kb']} KB  {'pass' if r['pass'] else 'FAIL'}", flush=True)
             (read if sc else results).append(r)
     if not a.only:
         json.dump(results, open(os.path.join(HERE, "results.json"), "w"), indent=1)

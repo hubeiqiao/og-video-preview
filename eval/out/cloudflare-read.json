@@ -11,8 +11,9 @@
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 1,
- "mp4_kb": 993,
+ "motion": 11.68,
+ "mp4_kb": 997,
  "jpg_kb": 149,
- "seconds": 149.7,
+ "seconds": 152.9,
  "pass": true
 }
