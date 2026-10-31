@@ -1,20 +1,20 @@
 {
  "name": "pinterest",
- "layers": 12,
+ "layers": 13,
  "kinds": {
-  "illustration": 8,
+  "illustration": 9,
   "icon": 1,
   "label": 2,
   "shape": 1
  },
  "background": "graded",
  "style": "rebuild",
- "frame0_mean": 0.43,
+ "frame0_mean": 0.431,
  "frame0_local_pct": 0.0,
  "seam": 1,
- "step": 2,
- "mp4_kb": 939,
+ "step": 3,
+ "mp4_kb": 835,
  "jpg_kb": 125,
- "seconds": 100.7,
+ "seconds": 101.8,
  "pass": true
 }

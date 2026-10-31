@@ -1,9 +1,9 @@
 {
  "name": "vite",
- "layers": 11,
+ "layers": 10,
  "kinds": {
   "illustration": 1,
-  "label": 8,
+  "label": 7,
   "text": 1,
   "stroke": 1
  },
@@ -15,6 +15,6 @@
  "step": 2,
  "mp4_kb": 1213,
  "jpg_kb": 177,
- "seconds": 138.3,
+ "seconds": 134.5,
  "pass": true
 }

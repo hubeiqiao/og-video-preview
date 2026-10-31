@@ -1,10 +1,10 @@
 {
  "name": "greylock",
- "layers": 11,
+ "layers": 10,
  "kinds": {
-  "label": 5,
   "text": 2,
   "headline": 3,
+  "label": 4,
   "shape": 1
  },
  "background": "flat",
@@ -13,7 +13,7 @@
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 1,
- "mp4_kb": 183,
+ "mp4_kb": 185,
  "jpg_kb": 52,
  "seconds": 52.0,
  "pass": true

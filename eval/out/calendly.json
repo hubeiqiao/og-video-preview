@@ -1,12 +1,12 @@
 {
  "name": "calendly",
- "layers": 13,
+ "layers": 12,
  "kinds": {
   "logo": 1,
   "headline": 1,
   "icon": 3,
   "label": 4,
-  "illustration": 4
+  "illustration": 3
  },
  "background": "graded",
  "style": "rebuild",
@@ -14,8 +14,8 @@
  "frame0_local_pct": 0.0,
  "seam": 1,
  "step": 2,
- "mp4_kb": 564,
+ "mp4_kb": 565,
  "jpg_kb": 83,
- "seconds": 90.6,
+ "seconds": 90.5,
  "pass": true
 }

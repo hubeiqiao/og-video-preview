@@ -1,11 +1,11 @@
 {
  "name": "rive",
- "layers": 18,
+ "layers": 17,
  "kinds": {
   "stroke": 7,
   "icon": 4,
   "headline": 3,
-  "label": 2,
+  "label": 1,
   "logo": 1,
   "illustration": 1
  },
@@ -15,8 +15,8 @@
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 0,
- "mp4_kb": 206,
+ "mp4_kb": 153,
  "jpg_kb": 56,
- "seconds": 33.9,
+ "seconds": 33.2,
  "pass": true
 }

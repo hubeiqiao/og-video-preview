@@ -1,8 +1,9 @@
 {
  "name": "zapier",
- "layers": 3,
+ "layers": 6,
  "kinds": {
   "headline": 2,
+  "icon": 3,
   "text": 1
  },
  "background": "detailed",
@@ -11,8 +12,8 @@
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
- "mp4_kb": 337,
+ "mp4_kb": 321,
  "jpg_kb": 45,
- "seconds": 45.6,
+ "seconds": 46.5,
  "pass": true
 }

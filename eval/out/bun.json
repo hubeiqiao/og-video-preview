@@ -1,21 +1,20 @@
 {
  "name": "bun",
- "layers": 7,
+ "layers": 6,
  "kinds": {
   "avatar": 1,
-  "shape": 1,
   "illustration": 1,
   "headline": 1,
   "label": 3
  },
  "background": "flat",
  "style": "rebuild",
- "frame0_mean": 0.325,
+ "frame0_mean": 0.326,
  "frame0_local_pct": 0.0,
- "seam": 0,
- "step": 1,
- "mp4_kb": 293,
+ "seam": 1,
+ "step": 3,
+ "mp4_kb": 201,
  "jpg_kb": 52,
- "seconds": 34.0,
+ "seconds": 33.0,
  "pass": true
 }

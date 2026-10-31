@@ -4,8 +4,11 @@
  "kinds": {
   "headline": 1,
   "illustration": 1,
-  "text": 10,
-  "label": 6
+  "logo": 3,
+  "text": 7,
+  "label": 4,
+  "icon": 1,
+  "shape": 1
  },
  "background": "flat",
  "style": "rebuild",
@@ -13,8 +16,8 @@
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
- "mp4_kb": 372,
+ "mp4_kb": 322,
  "jpg_kb": 62,
- "seconds": 94.2,
+ "seconds": 95.6,
  "pass": true
 }

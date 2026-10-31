@@ -1,9 +1,9 @@
 {
  "name": "framer",
- "layers": 11,
+ "layers": 10,
  "kinds": {
   "stroke": 3,
-  "icon": 3,
+  "icon": 2,
   "illustration": 3,
   "headline": 1,
   "shape": 1
@@ -16,6 +16,6 @@
  "step": 3,
  "mp4_kb": 887,
  "jpg_kb": 151,
- "seconds": 115.3,
+ "seconds": 111.6,
  "pass": true
 }

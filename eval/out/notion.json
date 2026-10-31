@@ -1,13 +1,13 @@
 {
  "name": "notion",
- "layers": 10,
+ "layers": 9,
  "kinds": {
-  "text": 1,
+  "logo": 1,
   "headline": 2,
   "illustration": 2,
   "stroke": 2,
-  "label": 2,
-  "icon": 1
+  "icon": 1,
+  "label": 1
  },
  "background": "flat",
  "style": "rebuild",
@@ -15,8 +15,8 @@
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 3,
- "mp4_kb": 414,
+ "mp4_kb": 401,
  "jpg_kb": 72,
- "seconds": 43.4,
+ "seconds": 40.9,
  "pass": true
 }

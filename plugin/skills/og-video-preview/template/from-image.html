@@ -402,7 +402,7 @@ function build() {
     L.turn = L.wall ? null : ['logo', 'icon'].includes(L.kind) ? l.turn || (L.small && marksN > 3 && FX.mark !== 'wobble' ? 'pop' : FX.mark) : null;
     // only a round or square mark turns all the way (a coin, a badge); a wide one (a cloud, a wordmark) turned over
     // reads as a mistake, so it pops instead
-    if (C.busy && L.small && !l.role) L.turn = null;  // an icon in a screenshot's toolbar does not perform
+    if ((C.busy && L.small && !l.role) || (L.settle && !l.role)) L.turn = null;  // an icon in a screenshot's toolbar, or a thing in a photo, does not perform
     if (!l.turn && (L.turn === 'spin' || L.turn === 'flip' || L.turn === 'wobble') && (l.wordmark || w / h > 1.35 || h / w > 1.35)) L.turn = 'pop';
     // light sweep through the element's own pixels
     const lightInk = l.ink ? lum(l.ink) > 165 : false;
@@ -640,7 +640,7 @@ function enter(l, u, k) {
   }
   const sp = spring(u, z, f), e = EASE.smooth(clamp(u / 0.42)), fast = EASE.out(clamp(u / 0.16));
   const blur = (n) => u < 0.4 ? n * (1 - EASE.smooth(u / 0.4)) : 0;
-  if (l.settle) { const s2 = spring(u, Math.min(1, z + 0.1), f * 0.9); return { s: 1.035 - 0.035 * s2, b: blur(2.5) }; }
+  if (l.settle) return {};  // it holds still: a part of a picture or a screenshot that leans and blurs on its own reads as a glitch
   switch (l.motion) {
     case 'headline': return { y: l.drop * (1 - sp), b: blur(3) };
     case 'text': return { o: e, y: 14 * D * (1 - e), b: blur(3) };
@@ -668,7 +668,7 @@ function exit(l, v, k = 0) {
   if (l.hero) { const a = away(v), dir = k % 2 ? 1 : -1;  // the slices part, alternate ways
     return l.bandsH ? { o: 1 - a, x: dir * 40 * a, b: 4 * a } : { o: 1 - a, y: dir * 40 * a, b: 4 * a }; }
   const a = away(v);
-  if (l.settle) return { s: 1 + 0.035 * a, b: 2.5 * a };  // leans toward the viewer, so nothing behind it shows
+  if (l.settle) return {};  // it never leaves, and nothing behind it shows
   switch (l.kind) {
     case 'headline': return { y: l.drop * a, b: 3 * a };
     case 'text': case 'label': return { o: 1 - a, y: 8 * a, b: 4 * a };

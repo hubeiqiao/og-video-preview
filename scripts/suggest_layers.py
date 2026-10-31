@@ -841,10 +841,11 @@ def main():
                         # bars stacked one over another (overlapping across) may sit a bar's height apart; a row of pills
                         # side by side is a row of tags, not a mark
                         stacked = min(gx + gw, mx + mw) - max(gx, mx) > 0 and gap <= 0.8 * min(gh, mh)
-                        close = gap <= 10 and "pill" not in (G["kind"], M["kind"])
+                        # pieces of a mark sit closer than about a third of their own size (Dropbox's diamonds)
+                        close = gap <= max(10, 0.3 * min(gw, gh, mw, mh)) and "pill" not in (G["kind"], M["kind"])
                         if (stacked or close) and float(dist(tone_of(G)[None, None], tone_of(M))[0, 0]) < 30:
                             group_.append(M); changed = True; break
-            if len(group_) >= 3:
+            if len(group_) >= 2:  # two halves of one mark (Dropbox's four diamonds and its fifth) are one too
                 found = group_
                 break
         if not found:
@@ -861,6 +862,22 @@ def main():
         N = {**found[0], "box": box, "own": own, "kind": kind_, "f": features(img, own, box), "why": f"one mark: {len(found)} strokes of one colour packed together"}
         layers = [N if X is found[0] else X for X in layers if not any(X is Y for Y in found[1:])]
         print(f"mark: {len(found)} strokes at {box} move as one")
+
+    # a ® or ™ beside a mark, in its colour, belongs to it: alone it drops in and out on its own
+    for T_ in [L for L in layers if L["kind"] in TEXT_KINDS and L["box"][2] * L["box"][3] < 0.012 * W * H]:
+        for M in layers:
+            if M is T_ or M["kind"] not in ("logo", "illustration", "shape", "icon"):
+                continue
+            tx, ty, tw, th = T_["box"]; mx, my, mw, mh = M["box"]
+            gap = max(tx - (mx + mw), mx - (tx + tw), ty - (my + mh), my - (ty + th))
+            if gap <= 14 and float(dist(tone_of(T_)[None, None], tone_of(M))[0, 0]) < 40:
+                own = ((M["own"] > 0) | (T_["own"] > 0)).astype(np.uint8)
+                ys_, xs_ = np.nonzero(own)
+                M.update({"own": own, "box": [int(xs_.min()), int(ys_.min()), int(xs_.max() - xs_.min() + 1), int(ys_.max() - ys_.min() + 1)]})
+                layers = [L for L in layers if L is not T_]
+                print(f"mark: {T_['box']} joins the mark beside it")
+                break
+    texts = [L for L in layers if L["kind"] in TEXT_KINDS]
 
     # faint scenery behind everything (the grey islands of a map, a watermark): barely apart from the card, it is part
     # of the background. Cut out, it leaves a pale block where it was; it stays in the plate and moves with the camera
@@ -1187,11 +1204,8 @@ def main():
         if k in TEXT_KINDS:
             sub = L["own"][y:y + h, x:x + w]
             words = columns(sub, max(4, int(0.22 * h)))
-            if k == "headline" and len(words) == 1 and w / h < 9:
-                letters = columns(sub, 1)
-                if 2 <= len(letters) <= 16:
-                    item["letters"] = True
-                    words = letters
+            # (a one-word headline is no longer split into letters: each letter rose in its own narrow mask, and the
+            # mask cut through the letters around it, so the word came in as slivers)
             if len(words) > 1:
                 item["parts"] = [[int(p), int(q)] for p, q in words]
         f = L["f"]

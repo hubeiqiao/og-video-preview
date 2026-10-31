@@ -1,9 +1,9 @@
 {
  "name": "resend",
- "layers": 10,
+ "layers": 7,
  "kinds": {
   "illustration": 4,
-  "label": 5,
+  "label": 2,
   "shape": 1
  },
  "background": "flat",
@@ -14,6 +14,6 @@
  "step": 0,
  "mp4_kb": 58,
  "jpg_kb": 42,
- "seconds": 41.7,
+ "seconds": 40.3,
  "pass": true
 }

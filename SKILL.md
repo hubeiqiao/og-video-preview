@@ -91,7 +91,7 @@ Requires `opencv-python` and `numpy` besides Playwright and Pillow. Any size or 
 | `shape` | a one-colour form: dots, squares, blobs, triangles |
 | `stroke` | thin and long: lines, arrows, underlines, squiggles |
 
-Text is split into lines, lines into words, and a one-word headline into letters. Look at `layers-preview.png` (each box is labelled with its id; the underline marks its parts). If an element is read wrongly, change its `kind` in `layers.js`; that needs no new cut. A box you add by hand is cut as a rectangle (or a disc with `"cut": "disc"`); run `make_plate.py og` after adding or removing boxes. To change which pixels an element owns, re-run `suggest_layers.py` instead.
+Text is split into lines and lines into words (never into letters: a letter rising in its own narrow mask is cut by it). Look at `layers-preview.png` (each box is labelled with its id; the underline marks its parts). If an element is read wrongly, change its `kind` in `layers.js`; that needs no new cut. A box you add by hand is cut as a rectangle (or a disc with `"cut": "disc"`); run `make_plate.py og` after adding or removing boxes. To change which pixels an element owns, re-run `suggest_layers.py` instead.
 
 ### 2. Cut it so only the element moves
 
@@ -118,7 +118,7 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 
 | Kind | Enters | Leaves | Lives | Accent |
 |---|---|---|---|---|
-| `headline` | each line rises whole out of its own mask, on a spring; lines follow one another | sinks back into the mask | stays still | the card's choice: a light sweep through the glyphs, or the letters hopping in turn (on a flat card, never on a wordmark); camera punch when the last line lands |
+| `headline` | each line rises whole out of its own mask, on a spring; lines follow one another | sinks back into the mask | stays still | the card's choice: a light sweep through the glyphs, or the words hopping in turn (on a flat card, never on a wordmark); camera punch when the last line lands |
 | `text` | fade + 14 px rise + 3 px blur clearing, 0.42 s smooth | fade, drop, blur | | sweep if it has an accent colour |
 | `label` | wipes on left to right with a short slide | fade | | |
 | `logo` | scales up from 35 % with a spin, on a spring | shrinks and turns away | gentle bob and tilt | the card's choice of one turn: flat, over in 3D like a coin, a swing that settles, or a pop. Only a round or square mark turns; a wide one (a cloud, a wordmark) pops |
@@ -133,7 +133,7 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 | `shape` (large) | grows from 80 % out of a blur | fade | bob; it stays rigid (a liquid edge only for a unit the reading calls `blob`) | |
 | `stroke` | draws at a pen's even pace along its long axis; an arrow (its two barbs found on the skeleton) draws from its tail to its head | undraws | redraws (living) | |
 
-**Visuals that cannot leave cleanly settle instead.** A photo, panel, illustration or avatar that sits on something other than the plain background (a photo inside a UI, a poster in a stack), or covers a fifth of the card, never exposes the plate: it leans toward the viewer (scale 103.5 % with a light blur) during the exit and springs back when its turn comes. Light then runs through its own lit parts (`light.png`: where it is brighter than the background behind it), so a print, a glint or a pale object comes alive without the soft edge of its cut showing. Shapes on the background leave and come back, and their holes are refilled from the background model, not smeared from their neighbours.
+**Visuals that cannot leave cleanly hold still instead.** A photo, panel, illustration or avatar that sits on something other than the plain background (a photo inside a UI, a poster in a stack), covers a fifth of the card, or whose refill would show, never exposes the plate: it stays exactly where it is (no lean, no blur: a part of a picture moving on its own reads as a glitch) and does not turn. Light then runs through its own lit parts (`light.png`: where it is brighter than the background behind it), so a print, a glint or a pale object comes alive without the soft edge of its cut showing. Shapes on the background leave and come back, and their holes are refilled from the background, not smeared from their neighbours.
 
 **Accents differ from card to card.** Not every card gets the same light sweep: each card picks, from its own layout, one accent for its headlines, one turn for its marks and one for its pills, and every element of a kind shares it, so a card stays coherent and two cards rarely match. The same card always gets the same video. Set them in `layers.js` with `fx` (`{"headline": "sheen|hop|glint", "mark": "spin|flip|wobble|pop", "pill": "sheen|orbit", "texture": "ripple|wind|swirl"}`), or per layer with `fx` and `turn`.
 

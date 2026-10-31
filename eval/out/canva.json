@@ -1,19 +1,19 @@
 {
  "name": "canva",
- "layers": 9,
+ "layers": 8,
  "kinds": {
   "icon": 2,
-  "illustration": 6,
+  "illustration": 5,
   "stroke": 1
  },
  "background": "graded",
  "style": "rebuild",
- "frame0_mean": 0.273,
+ "frame0_mean": 0.275,
  "frame0_local_pct": 0.0,
- "seam": 0,
+ "seam": 1,
  "step": 2,
- "mp4_kb": 585,
+ "mp4_kb": 553,
  "jpg_kb": 87,
- "seconds": 67.8,
+ "seconds": 67.9,
  "pass": true
 }
