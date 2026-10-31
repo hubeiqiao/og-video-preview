@@ -11,11 +11,11 @@
   "style": "living",
   "frame0_mean": 0.53,
   "frame0_local_pct": 0.0,
-  "seam": 0,
+  "seam": 1,
   "step": 3,
-  "mp4_kb": 1162,
+  "mp4_kb": 1161,
   "jpg_kb": 149,
-  "seconds": 115.7,
+  "seconds": 116.4,
   "pass": true
  },
  {
@@ -29,11 +29,11 @@
   "style": "living",
   "frame0_mean": 0.358,
   "frame0_local_pct": 0.0,
-  "seam": 0,
-  "step": 1,
-  "mp4_kb": 995,
+  "seam": 1,
+  "step": 2,
+  "mp4_kb": 992,
   "jpg_kb": 149,
-  "seconds": 150.5,
+  "seconds": 148.5,
   "pass": true
  },
  {
@@ -51,7 +51,7 @@
   "step": 0,
   "mp4_kb": 351,
   "jpg_kb": 51,
-  "seconds": 40.2,
+  "seconds": 39.0,
   "pass": true
  },
  {
@@ -66,13 +66,13 @@
   },
   "background": "graded",
   "style": "rebuild",
-  "frame0_mean": 0.374,
+  "frame0_mean": 0.373,
   "frame0_local_pct": 0.0,
   "seam": 0,
   "step": 3,
-  "mp4_kb": 722,
+  "mp4_kb": 723,
   "jpg_kb": 95,
-  "seconds": 86.8,
+  "seconds": 86.6,
   "pass": true
  },
  {
@@ -87,7 +87,7 @@
   "step": 243,
   "mp4_kb": 736,
   "jpg_kb": 82,
-  "seconds": 71.1,
+  "seconds": 70.9,
   "pass": true
  },
  {
@@ -104,7 +104,7 @@
   "step": 2,
   "mp4_kb": 706,
   "jpg_kb": 93,
-  "seconds": 113.2,
+  "seconds": 113.3,
   "pass": true
  },
  {
@@ -124,9 +124,9 @@
   "frame0_local_pct": 0.0,
   "seam": 1,
   "step": 3,
-  "mp4_kb": 528,
+  "mp4_kb": 521,
   "jpg_kb": 60,
-  "seconds": 72.5,
+  "seconds": 73.3,
   "pass": true
  },
  {
@@ -141,13 +141,13 @@
   },
   "background": "flat",
   "style": "rebuild",
-  "frame0_mean": 0.457,
+  "frame0_mean": 0.456,
   "frame0_local_pct": 0.0,
   "seam": 158,
   "step": 172,
-  "mp4_kb": 733,
+  "mp4_kb": 731,
   "jpg_kb": 122,
-  "seconds": 61.2,
+  "seconds": 61.9,
   "pass": true
  },
  {
@@ -166,7 +166,7 @@
   "step": 173,
   "mp4_kb": 465,
   "jpg_kb": 65,
-  "seconds": 72.2,
+  "seconds": 70.4,
   "pass": true
  },
  {
@@ -178,13 +178,13 @@
   },
   "background": "graded",
   "style": "living",
-  "frame0_mean": 0.369,
+  "frame0_mean": 0.368,
   "frame0_local_pct": 0.0,
   "seam": 1,
   "step": 2,
-  "mp4_kb": 891,
+  "mp4_kb": 893,
   "jpg_kb": 91,
-  "seconds": 55.1,
+  "seconds": 54.9,
   "pass": true
  },
  {
@@ -200,9 +200,9 @@
   "frame0_local_pct": 0.0,
   "seam": 237,
   "step": 234,
-  "mp4_kb": 745,
+  "mp4_kb": 744,
   "jpg_kb": 87,
-  "seconds": 57.8,
+  "seconds": 57.2,
   "pass": true
  }
 ]

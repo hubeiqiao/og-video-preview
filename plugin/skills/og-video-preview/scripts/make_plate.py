@@ -54,6 +54,7 @@ def main():
     thin = np.zeros((H, W), np.uint8)   # glyph cuts: inpaint these with texture
     wide = np.zeros((H, W), np.uint8)   # shapes sitting on the background: refill with the background model
     own_cut = []                        # each layer's own cut, for its own cutout image
+    clean_fill = set()                  # layers whose hole is refilled from the plain background model
     B, _ = background(img, 40)
     # the background away from every element (a flat edge can still hide a vignette or a gradient),
     # so soft shadows and glows are not part of it
@@ -94,6 +95,11 @@ def main():
             halo = cv2.dilate(m, np.ones((41, 41) if rect else (25, 25), np.uint8)) > 0
             f_ = faint[y0:y1, x0:x1]
             halo &= (f_ > 9) & (f_ < 90) & ((own == 0) | (own == L.get("mask", -1)))
+            # where the background model is off (a gradient it does not follow), everything around reads as "faint":
+            # type has no glow to carry there, and a halo would be a box of background travelling with the words
+            around = (cv2.dilate(m, np.ones((15, 15), np.uint8)) > 0) & ~(m > 0)
+            if kind in TEXT_KINDS and around.any() and np.median(f_[around]) > 8:
+                halo[:] = False
             m = np.maximum(m, cv2.dilate(halo.astype(np.uint8), np.ones((5, 5), np.uint8)))
             # on the plain background, refill from the background model; on a panel or a picture, from the neighbours
             ring = cv2.dilate(m, np.ones((9, 9), np.uint8)) - m
@@ -102,6 +108,7 @@ def main():
                 thin[y0:y1, x0:x1] |= m  # type on a picture: refill with its texture
             elif len(rx) and (dist(rx, B[y0:y1, x0:x1][ring > 0]) < 30).mean() > 0.75:
                 wide[y0:y1, x0:x1] |= m
+                clean_fill.add(L.get("id"))
             elif kind in TEXT_KINDS and not flat:
                 thin[y0:y1, x0:x1] |= m
         if "mask" in L:  # never carry another layer's glyphs: tight leading would duplicate them
@@ -118,7 +125,17 @@ def main():
         t = cv2.dilate(thin, np.ones((3, 3), np.uint8)) > 0
         plate[t] = tex[t]
     w_ = wide > 0
+    smooth_fill = plate.copy()  # the refill from the surroundings, before the background model replaces it
     plate[w_] = B[w_]  # a large hole filled from its neighbours smears them in; the background model does not
+    # an element on a flat surface of its own (type on a notepad, a mark on a card inside the card): the background
+    # model is the whole card's, so there it is the wrong colour; the surface's own colour, just around it, is right
+    for lid, x0, y0, x1, y1, m, _ in own_cut:
+        if lid not in clean_fill:
+            continue
+        full = np.zeros((H, W), np.uint8); full[y0:y1, x0:x1] = m
+        ring = (cv2.dilate(full, np.ones((11, 11), np.uint8)) > 0) & ~(cv2.dilate(cut, np.ones((3, 3), np.uint8)) > 0)
+        if ring.sum() > 60 and img[ring].astype(np.float32).std(0).max() < 6:
+            plate[(cv2.dilate(full, np.ones((3, 3), np.uint8)) > 0)] = np.median(img[ring], 0)
     # text typed into an input: behind it is the input's own flat fill, the median just around the text
     for lid, x0, y0, x1, y1, m, _ in own_cut:
         L = next((L for L in cfg["layers"] if L.get("id") == lid), {})
@@ -233,9 +250,16 @@ def main():
             outer_ = (cv2.dilate(full, np.ones((9, 9), np.uint8)) > 0) & ~(full > 0) & ~(cv2.dilate(cut, np.ones((3, 3), np.uint8)) > 0)
             step_ = float(np.abs(np.median(plate[inner_], 0).astype(float) - np.median(img[outer_], 0).astype(float)).max()) if inner_.sum() > 40 and outer_.sum() > 40 else 0
             if os.environ.get("PLATE_DEBUG"): print("  edges", round(float(lines_), 3), "step", round(step_, 1))
-            if (grain > 1.2 and smooth < 0.4 * grain) or busy > 26 or lines_ > 0.05 or step_ > 10:
+            # refilled from its neighbours (a panel, a poster, a photo around it): that refill is a smear, so it stays
+            smear = lid not in clean_fill
+            # the card's model and the surroundings' own refill disagree here (a gradient the model does not follow, or
+            # something near that a refill would pull in): neither can be trusted, so it stays
+            unsure = lid in clean_fill and float(np.abs(B[inner].astype(float) - smooth_fill[inner].astype(float)).mean()) > 4
+            if unsure and plate[inner].astype(float).std() > 0:
+                smear = True
+            if smear or (grain > 1.2 and smooth < 0.4 * grain) or busy > 26 or lines_ > 0.05 or step_ > 10:
                 L["settle"] = True
-                poor.append(f"{lid} (grain {grain:.1f} vs {smooth:.1f}, spread {busy:.0f})")
+                poor.append(f"{lid} ({'smeared refill, ' if smear else ''}grain {grain:.1f} vs {smooth:.1f}, spread {busy:.0f})")
         # type is one block: if one line has to stay, they all do (half a paragraph leaving reads as broken)
         TEXTISH = {"headline", "text", "label"}
         if any(by_id[p_.split(" ")[0]].get("kind") in TEXTISH for p_ in poor):
