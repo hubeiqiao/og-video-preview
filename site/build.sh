@@ -58,6 +58,13 @@ for f in eval/out/*.mp4; do
   fi
   cp_ "$t" "$OUT/media/tiles/"
 done
+# a card the reading step was run on shows that version, under its own name (the page marks it)
+for f in eval/out/*-read.mp4; do
+  [ -e "$f" ] || continue
+  n=$(basename "$f" -read.mp4)
+  cp_ "$f" "$OUT/eval/$n.mp4"; cp_ "eval/out/$n-read.jpg" "$OUT/eval/$n.jpg"
+  cp_ "$CACHE/tiles/$n-read.mp4" "$OUT/media/tiles/$n.mp4"
+done
 if newer social/promo.mp4 "$CACHE/film.mp4"; then
   ffmpeg -v error -y -i social/promo.mp4 -vf "scale=1280:-2:flags=lanczos" -c:v libx264 -crf 25 -preset slow -pix_fmt yuv420p \
     -c:a aac -b:a 128k -movflags +faststart "$CACHE/film.mp4"

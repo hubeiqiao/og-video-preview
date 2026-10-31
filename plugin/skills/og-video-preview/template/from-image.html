@@ -103,7 +103,7 @@ const FX = {
 };
 
 // ---- build ----
-let layers = [], extras = [], FOCAL = [W / 2, H / 2], WALL = null, SPARSE = false;
+let layers = [], extras = [], FOCAL = [W / 2, H / 2], WALL = null, SPARSE = false, LIST = null;
 // a busy machine can drop a request: try each image three times before giving up
 const load = (src, tries = 3) => new Promise((ok, no) => {
   const i = new Image();
@@ -113,11 +113,12 @@ const load = (src, tries = 3) => new Promise((ok, no) => {
 });
 const keep = [];  // decoded images stay referenced for the whole capture
 // every image a frame can show is loaded and decoded before the first frame is captured
-const images = [C.plate.src, C.layerImage, C.glyphs, C.sphere ? C.image : null, ...(C.cuts && window.CUTS ? C.layers.filter(l => window.CUTS[l.id]).map(l => `${C.cuts}${l.id}.png`) : [])].filter(Boolean);
+const images = [C.plate.src, C.layerImage, C.glyphs, C.sphere || (C.regions || []).some(r => r.role === 'orbit' || r.role === 'marquee') ? C.image : null, ...(C.cuts && window.CUTS ? C.layers.filter(l => window.CUTS[l.id]).map(l => `${C.cuts}${l.id}.png`) : []),
+  ...(C.cuts && window.CUTS ? C.layers.filter(l => window.CUTS[l.id + '-ink']).map(l => `${C.cuts}${l.id}-ink.png`) : [])].filter(Boolean);
 window.ready = Promise.all(images.map(s => load(s))).then(imgs => { keep.push(...imgs); return imgs; }).then(([pl, , , card]) => {
   const plate = $('plate'); plate.width = W; plate.height = H; plate.getContext('2d').drawImage(pl, 0, 0, W, H);
   build();
-  if (C.texture || C.sphere || (WALL && DARK)) textureSetup(plate, C.sphere ? card : null);  // the card is in the list only with a sphere
+  if (C.texture || C.sphere || (WALL && DARK) || (C.regions || []).some(r => r.role === 'orbit' || r.role === 'marquee')) textureSetup(plate, C.sphere || (C.regions || []).some(r => r.role === 'orbit' || r.role === 'marquee') ? card : null);  // the card is in the list only with a sphere
   window.render(0); window.readyDone = true;
 });
 
@@ -142,6 +143,7 @@ function textureSetup(canvas, card) {
 }
 function textureFrame(t) {
   if (C.sphere) return sphereFrame(t);
+  if ((C.regions || []).some(r => r.role === 'orbit' || r.role === 'marquee')) return regionFrame(t);
   if (!C.texture) return wallFrame(t);
   const { ctx, src, out, calm, fx, fy, form } = TEX, A = 7 * ENERGY.idle * env(t);
   if (A < 0.02) { ctx.putImageData(src, 0, 0); return; }  // at rest: the plate exactly
@@ -179,6 +181,62 @@ function wallFrame(t) {
     if (k <= 0) continue;
     const b = amp * Math.exp(-d * d / (2 * sig * sig)) * k;
     for (let c = 0; c < 3; c++) o[i + c] = s[i + c] + (255 - s[i + c]) * b;
+  }
+  ctx.putImageData(out, 0, 0);
+}
+// regions of the card the reading names (suggest_layers.py --scene), moved as parts of the card itself, sampled from
+// the card (so nothing a refill made can turn into view), each zero at t = 0 and t = loop:
+//   orbit    everything outside an inner radius (avatars around a mark) turns about the centre and back, most near
+//            the ring, less toward the corners; inside, the mark stays put
+//   marquee  a row of logos running off the card slides sideways and back, wrapping round inside its band
+function regionFrame(t) {
+  const { ctx, src, whole, out } = TEX, s = whole.data, o = out.data, w2 = 2 * Math.PI * t / T;
+  o.set(src.data);
+  const sample = (q, sx, sy) => {
+    sx = Math.max(0, Math.min(W - 1.001, sx)); sy = Math.max(0, Math.min(H - 1.001, sy));
+    const x0 = Math.floor(sx), y0 = Math.floor(sy), ax = sx - x0, ay = sy - y0, p = (y0 * W + x0) * 4;
+    for (let c = 0; c < 3; c++) o[q + c] = (s[p + c] * (1 - ax) + s[p + 4 + c] * ax) * (1 - ay) + (s[p + W * 4 + c] * (1 - ax) + s[p + W * 4 + 4 + c] * ax) * ay;
+  };
+  for (const R of C.regions) {
+    const [bx, by, bw, bh] = R.box.map(Math.round);
+    if (R.role === 'orbit' && R.sats) {
+      // each satellite moves whole along its circle and stays upright: erased where it was, drawn where it is
+      const [cx, cy] = R.center || [bx + bw / 2, by + bh / 2], r0 = R.inner || 0, r1 = R.outer || Math.hypot(W, H) / 2;
+      const th = (R.deg || 22) * Math.PI / 180 * ENERGY.idle * Math.sin(w2) * (R.dir || 1);
+      if (Math.abs(th) < 1e-5) continue;
+      R._bg = R._bg || R.sats.map(([x, y, w, h]) => {  // each one's background: the median of its frame
+        const ring = [];
+        for (let i = 0; i < w; i++) for (const yy of [y, y + h - 1]) { const p = (Math.min(H - 1, Math.max(0, yy)) * W + Math.min(W - 1, Math.max(0, x + i))) * 4; ring.push([s[p], s[p + 1], s[p + 2]]); }
+        for (let j = 0; j < h; j++) for (const xx of [x, x + w - 1]) { const p = (Math.min(H - 1, Math.max(0, y + j)) * W + Math.min(W - 1, Math.max(0, xx))) * 4; ring.push([s[p], s[p + 1], s[p + 2]]); }
+        return [0, 1, 2].map(c => ring.map(v => v[c]).sort((a, b) => a - b)[ring.length >> 1]);
+      });
+      const inDisc = (x, y, X, Y, w, h) => ((x - X - w / 2) / (w / 2)) ** 2 + ((y - Y - h / 2) / (h / 2)) ** 2 <= 1;
+      R.sats.forEach(([X, Y, w, h], k) => {
+        for (let y = Math.max(0, Y); y < Math.min(H, Y + h); y++) for (let x = Math.max(0, X); x < Math.min(W, X + w); x++)
+          if (inDisc(x, y, X, Y, w, h)) { const q = (y * W + x) * 4; for (let c = 0; c < 3; c++) o[q + c] = R._bg[k][c]; }
+      });
+      R.sats.forEach(([X, Y, w, h]) => {
+        const mx = X + w / 2, my = Y + h / 2, dx = mx - cx, dy = my - cy, r = Math.hypot(dx, dy);
+        let a = -th * clamp((r - r0) / 40) * Math.pow(clamp((r1 - r) / (r1 - r0)), 0.6);
+        let nx = cx + dx * Math.cos(a) - dy * Math.sin(a), ny = cy + dx * Math.sin(a) + dy * Math.cos(a);
+        // one that would leave the card turns less, so it stays whole on it
+        const room = Math.min(nx - w / 2, W - nx - w / 2, ny - h / 2, H - ny - h / 2);
+        if (room < 0) { const k2 = clamp(Math.min(mx - w / 2, W - mx - w / 2, my - h / 2, H - my - h / 2) / (Math.hypot(nx - mx, ny - my) + 1));
+          a *= k2; nx = cx + dx * Math.cos(a) - dy * Math.sin(a); ny = cy + dx * Math.sin(a) + dy * Math.cos(a); }
+        const ox = nx - mx, oy = ny - my;
+        for (let y = Math.floor(Y + oy); y <= Math.ceil(Y + oy + h); y++) for (let x = Math.floor(X + ox); x <= Math.ceil(X + ox + w); x++) {
+          if (x < 0 || y < 0 || x >= W || y >= H || !inDisc(x - ox, y - oy, X, Y, w, h)) continue;
+          sample((y * W + x) * 4, x - ox, y - oy);
+        }
+      });
+    } else if (R.role === 'marquee') {
+      const sh = (R.shift || 70) * ENERGY.idle * Math.sin(w2) * (R.dir || 1);
+      if (Math.abs(sh) < 1e-3) continue;
+      for (let y = Math.max(0, by); y < Math.min(H, by + bh); y++) for (let x = Math.max(0, bx); x < Math.min(W, bx + bw); x++) {
+        let sx = x - bx - sh; sx = ((sx % bw) + bw) % bw;
+        sample((y * W + x) * 4, bx + Math.min(bw - 1.001, sx), y);
+      }
+    }
   }
   ctx.putImageData(out, 0, 0);
 }
@@ -253,7 +311,17 @@ function build() {
     L.flow = style === 'flow';
     L.settle = !C.cleanPlate && (!!l.settle || area > 0.35);  // its hole could not be refilled cleanly: it moves in place, never leaves
     L.motion = l.motion || L.kind;
-    if (TEXT.has(L.kind)) {
+    if (l.role === 'listline') {
+      // a line of a list that scrolls: its ink alone (make_plate.py), inside one box the size of the list
+      const R = (C.regions || []).find(r => r.role === 'list');
+      if (!LIST) { LIST = document.createElement('div'); LIST.className = 'mask';
+        Object.assign(LIST.style, { left: R.box[0] + 'px', top: R.box[1] + 'px', width: R.box[2] + 'px', height: R.box[3] + 'px' }); $('root').appendChild(LIST); }
+      const pad = 6, el = document.createElement('div'); el.className = 'el';
+      Object.assign(el.style, { left: x - pad - R.box[0] + 'px', top: y - pad - R.box[1] + 'px', width: w + 2 * pad + 'px', height: h + 2 * pad + 'px' });
+      cutout(el, x - pad, y - pad, l.id); LIST.appendChild(el);
+      const ink = el.cloneNode(); cutout(ink, x - pad, y - pad, l.id + '-ink'); LIST.appendChild(ink);
+      L.parts = [el, ink]; L.anchored = true; L.list = R;  // its exact cut at rest, its ink alone while it moves
+    } else if (TEXT.has(L.kind)) {
       // a mask with headroom above for the overshoot; parts rise out of its bottom edge.
       // Parts tile the whole line (each runs to the middle of the gap beside it) and reach E px past
       // the box, because the cut (antialiasing, soft shadow) is wider than the glyphs.
@@ -283,6 +351,7 @@ function build() {
       Object.assign(el.style, { left: x - pad + 'px', top: y - pad + 'px', width: w + 2 * pad + 'px', height: h + 2 * pad + 'px',
         transformOrigin: L.kind === 'illustration' ? '50% 100%' : '50% 50%' });
       cutout(el, x - pad, y - pad, l.id); $('root').appendChild(el);
+      if (l.role === 'medallion' && l.center) el.style.transformOrigin = `${l.center[0] - x + pad}px ${l.center[1] - y + pad}px`;
       L.parts = [el];
       if (L.fluid) {
         const id = 'liq' + i;
@@ -298,7 +367,7 @@ function build() {
     const inside = C.layers.some(o => o !== l && !TEXT.has(o.kind) && o.box[2] * o.box[3] > w * h &&
       o.box[0] <= x + w / 2 && x + w / 2 <= o.box[0] + o.box[2] && o.box[1] <= y + h / 2 && y + h / 2 <= o.box[1] + o.box[3]);
     const hfx = FX.headline === 'hop' && (style === 'living' || C.background !== 'flat' || inside || l.boxed) ? 'sheen' : FX.headline;
-    L.fx = l.fx || (L.kind === 'headline' ? (hfx === 'glint' && l !== head[head.length - 1] ? null : hfx) : L.kind === 'pill' ? FX.pill : null);
+    L.fx = l.fx || (l.role === 'button' || l.role === 'listline' ? null : L.kind === 'headline' ? (hfx === 'glint' && l !== head[head.length - 1] ? null : hfx) : L.kind === 'pill' ? FX.pill : null);
     // a crowd of small icons only pops in turn: eight spinning at once is noise
     L.turn = L.wall ? null : ['logo', 'icon'].includes(L.kind) ? l.turn || (L.small && marksN > 3 && FX.mark !== 'wobble' ? 'pop' : FX.mark) : null;
     // light sweep through the element's own pixels
@@ -308,7 +377,7 @@ function build() {
     // white type can only take a coloured sweep; without an accent colour it gets none
     const broad = L.kind === 'panel' || area > 0.35;  // big surfaces take a glancing reflection
     // a picture that has to stay in place comes alive with light running through it instead
-    const picture = L.settle && ['illustration', 'photo', 'panel'].includes(L.kind);
+    const picture = (L.settle && ['illustration', 'photo', 'panel'].includes(L.kind)) || l.role === 'medallion';
     if ((L.fx === 'sheen' || broad || picture || (L.tone && TEXT.has(L.kind))) && !(lightInk && !ACCENT && !broad && !picture)) {
       const s = document.createElement('div'); s.className = 'sheen';
       Object.assign(s.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', backgroundSize: '320% 100%' });
@@ -336,6 +405,17 @@ function build() {
       Object.assign(o.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' });
       glyphMask(o, x, y); $('top').appendChild(o); L.orbit = o;
       L.orbitC = DARK || lightInk ? (ACCENT || '255,255,255') : '255,255,255';
+    }
+    // a button the reading names: a pointer glides in and clicks it, and a ripple spreads inside it from the click
+    if (l.role === 'button') {
+      const c = document.createElement('div'); c.className = 'abs';
+      c.innerHTML = '<svg width="64" height="64" viewBox="0 0 24 24"><path d="M4 2.5 L4 19 L8.6 14.9 L11.5 21.2 L14.4 19.9 L11.6 13.7 L17.6 13.4 Z" fill="#fff" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+      Object.assign(c.style, { opacity: 0, filter: 'drop-shadow(0 3px 6px rgba(0,0,0,.35))' });
+      $('top').appendChild(c); L.cursor = c;
+      const r = document.createElement('div'); r.className = 'sheen';
+      Object.assign(r.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' });
+      glyphMask(r, x, y); $('top').appendChild(r); L.ripple = r;
+      L.rippleC = l.ink && lum(l.ink) > 150 ? '0,0,0' : '255,255,255';
     }
     if (L.kind === 'avatar' || (L.turn === 'pop' && !L.small)) {
       const r = document.createElement('div'); r.className = 'ring';
@@ -397,6 +477,13 @@ function build() {
     L.halo = halo;
   }
 
+  (C.regions || []).filter(r => r.role === 'shine').forEach((R, k) => {
+    const [bx, by, bw, bh] = R.box, rr = Math.max(bw, bh) * 1.4, g = document.createElement('div'); g.className = 'glow';
+    const c = R.color ? hexRgb(R.color) : '255,244,214';
+    Object.assign(g.style, { left: bx + bw / 2 - rr + 'px', top: by + bh / 2 - rr + 'px', width: 2 * rr + 'px', height: 2 * rr + 'px',
+      background: `radial-gradient(circle, rgba(${c},.85) 0%, rgba(${c},.35) 22%, rgba(${c},0) 60%)` });
+    $('top').insertBefore(g, $('flare')); extras.push({ type: 'shine', el: g, k });
+  });
   const GLOW = ACCENT || '255,255,255';
   if (ENERGY.accents >= 2 && style === 'rebuild') {
     $('flare').style.background = `linear-gradient(90deg, transparent, rgba(${GLOW},.16) 30%, rgba(255,255,255,.42) 50%, rgba(${GLOW},.16) 70%, transparent)`;
@@ -452,14 +539,29 @@ function schedule(style) {
   if (hero && ENERGY.accents >= 1) hero.punch = true;
 }
 const partGap = l => ENERGY.gap * (l.letters ? 0.42 : 0.75);
+// a list scrolls through its highlight: two rows up, each on a spring, then a smooth glide back down to the card.
+// Each line takes on the tone the card gives the row it is passing (darkest in the highlight, fading away from it)
+function listState(l, t) {
+  const sp = u => u <= 0 ? 0 : spring(u, 0.72, 2.2);
+  const s = sp(t - 0.55) + sp(t - 1.55) - 2 * EASE.inOut(P(t, 2.65, 1.05));
+  const rows = layers.filter(o => o.list).map(o => [o.row, o.shade]).sort((a, b) => a[0] - b[0]);
+  const at = p => { if (p <= rows[0][0]) return rows[0][1]; for (let i = 1; i < rows.length; i++) if (p <= rows[i][0]) {
+    const [r0, t0] = rows[i - 1], [r1, t1] = rows[i], u = (p - r0) / (r1 - r0); return t0 + (t1 - t0) * u; } return rows[rows.length - 1][1]; };
+  // the ink is one neutral dark (or light, on a dark card): a row's lightness is its opacity over the card
+  const bg = lum(C.paper || '#ffffff'), inkL = bg > 128 ? 28 : 240, o = clamp((bg - at(l.row - s)) / (bg - inkL));
+  return { y: -s * l.list.pitch, ink: o };
+}
+// when the pointer sets out for a button: once it has landed, early enough that it has left before the loop closes
+const buttonAt = l => Math.min(T - 2.3, Math.max(0.5, (l.anchored ? l.at : l.land) + 0.15));
 
 // ---- state ----
-function apply(el, { o = 1, x = 0, y = 0, s = 1, sx = 1, sy = 1, r = 0, rx = 0, ry = 0, b = 0, clip = '' }) {
+function apply(el, { o = 1, x = 0, y = 0, s = 1, sx = 1, sy = 1, r = 0, rx = 0, ry = 0, b = 0, clip = '', br = 1 }) {
   el.style.opacity = o;
   const tilt = Math.abs(rx) + Math.abs(ry) > 1e-4 ? `perspective(900px) rotateX(${rx.toFixed(3)}deg) rotateY(${ry.toFixed(3)}deg) ` : '';  // none at rest, so frame 0 is drawn flat
   el.style.transform = `translate(${x}px,${y}px) ${tilt}rotate(${r}deg) scale(${s * sx},${s * sy})`;
   const f = el._liquid ? [el._liquid] : [];
   if (b > 0.05) f.push(`blur(${b.toFixed(2)}px)`);
+  if (Math.abs(br - 1) > 1e-3) f.push(`brightness(${br.toFixed(4)})`);
   el.style.filter = f.length ? f.join(' ') : 'none';
   el.style.clipPath = clip || el._band || 'none';
 }
@@ -516,7 +618,7 @@ function enter(l, u, k) {
     case 'panel': return { o: EASE.out(clamp(u / 0.22)), y: 42 * D * (1 - sp), s: 0.94 + 0.06 * sp, b: blur(6) };
     case 'illustration': return { o: fast, y: 56 * D * (1 - sp), sy: 1 + 0.05 * Math.sin(Math.PI * clamp(u / 0.5)) * (1 - clamp(u / 0.5)), b: blur(4) };
     case 'stroke': {  // drawn like a pen: an even pace, longer for a longer line
-      const dur = Math.min(0.8, 0.3 + Math.hypot(l.w, l.h) / 1200);
+      const dur = l.role === 'scribble' ? 1.3 : Math.min(0.8, 0.3 + Math.hypot(l.w, l.h) / 1200);  // a hand-drawn mark takes its time
       return { clip: wipe(l, 0, EASE.inOut(clamp(u / dur))) };
     }
     default: return { o: e, y: 10 * D * (1 - e), b: blur(2) };
@@ -542,6 +644,7 @@ function exit(l, v, k = 0) {
 // idle: movement in place; zero at t = 0 and t = T so the loop closes
 function idle(l, t, living) {
   if (l.carries && !l.flow) return {};
+  if (l.role === 'medallion') return { s: 1 + 0.03 * ENERGY.idle * env(t) };  // a relief only leans in; the light does the rest
   if (l.flow) return float(l, t);
   if (l.wall) { const b = bump(t, 0.9 + 1.1 * l.wallD, 0.5); return { s: 1 + 0.08 * ENERGY.dist * b, y: -3 * b }; }
   if (l.calm) return { s: 1 + 0.012 * ENERGY.idle * (l.idle ?? 1) * env(t) };
@@ -620,6 +723,13 @@ window.render = function (t) {
         const ramp = EASE.smooth(clamp((t - start) / 0.6));
         st = t < start ? exit(l, 1, k) : add(enter(l, t - start, k), scaleIdle(id, ramp));
       }
+      if (l.list) { st = listState(l, t); const moving = Math.abs(st.y) > 0.01; st.o = k === 1 ? (moving ? st.ink : 0) : (moving ? 0 : 1); }
+      // a button: it lifts a little under the pointer, presses on the click and springs back
+      if (l.role === 'button' && on) {
+        const a = buttonAt(l), hov = EASE.smooth(P(t, a + 0.55, 0.3)) * (1 - EASE.smooth(P(t, a + 1.5, 0.35)));
+        const press = bump(t, a + 0.95, 0.24);
+        st = add(st, { s: (1 + 0.018 * hov) * (1 - 0.035 * press) });
+      }
       // the letters hop in turn, a wave running along the line
       if (l.fx === 'hop' && on) st = add(st, { y: -Math.min(12, l.h * 0.16) * ENERGY.dist * bump(t, fa + k * Math.min(0.06, 0.5 / l.parts.length), 0.34) });
       // a mark turns once: flat, over in 3D (a coin), a swing that settles, or a pop
@@ -640,9 +750,24 @@ window.render = function (t) {
       tb.setAttribute('baseFrequency', (0.009 * (1 + 0.3 * Math.sin(2 * Math.PI * t / T))).toFixed(5));
     }
     if (l.sheen) {
-      const sp = P(t, fa, l.calm ? 1.5 : 0.85), vis = sp > 0 && sp < 1 && on;
+      const sp = P(t, fa, l.calm || l.role === 'medallion' ? 1.5 : 0.85), vis = sp > 0 && sp < 1 && on;
       l.sheen.style.opacity = vis ? Math.sin(Math.PI * sp) : 0;
       l.sheen.style.backgroundPosition = `${(100 - 100 * EASE.inOut(sp)).toFixed(1)}% 0`;
+    }
+    if (l.cursor) {
+      const a = buttonAt(l), tx = l.x + l.w * 0.68, ty = l.y + l.h * 0.62;
+      const sx = Math.min(W - 30, l.x + l.w + 170), sy = Math.min(H + 70, l.y + l.h + 190), ex = W + 90, ey = ty + 150;
+      const inn = EASE.smooth(P(t, a, 0.8)), out = away(P(t, a + 1.45, 0.65));
+      // in along a gentle arc, out the other way
+      const px = out > 0 ? tx + (ex - tx) * out : sx + (tx - sx) * inn - 40 * Math.sin(Math.PI * inn);
+      const py = out > 0 ? ty + (ey - ty) * out - 30 * Math.sin(Math.PI * out) : sy + (ty - sy) * inn;
+      const vis = on && t > a && t < a + 2.1 ? Math.min(1, (t - a) / 0.12, (a + 2.1 - t) / 0.15) : 0;
+      const click = 1 - 0.14 * bump(t, a + 0.95, 0.2);
+      l.cursor.style.opacity = vis.toFixed(4);
+      l.cursor.style.transform = `translate(${(px - 6).toFixed(2)}px,${(py - 4).toFixed(2)}px) scale(${click.toFixed(4)})`;
+      const q = P(t, a + 1.0, 0.75), rr = Math.max(l.w, l.h) * 0.85 * EASE.out(q);
+      l.ripple.style.opacity = on && q > 0 && q < 1 ? (1 - q).toFixed(4) : 0;
+      l.ripple.style.background = `radial-gradient(circle at ${(tx - l.x).toFixed(1)}px ${(ty - l.y).toFixed(1)}px, rgba(${l.rippleC},.05) ${(rr * 0.72).toFixed(1)}px, rgba(${l.rippleC},.13) ${(rr * 0.93).toFixed(1)}px, rgba(${l.rippleC},0) ${rr.toFixed(1)}px)`;
     }
     if (l.glint) {  // opens, turns a quarter and closes: after the hop or the pop, or by itself
       const q = P(t, fa + (l.fx === 'hop' ? 0.3 : l.turn === 'pop' ? 0.12 : 0), 0.7), v = q > 0 && q < 1 && on ? Math.sin(Math.PI * q) : 0;
@@ -662,6 +787,11 @@ window.render = function (t) {
   });
 
   extras.forEach(x => {
+    if (x.type === 'shine') {  // swells twice, gently, and is gone at both ends of the loop
+      const v = 0.75 * (bump(t, 0.7, 1.1) + 0.8 * bump(t, 2.2, 1.2));
+      x.el.style.opacity = v.toFixed(4); x.el.style.transform = `scale(${(0.85 + 0.25 * v).toFixed(4)})`;
+      return;
+    }
     if (x.type === 'glow') {
       const E = env(t), dx = 50 * Math.sin(2 * Math.PI * t / T + x.k * 2), dy = 30 * Math.cos(2 * Math.PI * t / T * 2 + x.k);
       x.el.style.left = x.x - x.r + dx + 'px'; x.el.style.top = x.y - x.r + dy + 'px'; x.el.style.opacity = x.o * E;

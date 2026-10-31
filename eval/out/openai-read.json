@@ -1,0 +1,21 @@
+{
+ "name": "openai-read",
+ "layers": 17,
+ "kinds": {
+  "shape": 4,
+  "icon": 5,
+  "headline": 2,
+  "illustration": 3,
+  "stroke": 3
+ },
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 0.455,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 2,
+ "mp4_kb": 676,
+ "jpg_kb": 122,
+ "seconds": 63.8,
+ "pass": true
+}

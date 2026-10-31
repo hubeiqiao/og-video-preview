@@ -1,0 +1,130 @@
+[
+ {
+  "name": "a16z-read",
+  "layers": 4,
+  "kinds": {
+   "headline": 1,
+   "photo": 1,
+   "text": 2
+  },
+  "background": "detailed",
+  "style": "living",
+  "frame0_mean": 0.53,
+  "frame0_local_pct": 0.0,
+  "seam": 1,
+  "step": 3,
+  "mp4_kb": 1162,
+  "jpg_kb": 149,
+  "seconds": 124.0,
+  "pass": true
+ },
+ {
+  "name": "cloudflare-read",
+  "layers": 2,
+  "kinds": {
+   "logo": 1,
+   "pill": 1
+  },
+  "background": "detailed",
+  "style": "living",
+  "frame0_mean": 0.358,
+  "frame0_local_pct": 0.0,
+  "seam": 0,
+  "step": 2,
+  "mp4_kb": 1119,
+  "jpg_kb": 149,
+  "seconds": 154.5,
+  "pass": true
+ },
+ {
+  "name": "deno-read",
+  "layers": 11,
+  "kinds": {
+   "text": 10,
+   "headline": 1
+  },
+  "background": "flat",
+  "style": "rebuild",
+  "frame0_mean": 0.478,
+  "frame0_local_pct": 0.011,
+  "seam": 0,
+  "step": 0,
+  "mp4_kb": 352,
+  "jpg_kb": 51,
+  "seconds": 40.4,
+  "pass": true
+ },
+ {
+  "name": "ghost-read",
+  "layers": 0,
+  "kinds": {},
+  "background": "flat",
+  "style": "rebuild",
+  "frame0_mean": 0.236,
+  "frame0_local_pct": 0.0,
+  "seam": 239,
+  "step": 243,
+  "mp4_kb": 796,
+  "jpg_kb": 82,
+  "seconds": 72.4,
+  "pass": true
+ },
+ {
+  "name": "openai-read",
+  "layers": 17,
+  "kinds": {
+   "shape": 4,
+   "icon": 5,
+   "headline": 2,
+   "illustration": 3,
+   "stroke": 3
+  },
+  "background": "flat",
+  "style": "rebuild",
+  "frame0_mean": 0.455,
+  "frame0_local_pct": 0.0,
+  "seam": 0,
+  "step": 2,
+  "mp4_kb": 676,
+  "jpg_kb": 122,
+  "seconds": 63.8,
+  "pass": true
+ },
+ {
+  "name": "webflow-read",
+  "layers": 9,
+  "kinds": {
+   "panel": 7,
+   "logo": 1,
+   "label": 1
+  },
+  "background": "graded",
+  "style": "rebuild",
+  "frame0_mean": 0.368,
+  "frame0_local_pct": 0.0,
+  "seam": 0,
+  "step": 2,
+  "mp4_kb": 1026,
+  "jpg_kb": 91,
+  "seconds": 53.5,
+  "pass": true
+ },
+ {
+  "name": "ycombinator-read",
+  "layers": 3,
+  "kinds": {
+   "icon": 1,
+   "headline": 2
+  },
+  "background": "flat",
+  "style": "rebuild",
+  "frame0_mean": 0.353,
+  "frame0_local_pct": 0.0,
+  "seam": 237,
+  "step": 234,
+  "mp4_kb": 730,
+  "jpg_kb": 87,
+  "seconds": 58.3,
+  "pass": true
+ }
+]

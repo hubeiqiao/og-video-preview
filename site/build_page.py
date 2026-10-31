@@ -45,14 +45,18 @@ def main():
     names = [n for n in sites if n in by_name]
     passed = sum(bool(r['pass']) for r in results)
     layers = sum(r['layers'] for r in results)
-    stats = f'{passed} of {len(results)} pass the checks · {layers} elements read · frame 0 equals the image on every card'
+    # cards the skill's reading step was run on (eval/scenes/) show that version, marked
+    read = {n for n in names if (ROOT / 'eval' / 'out' / f'{n}-read.mp4').exists()}
+    stats = f'{passed} of {len(results)} pass the checks with no help · {layers} elements read · frame 0 equals the image on every card · {len(read)} shown with the reading step'
     tiles = []
     for name in names:
         domain = html.escape(sites[name]['domain'], quote=True)
         safe_name = html.escape(name, quote=True)
         tiles.append(f'<button class="tile" data-name="{safe_name}" data-index="{result_order[name]}" data-domain="{domain}" aria-label="Open the og:video of {domain}">'
                      f'<div class="media"><img data-src="media/posters/{safe_name}.webp" alt="" width="1200" height="630" loading="lazy" decoding="async"><noscript><img src="media/posters/{safe_name}.webp" alt="" loading="lazy" style="position:absolute;inset:0"></noscript></div>'
-                     f'<span><i class="sr-only">{safe_name}: </i>{domain}</span></button>')
+                     f'<span><i class="sr-only">{safe_name}: </i>{domain}'
+                     + ('<b class="rd" title="Made with the skill\'s reading step: the agent said what the card shows first">read</b>' if name in read else '')
+                     + '</span></button>')
     # the questions people ask, from README.md and SKILL.md (site/faq.json); eval numbers filled in from the results
     faq = [{'q': f['q'], 'a': f['a'].format(sites=len(names), passed=passed)} for f in json.loads((ROOT / 'site/faq.json').read_text())]
     def answer(a):  # a date never breaks across lines

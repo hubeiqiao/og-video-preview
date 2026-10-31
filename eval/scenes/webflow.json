@@ -1,0 +1,11 @@
+{"note": "Six windows of the Webflow designer float around the logo: each window is one unit and moves whole.",
+ "units": [
+  {"box": [0, 0, 258, 68], "role": "window", "note": "image thumbnails"},
+  {"box": [34, 70, 222, 302], "role": "window", "note": "asset details"},
+  {"box": [292, 0, 642, 187], "role": "window", "note": "code export dialog"},
+  {"box": [968, 33, 232, 302], "role": "window", "note": "colour picker"},
+  {"box": [362, 255, 474, 80], "role": "logo", "note": "the Webflow logo and wordmark"},
+  {"box": [0, 407, 562, 223], "role": "window", "note": "the designer and style panel"},
+  {"box": [598, 451, 242, 141], "role": "window", "note": "Spline scene settings"},
+  {"box": [875, 362, 325, 268], "role": "window", "note": "insights"}
+ ]}

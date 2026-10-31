@@ -1,0 +1,5 @@
+{"note": "A call-to-action button on a dotted orange field: the button is one unit, and a pointer clicks it.",
+ "units": [
+  {"box": [524, 62, 152, 70], "role": "logo", "note": "the Cloudflare cloud"},
+  {"box": [228, 238, 744, 228], "role": "button", "note": "Start building"}
+ ]}

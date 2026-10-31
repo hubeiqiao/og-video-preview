@@ -11,6 +11,10 @@ and record what the engine decided (layers, kinds, style) so changes can be comp
 Writes eval/out/<name>.mp4 and .jpg, eval/results.json, eval/sheet.jpg (a contact sheet)
 and the results table in eval/README.md.
 
+A card with a reading in eval/scenes/<name>.json (what the skill's reading step wrote for it: which parts are whole
+units and what each one is) is also run with it, as eval/out/<name>-read.mp4, into eval/results-read.json and a
+second table, so the automatic result and the read one sit side by side.
+
 Usage: python3 eval/run.py [--only stripe,github] [--jobs 3] [--keep]
 """
 import argparse
@@ -50,8 +54,8 @@ def seam_score(frames):
     return d(frames[-1], frames[0]), max(d(frames[0], frames[1]), d(frames[-3], frames[-2]))
 
 
-def one(card, keep, resume):
-    name = os.path.splitext(os.path.basename(card))[0]
+def one(card, keep, resume, scene=None):
+    name = os.path.splitext(os.path.basename(card))[0] + ("-read" if scene else "")
     done = os.path.join(HERE, "out", name + ".json")
     if resume and os.path.exists(done):
         return json.load(open(done))
@@ -59,7 +63,7 @@ def one(card, keep, resume):
     work = os.path.join(HERE, "work", name) if keep else os.path.join(tempfile.gettempdir(), "og-eval", name)
     shutil.rmtree(work, ignore_errors=True)
     t0 = time.time()
-    log = run([PY, os.path.join(ROOT, "scripts", "suggest_layers.py"), card, work])
+    log = run([PY, os.path.join(ROOT, "scripts", "suggest_layers.py"), card, work] + (["--scene", scene] if scene else []))
     shutil.copy(os.path.join(ROOT, "template", "from-image.html"), work)
     run([PY, os.path.join(ROOT, "scripts", "render_frames.py"), os.path.join(work, "from-image.html"), os.path.join(work, "frames")])
     frames = sorted(glob.glob(os.path.join(work, "frames", "f*.png")))
@@ -126,28 +130,32 @@ def main():
     if a.only:
         cards = [c for c in cards if os.path.splitext(os.path.basename(c))[0] in a.only.split(",")]
     results = []
-    def safe(c):
+    def safe(c, scene=None):
         try:
-            return one(c, a.keep, a.resume)
+            return one(c, a.keep, a.resume, scene)
         except subprocess.CalledProcessError as e:  # a failed card is a result, not the end of the run
             name = os.path.splitext(os.path.basename(c))[0]
             err = (e.stderr or e.stdout or "").strip().splitlines()[-1:] or ["failed"]
             return {"name": name, "layers": 0, "kinds": {}, "background": "", "style": "", "frame0_mean": -1, "frame0_local_pct": -1,
                     "seam": -1, "step": -1, "mp4_kb": -1, "jpg_kb": -1, "seconds": 0, "pass": False, "error": err[0]}
+    scenes = {c: os.path.join(HERE, "scenes", os.path.splitext(os.path.basename(c))[0] + ".json") for c in cards}
+    jobs = [(c, None) for c in cards] + [(c, s) for c, s in scenes.items() if os.path.exists(s)]
+    read = []
     with cf.ThreadPoolExecutor(a.jobs) as ex:
-        for r in ex.map(safe, cards):
-            print(f"{r['name']:<14} {r['layers']:>2} layers  {r['style']:<8} frame0 {r['frame0_mean']:.2f}/{r['frame0_local_pct']:.3f}%  seam {r['seam']}/{r['step']}  {r['mp4_kb']} KB  {'pass' if r['pass'] else 'FAIL'}", flush=True)
-            results.append(r)
+        for (c, sc), r in zip(jobs, ex.map(lambda j: safe(*j), jobs)):
+            print(f"{r['name']:<18} {r['layers']:>2} layers  {r['style']:<8} frame0 {r['frame0_mean']:.2f}/{r['frame0_local_pct']:.3f}%  seam {r['seam']}/{r['step']}  {r['mp4_kb']} KB  {'pass' if r['pass'] else 'FAIL'}", flush=True)
+            (read if sc else results).append(r)
     if not a.only:
         json.dump(results, open(os.path.join(HERE, "results.json"), "w"), indent=1)
+        json.dump(read, open(os.path.join(HERE, "results-read.json"), "w"), indent=1)
         sheet(results)
         readme = os.path.join(HERE, "README.md")
         text = open(readme).read() if os.path.exists(readme) else ""
-        start, end = "<!-- results -->", "<!-- /results -->"
-        block = f"{start}\n{table(results)}{end}"
-        text = re.sub(re.escape(start) + ".*" + re.escape(end), block, text, flags=re.S) if start in text else text + "\n" + block + "\n"
+        for start, end, rows in (("<!-- results -->", "<!-- /results -->", results), ("<!-- read -->", "<!-- /read -->", read)):
+            block = f"{start}\n{table(rows)}{end}"
+            text = re.sub(re.escape(start) + ".*" + re.escape(end), block, text, flags=re.S) if start in text else text + "\n" + block + "\n"
         open(readme, "w").write(text)
-    print(f"{sum(r['pass'] for r in results)} of {len(results)} pass")
+    print(f"{sum(r['pass'] for r in results)} of {len(results)} pass" + (f"; with a reading {sum(r['pass'] for r in read)} of {len(read)}" if read else ""))
 
 
 if __name__ == "__main__":

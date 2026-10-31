@@ -20,12 +20,40 @@ Two routes for step 2:
 
 Requirements: Python 3 with `playwright`, `Pillow`, `opencv-python` and `numpy`; Chrome installed (Playwright uses `channel="chrome"`); `ffmpeg` and `ffprobe`. Optional: Tesseract and `pytesseract`, which find type on photos and 3D scenes and screen out texture that only looks like text.
 
+## First, read the card
+
+Before anything is cut, look at the card and say what it shows, the way a person would: what are its parts, which of them belong together, and what would each one do if the card came alive? The automatic reading (`suggest_layers.py`) finds elements from pixels, so it cannot know that six panels are windows of one app, that a pill with words in it is a button, that a column of fading lines is a list scrolling through a highlight, or that the avatars around a mark are a community orbiting it. Write what you see as a plan, `scene.json`, and pass it with `--scene`; where the plan says nothing, the automatic reading stands.
+
+```json
+{"note": "A call-to-action button on a dotted field: the button is one unit, and a pointer clicks it.",
+ "units": [
+  {"box": [228, 238, 744, 228], "role": "button"},
+  {"box": [524, 62, 152, 70], "role": "logo"}
+ ]}
+```
+
+Each unit is a box in card pixels and a role. Everything the reading found inside the box joins it, so it moves as one piece; a unit listed earlier keeps its own pixels (list a chair before the scribble it sits on).
+
+| Role | Use it for | How it moves |
+|---|---|---|
+| `window`, `panel` | an app window, a card in a collage, a screenshot | whole, its full rectangle; leaves and comes back in one piece |
+| `button` | a call to action: a pill or a box with words in it | a pointer glides in, hovers, clicks; the button presses and a ripple spreads inside it |
+| `scribble` | a brush stroke, a hand-drawn line or arrow | draws itself at a pen's pace; `dir` gives the way (`[1, 0]` left to right, `[0, -1]` upward); `ink` (a hex colour) takes only that colour from the box |
+| `medallion` | a coin, a relief, a seal | leans in slowly while light glides across it |
+| `logo`, `headline`, `text`, `illustration`, `photo`, `shape`, `icon` | anything the reading split or merged wrongly | as that kind |
+| `orbit` (region) | avatars or icons around a central mark | each small round thing turns about `center` and back, whole and upright; `inner` keeps the mark still, `deg` is the turn |
+| `marquee` (region) | a row of logos running off the card | the row slides sideways and back by `shift` px and wraps round; give rows opposite `dir` |
+| `list` (region) | a word rotator: a column of lines with one highlighted | scrolls through the highlight by `pitch` (the row height), `center` is the highlighted row's centre, `bar` its highlight; each line darkens in the highlight and fades away from it, as on the card |
+| `shine` (region) | a lamp, a glass orb, a star | a soft light swells there twice |
+
+A region moves a part of the card itself, sampled from the card, so nothing the refill made turns into view. The eval keeps its plans in `eval/scenes/` (Webflow's windows, Cloudflare's button, OpenAI's scribbles, Deno's list, Ghost's orbit, Y Combinator's carousel, a16z's medallion) and shows each of those cards both ways.
+
 ## Route A: from the approved image
 
 ```bash
 SKILL=~/.claude/skills/og-video-preview   # the folder this SKILL.md is in
 mkdir -p og && cp $SKILL/template/from-image.html og/
-python3 $SKILL/scripts/suggest_layers.py approved.png og      # card.jpg, layers.js, plate.png, layers.png, glyphs.png, layers-preview.png
+python3 $SKILL/scripts/suggest_layers.py approved.png og --scene scene.json   # your reading (optional): card.jpg, layers.js, plate.png, cuts
 python3 $SKILL/scripts/render_frames.py og/from-image.html og/frames --frames 0,20,40,60,90,150   # preview; prints the motion plan
 python3 $SKILL/scripts/check_frame0.py og/card.jpg og/frames/f0000.png
 python3 $SKILL/scripts/render_frames.py og/from-image.html og/frames                 # all frames

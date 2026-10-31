@@ -106,7 +106,7 @@ def main():
             others = cv2.dilate(((own > 0) & (own != L["mask"])).astype(np.uint8), np.ones((3, 3), np.uint8)) > 0
             m[others] = 0
         cut[y0:y1, x0:x1] |= m
-        own_cut.append((L.get("id", f"layer{len(own_cut) + 1}"), x0, y0, x1, y1, m))
+        own_cut.append((L.get("id", f"layer{len(own_cut) + 1}"), x0, y0, x1, y1, m, L.get("cut") == "ink"))
         glyph[y0:y1, x0:x1] |= sub if sub.sum() else m
 
     hole = cv2.dilate(cut, np.ones((3, 3), np.uint8)) > 0
@@ -117,6 +117,27 @@ def main():
         plate[t] = tex[t]
     w_ = wide > 0
     plate[w_] = B[w_]  # a large hole filled from its neighbours smears them in; the background model does not
+    # a list that scrolls (a reading's "list" region): behind it is only the card and its highlight bar, so its column is
+    # rebuilt from them, not refilled line by line (a refill would smear the bar's colour down the column)
+    for R in cfg.get("regions") or []:
+        if R.get("role") != "list":
+            continue
+        x, y, w, h = R["box"]
+        # the card behind a list is a gradient down the column: each row's median across it, which its letters cannot move
+        col = img[y:y + h, x:x + w].astype(np.float32)
+        light = col.mean() > 128  # letters darker than a light card (or lighter than a dark one) never reach this percentile
+        rows = np.percentile(col, 88 if light else 12, axis=1)
+        rows = cv2.GaussianBlur(rows[:, None, :], (1, 0), sigmaX=0.1, sigmaY=6)[:, 0, :]
+        plate[y:y + h, x:x + w] = rows[:, None, :]
+        hole[y:y + h, x:x + w] = True  # all of the column is rebuilt, not only where a line was
+        if R.get("bar"):
+            bx, by, bw, bh = R["bar"]
+            bar = img[by:by + bh, bx:bx + bw].astype(np.float32)
+            bar_c = np.median(img[by + 4:by + bh - 4, bx + 4:bx + 14].reshape(-1, 3), 0)
+            lum_ = lambda a: a @ np.array([0.2126, 0.7152, 0.0722], np.float32)
+            text = lum_(bar) < lum_(bar_c[None, None, :].astype(np.float32)) - 10  # its own text, darker than the bar
+            text = cv2.dilate(text.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+            plate[by:by + bh, bx:bx + bw] = np.where(text[..., None], bar_c, bar)
     clean = os.path.join(d, "plate-clean.png")
     if cfg.get("cleanPlate") and os.path.exists(clean):  # a clean background from an image-edit tool beats any refill
         cp = cv2.cvtColor(cv2.imread(clean), cv2.COLOR_BGR2RGB)
@@ -134,10 +155,30 @@ def main():
     # memory); cuts/cuts.js records where each crop sits on the card
     os.makedirs(os.path.join(d, "cuts"), exist_ok=True)
     where = {}
-    for lid, x0, y0, x1, y1, m in own_cut:
+    def ink_cutout(m):
+        # its ink alone: coverage from how far each pixel is from what lies behind it (the refilled plate), in the
+        # line's own ink colour, so it can pass over a highlight bar or the bare card without a box of either
+        near = cv2.dilate(m, np.ones((5, 5), np.uint8)) > 0
+        d = dist(img, plate)
+        lm = img.astype(np.float32) @ np.array([0.2126, 0.7152, 0.0722], np.float32)
+        ink = img[near & (d > 30) & (lm <= np.percentile(lm[near & (d > 30)], 25))] if (near & (d > 30)).any() else img[near]
+        tone = np.median(ink.reshape(-1, 3), 0) if len(ink) else np.zeros(3)  # the darkest of its ink, never the bar behind it
+        back = np.median(plate[near].reshape(-1, 3), 0)
+        full = max(20.0, float(dist(tone[None, :], back[None, :])[0]))
+        a_ = np.clip((d - 8) / (full - 8), 0, 1) * near  # coverage, above the refill's own noise
+        # one neutral ink: the template sets each row's lightness with opacity, so no colour from behind can travel with it
+        dark = lm[near].mean() > (np.array([0.2126, 0.7152, 0.0722]) @ tone)
+        rgb = np.full(img.shape, 28 if dark else 240, np.uint8)
+        return cv2.cvtColor(np.dstack([rgb, (a_ * 255).astype(np.uint8)]), cv2.COLOR_RGBA2BGRA)
+
+    jobs = []
+    for lid, x0, y0, x1, y1, m, inky in own_cut:
         one = np.zeros((H, W), np.uint8)
         one[y0:y1, x0:x1] = m
-        rgba = cutout(one)
+        jobs.append((lid, one, cutout(one)))
+        if inky:  # a list line also gets its ink alone, worn while it moves (at rest it wears its exact cut)
+            jobs.append((lid + "-ink", one, ink_cutout(one)))
+    for lid, one, rgba in jobs:
         ys, xs = np.nonzero(rgba[..., 3])
         if not len(ys):
             continue

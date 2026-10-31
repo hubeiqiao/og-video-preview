@@ -41,6 +41,9 @@ W, H = 1200, 630
 KINDS = ["headline", "text", "label", "logo", "pill", "icon", "avatar", "photo",
          "panel", "illustration", "shape", "stroke"]
 TEXT_KINDS = {"headline", "text", "label"}
+# roles a reading of the card (--scene) can give: a unit that moves as one layer, or a region of the card that moves
+ROLE_KIND = {"window": "panel", "panel": "panel", "button": "pill", "scribble": "stroke", "medallion": "photo"}
+REGION_ROLES = {"orbit", "marquee", "list", "shine"}
 
 
 def load_card(path):
@@ -541,6 +544,9 @@ def main():
     ap.add_argument("--plate", help="the same image with every element removed (from an image-edit tool): with it every\n"
                     "visual can move freely, and the style becomes flow")
     ap.add_argument("--energy", default="lively", choices=["calm", "lively", "bold"])
+    ap.add_argument("--scene", help="a reading of the card (scene.json, see SKILL.md): which parts are whole units and what "
+                    "each one is (a window, a button, a scribble, a list, a ring of avatars, a carousel row); it overrides "
+                    "the automatic reading inside each unit")
     a = ap.parse_args()
     a.max = min(a.max, 250)  # the owner map is 8-bit
 
@@ -756,17 +762,24 @@ def main():
     # a fine line pattern over the card (a wave grid, a guilloche, contour lines) shows only where its lines are dark
     # enough, as scattered pieces: many pieces of thin, colourless line, spread wide, are that texture. They stay in
     # the plate, which the template moves as one surface, so the pattern never flies apart
+    hsv_img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    hsv_bg = cv2.cvtColor(np.clip(B, 0, 255).astype(np.uint8), cv2.COLOR_RGB2HSV)
+
     def texture_piece(L):
-        if L["kind"] in TEXT_KINDS or not L["own"].sum():
+        # a "line of type" a few pixels tall is a row of dots, not type
+        if (L["kind"] in TEXT_KINDS and L["box"][3] >= 12) or not L["own"].sum():
             return False
         o = L["own"]
         kept = cv2.morphologyEx(o, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
-        sat = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)[..., 1][o > 0]
+        sat = hsv_img[..., 1][o > 0]
+        # colourless (grey lines on paper) or a tone of the background's own colour (light dots on orange)
+        dh = np.abs(hsv_img[..., 0][o > 0].astype(int) - hsv_bg[..., 0][o > 0].astype(int))
+        tonal = np.median(np.minimum(dh, 180 - dh)) < 12 and np.median(hsv_bg[..., 1][o > 0]) > 60
         # faint against its paper: UI icons and fine type are thin and colourless too, but they stand out
-        return kept.sum() < 0.15 * o.sum() and np.median(sat) < 40 and np.median(dist(img[o > 0], B[o > 0])) < 130
+        return kept.sum() < 0.15 * o.sum() and (np.median(sat) < 40 or tonal) and np.median(dist(img[o > 0], B[o > 0])) < 130
     pieces = [L for L in layers if texture_piece(L)]
     texture = False
-    if len(pieces) >= 5:
+    if len(pieces) >= 12:
         cx = [L["box"][0] + L["box"][2] / 2 for L in pieces]; cy = [L["box"][1] + L["box"][3] / 2 for L in pieces]
         if max(cx) - min(cx) > 0.5 * W and max(cy) - min(cy) > 0.5 * H:
             texture = True
@@ -796,6 +809,87 @@ def main():
                 if stacked and abs(lx - mx) <= 6 and max(lh, mh) < 1.3 * min(lh, mh):
                     top_kind = max(L["kind"], M["kind"], key=rank.get)
                     L["kind"] = M["kind"] = top_kind
+
+    # the reading of the card, when there is one: each unit becomes one layer with its role (everything found inside
+    # its box joins it, so a window never comes apart), or a region of the card that moves as a whole
+    regions = []
+    if a.scene:
+        fg_all = foreground(img, B, tol) > 0
+        for U in json.load(open(a.scene)).get("units", []):
+            x, y, w, h = [int(v) for v in U["box"]]
+            role = U["role"]
+            # a unit the reading already made (a chair on a scribble) stays itself
+            inside = [L for L in layers if not L.get("role") and x <= L["box"][0] + L["box"][2] / 2 <= x + w and y <= L["box"][1] + L["box"][3] / 2 <= y + h]
+            if role in REGION_ROLES:  # it moves as a part of the card: what was read inside it stays in the plate
+                layers = [L for L in layers if L not in inside]
+                R = {k: v for k, v in U.items() if k != "note"}
+                if role == "list":
+                    # a list that scrolls: one line per row (the reading gives the row pitch and the highlighted row's
+                    # centre); each line is its ink alone, darker than what lies behind it there (the highlight bar, or the
+                    # card), so it can pass over either. The bar itself stays in the plate
+                    pitch, c0 = float(R["pitch"]), float(R["center"])
+                    bar = R.get("bar")
+                    behind = B.copy()
+                    if bar:
+                        bx_, by_, bw_, bh_ = bar
+                        bar_c = np.median(img[by_ + 4:by_ + bh_ - 4, bx_ + 4:bx_ + 14].reshape(-1, 3), 0)
+                        behind[max(0, by_ - 12):by_ + bh_ + 12, max(0, bx_ - 6):bx_ + bw_ + 6] = bar_c  # its soft edge and shadow are bar too
+                    lum_ = lambda a: a.astype(np.float32) @ np.array([0.2126, 0.7152, 0.0722], np.float32)
+                    ink_all = (lum_(img) < lum_(behind) - 8) & (dist(img, behind) > 18)  # the faintest rows count too
+                    k0 = -int(np.ceil(c0 / pitch)) - 1
+                    for k in range(k0, int(np.ceil((H - c0) / pitch)) + 2):
+                        y0_, y1_ = int(max(y, c0 + (k - 0.5) * pitch)), int(min(y + h, c0 + (k + 0.5) * pitch))
+                        if y1_ - y0_ < 6:
+                            continue
+                        band = np.zeros((H, W), bool)
+                        band[y0_:y1_, x:x + w] = ink_all[y0_:y1_, x:x + w]
+                        if bar and not (by_ <= c0 + k * pitch <= by_ + bh_):
+                            band[max(0, by_ - 12):by_ + bh_ + 12] = False  # the bar's edge is never another row's ink
+                        if band.sum() < 25:
+                            continue
+                        ys_, xs_ = np.nonzero(band)
+                        lb = [int(xs_.min()), int(ys_.min()), int(xs_.max() - xs_.min() + 1), int(ys_.max() - ys_.min() + 1)]
+                        tone = float(np.percentile(lum_(img[band]), 20))
+                        own = band.astype(np.uint8)
+                        layers.append({"box": lb, "kind": "text", "why": f"read: list line {k}", "f": features(img, own, lb), "own": own,
+                                       "scene": False, "role": "listline", "params": {"row": k, "shade": round(tone, 1)}})
+                    print(f"list: {sum(1 for L in layers if L.get('role') == 'listline')} lines scroll through the highlight")
+                if role == "orbit":  # what orbits: each small round thing outside the inner ring, moved whole
+                    cx, cy = R.get("center", [x + w / 2, y + h / 2])
+                    m = (fg_all[y:y + h, x:x + w]).astype(np.uint8)
+                    n_, lab_, st_, cen_ = cv2.connectedComponentsWithStats(cv2.morphologyEx(m, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8)))
+                    sats = []
+                    for j in range(1, n_):
+                        sx, sy, sw, sh, sa = st_[j]
+                        if 10 <= sw <= 90 and 10 <= sh <= 90 and 0.6 < sw / sh < 1.6 and \
+                                np.hypot(x + sx + sw / 2 - cx, y + sy + sh / 2 - cy) > R.get("inner", 0) + max(sw, sh) / 2:
+                            sats.append([int(x + sx - 2), int(y + sy - 2), int(sw + 4), int(sh + 4)])
+                    R["sats"] = sats
+                    print(f"orbit: {len(sats)} things go round")
+                regions.append(R)
+                continue
+            own = np.zeros((H, W), bool)
+            for L in inside:
+                own |= L["own"] > 0
+            if role in {"window", "panel"}:
+                own[y:y + h, x:x + w] = True  # a window is all of its rectangle
+            else:
+                take = fg_all[y:y + h, x:x + w]
+                if U.get("ink"):  # only its own colour: an orange scribble under a chair, beside coloured dots
+                    ink = np.array([int(U["ink"][k:k + 2], 16) for k in (1, 3, 5)], np.float32)
+                    near = dist(img[y:y + h, x:x + w], ink) < 120
+                    take = take & near
+                    own[y:y + h, x:x + w] &= near
+                own[y:y + h, x:x + w] |= take  # what the reading missed inside it joins it
+            others = [L for L in layers if L not in inside]
+            for L in others:
+                own &= ~(L["own"] > 0)
+            own = own.astype(np.uint8)
+            box = [x, y, w, h]
+            layers = others + [{"box": box, "kind": ROLE_KIND.get(role, role), "why": f"read: {role}", "f": features(img, own, box),
+                                "own": own, "scene": False, "role": role, "params": {k: v for k, v in U.items() if k not in ("box", "role", "note")}}]
+        texts = [L for L in layers if L["kind"] in TEXT_KINDS]
+        print(f"scene: {len(json.load(open(a.scene)).get('units', []))} units read from {os.path.basename(a.scene)}")
 
     # a globe in the background (a planet, a lit sphere) turns as a sphere; the small bright pieces cut from its
     # surface (city lights, a cloud) go back into it, so they turn with it
@@ -869,9 +963,17 @@ def main():
             near = cv2.dilate(own.astype(np.uint8), np.ones((19, 19), np.uint8)) > 0
             ring = near & ~(cv2.dilate(own.astype(np.uint8), np.ones((9, 9), np.uint8)) > 0) & ~anyone
             on_bg = (dist(img[ring], B[ring]) < a.tol * 1.4).mean() if ring.sum() > 20 else 1
-            if (k in {"photo", "panel", "illustration", "avatar"} and w * h > 0.2 * W * H) or on_bg < 0.75:
+            # a window the reading names leaves whole: its hole is plain card, even where it touches the edge or a neighbour
+            if (k in {"photo", "panel", "illustration", "avatar"} and w * h > 0.2 * W * H) or (on_bg < 0.75 and L.get("role") not in ("window", "panel")):
                 item["settle"] = True  # its hole could not be filled cleanly: it moves in place
         item["why"] = L["why"]
+        if L.get("role"):  # from the reading (--scene): what this element is, and how it moves
+            item["role"] = L["role"]
+            item.update(L.get("params", {}))
+            if L["role"] in {"window", "panel"}:
+                item["cut"] = "rect"
+            elif L["role"] == "listline":
+                item["cut"] = "ink"
         out_layers.append(item)
 
     # each marked pixel belongs to exactly one layer: the element it was found in
@@ -884,7 +986,7 @@ def main():
     config = {
         "image": "card.jpg", "layerImage": "layers.png", "cuts": "cuts/", "glyphs": "glyphs.png",
         "width": W, "height": H, "loop": 4.0,
-        "style": a.style, "energy": a.energy, "cleanPlate": bool(a.plate), "sphere": list(sphere) if sphere else None,
+        "style": a.style, "energy": a.energy, "cleanPlate": bool(a.plate), "sphere": list(sphere) if sphere else None, "regions": regions,
         # a fine pattern, or a big flat graphic behind the type (a bolt, a band): the plate moves as one surface
         "texture": texture or any(len(b) > 4 and b[4] == "graphic" and b[2] * b[3] > 0.45 * W * H for b in backdrops),
         "paper": "#%02x%02x%02x" % tuple(int(v) for v in mode_colour(np.concatenate([img[0], img[-1], img[:, 0], img[:, -1]]))[0]),

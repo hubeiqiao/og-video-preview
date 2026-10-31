@@ -21,7 +21,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WORK = os.path.join(ROOT, ".cache", "readme-gifs")
 PY = sys.executable
 
-EXAMPLES = [(n, f"eval/out/{n}.jpg", f"eval/out/{n}.mp4", d) for n, d in [  # name, still, video, caption
+def best(n):  # a card the reading step was run on shows that version
+    return f"eval/out/{n}-read.mp4" if os.path.exists(os.path.join(ROOT, "eval", "out", f"{n}-read.mp4")) else f"eval/out/{n}.mp4"
+
+
+EXAMPLES = [(n, f"eval/out/{n}.jpg", best(n), d) for n, d in [  # name, still, video, caption
     ("ycombinator", "ycombinator.com"), ("x", "x.ai"), ("shopify", "shopify.com"),
     ("slack", "slack.com"), ("pitch", "pitch.com"), ("notion", "notion.com")]]
 EVAL = ["openai", "stripe", "cal", "github", "raycast", "cloudflare"]
@@ -33,7 +37,7 @@ def showcase(out):
     cw, ch, g = 400, 210, 12
     args, chain = [], ""
     for k, n in enumerate(SHOWCASE):
-        args += ["-i", os.path.join(ROOT, "eval", "out", n + ".mp4")]
+        args += ["-i", os.path.join(ROOT, best(n))]
         chain += f"[{k}:v]fps=15,scale={cw}:{ch}:flags=lanczos,setsar=1[v{k}];"
     layout = "|".join(f"{(k % 3) * (cw + g)}_{(k // 3) * (ch + g)}" for k in range(len(SHOWCASE)))
     clip_ = os.path.join(WORK, "showcase.mp4")
@@ -151,7 +155,7 @@ def main():
         site = json.load(open(os.path.join(ROOT, "site", "media", "sites.json"))).get(n, {}).get("domain", n)
         col, row = k % 2, k // 2
         x = x0 + col * (2 * cw + 56 + gapx)
-        body, ch, slot = pair(x, y0 + row * (round(cw * 630 / 1200) + 52), cw, f"eval/out/{n}.jpg", f"eval/out/{n}.mp4", site, 15, row == 0)
+        body, ch, slot = pair(x, y0 + row * (round(cw * 630 / 1200) + 52), cw, f"eval/out/{n}.jpg", best(n), site, 15, row == 0)
         parts.append(body); slots.append(slot)
         rowh = ch
     W = x0 * 2 + 2 * (2 * cw + 56) + gapx

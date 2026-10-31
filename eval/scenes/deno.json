@@ -1,0 +1,4 @@
+{"note": "Deno is your ... and a list of what it is, with the current answer in a green highlight and the others fading away above and below: a word rotator. The list scrolls through the highlight.",
+ "units": [
+  {"box": [536, 0, 664, 630], "role": "list", "pitch": 71, "center": 289, "bar": [518, 255, 682, 80], "note": "the list; the bar stays"}
+ ]}

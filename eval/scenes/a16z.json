@@ -1,0 +1,5 @@
+{"note": "A gold relief medallion beside the headline: a figure holding up a glass orb before a city. The medallion leans in slowly while light glides across the gold; the orb glows.",
+ "units": [
+  {"box": [578, 0, 622, 630], "role": "medallion", "center": [1010, 330], "note": "the gold medallion"},
+  {"box": [1100, 80, 92, 92], "role": "shine", "note": "the glass orb in the figure's hand"}
+ ]}

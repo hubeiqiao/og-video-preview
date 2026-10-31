@@ -1,0 +1,7 @@
+{"note": "A sticker collage around the wordmark. Three marks are drawn by hand, so they draw themselves: the orange zigzag left to right, the green arrow upward, the blue zigzag downward. The chair sits on the orange scribble.",
+ "units": [
+  {"box": [104, 386, 82, 110], "role": "illustration", "note": "the blue folding chair"},
+  {"box": [358, 434, 100, 110], "role": "scribble", "ink": "#06b84a", "dir": [0, -1], "note": "the green arrow, drawn upward"},
+  {"box": [8, 402, 476, 228], "role": "scribble", "ink": "#f17a28", "dir": [1, 0], "note": "the orange brush zigzag"},
+  {"box": [1090, 392, 110, 238], "role": "scribble", "ink": "#0387ff", "dir": [0, 1], "note": "the blue zigzag"}
+ ]}

@@ -14,7 +14,7 @@ An open-source agent skill for Claude Code, OpenAI Codex, Cursor and every agent
 
 ![On the left a still og:image, on the right the og:video the skill made from that same image, playing](social/hero.gif)
 
-The og:images of nine well-known sites, each turned into an og:video by the skill with no hand tuning:
+The og:images of nine well-known sites, each turned into an og:video by the skill (Y Combinator's and OpenAI's after its reading step, which says what a card shows before anything is cut):
 
 ![The og:videos the skill made from the og:images of ycombinator.com, x.ai, shopify.com, stripe.com, openai.com, notion.com, slack.com, pitch.com and elevenlabs.io, playing together](social/showcase.gif)
 
@@ -105,8 +105,11 @@ The skill then:
 
 ## How it works
 
+**First the agent reads the card.** It looks at the image and says what it shows: which parts are whole units (a window, a button, a row of logos) and what each one would do if the card came alive. It writes that as a short plan, `scene.json`. The engine then cuts and moves the card by that plan and fills in the rest on its own. Without a plan the automatic reading stands, and that is what the eval measures; [SKILL.md](SKILL.md#first-read-the-card) lists the roles a plan can give.
+
 ```mermaid
 flowchart LR
+  R[Agent reads the card<br/>scene.json] --> B
   A[Approved og:image] --> B[suggest_layers.py<br/>find and classify elements]
   B --> C[make_plate.py<br/>refilled plate and per-element cuts]
   C --> D[from-image.html<br/>motion by kind]
@@ -165,7 +168,7 @@ python3 eval/run.py --only stripe,github --keep  # a few cards, keeping their in
 
 ## Examples
 
-Each pair is the site's own `og:image` on the left and the `og:video` the skill made from it on the right, with no hand tuning.
+Each pair is the site's own `og:image` on the left and the `og:video` the skill made from it on the right. ycombinator.com went through the reading step: its rows of logos are a carousel, so they slide.
 
 | ![ycombinator.com: og:image and og:video](social/pairs/ycombinator.gif) | ![x.ai: og:image and og:video](social/pairs/x.gif) |
 |---|---|

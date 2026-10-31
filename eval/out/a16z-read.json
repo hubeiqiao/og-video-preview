@@ -1,0 +1,19 @@
+{
+ "name": "a16z-read",
+ "layers": 4,
+ "kinds": {
+  "headline": 1,
+  "photo": 1,
+  "text": 2
+ },
+ "background": "detailed",
+ "style": "living",
+ "frame0_mean": 0.53,
+ "frame0_local_pct": 0.0,
+ "seam": 1,
+ "step": 3,
+ "mp4_kb": 1162,
+ "jpg_kb": 149,
+ "seconds": 124.0,
+ "pass": true
+}
