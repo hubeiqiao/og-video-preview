@@ -321,7 +321,8 @@ function build() {
   const cand = C.layers.filter(l => l.kind !== 'headline' && l.box[3] < 60 && l.box[2] < 300);
   const rows = {};
   cand.forEach(l => { const k = Math.round((l.box[1] + l.box[3] / 2) / 40); rows[k] = (rows[k] || 0) + 1; });
-  const wall = cand.length >= 8 && Object.values(rows).filter(n => n >= 3).length >= 2 ? new Set(cand) : null;
+  // (a screenshot's icons are not a wall of logos: a band of light over it lit the plate's refills into view)
+  const wall = !C.busy && cand.length >= 8 && Object.values(rows).filter(n => n >= 3).length >= 2 ? new Set(cand) : null;
   if (wall) {
     const bs = [...wall].map(l => l.box);
     WALL = [Math.min(...bs.map(b => b[0])) - 40, Math.min(...bs.map(b => b[1])) - 30,
@@ -402,16 +403,18 @@ function build() {
     L.turn = L.wall ? null : ['logo', 'icon'].includes(L.kind) ? l.turn || (L.small && marksN > 3 && FX.mark !== 'wobble' ? 'pop' : FX.mark) : null;
     // only a round or square mark turns all the way (a coin, a badge); a wide one (a cloud, a wordmark) turned over
     // reads as a mistake, so it pops instead
-    if ((C.busy && L.small && !l.role) || (L.settle && !l.role)) L.turn = null;  // an icon in a screenshot's toolbar, or a thing in a photo, does not perform
+    if ((C.busy && !l.role) || (L.settle && !l.role)) L.turn = null;  // an icon in a screenshot's toolbar, or a thing in a photo, does not perform
     if (!l.turn && (L.turn === 'spin' || L.turn === 'flip' || L.turn === 'wobble') && (l.wordmark || w / h > 1.35 || h / w > 1.35)) L.turn = 'pop';
     // light sweep through the element's own pixels
     const lightInk = l.ink ? lum(l.ink) > 165 : false;
     // white type with no accent colour cannot take a sweep: it stays plain
     if (L.fx === 'sheen' && L.kind === 'headline' && lightInk && !ACCENT) L.fx = null;
     // white type can only take a coloured sweep; without an accent colour it gets none
-    const broad = L.kind === 'panel' || area > 0.35;  // big surfaces take a glancing reflection
+    const broad = (L.kind === 'panel' || area > 0.35) && !L.settle;  // big surfaces that move take a glancing reflection
     // a picture that has to stay in place comes alive with light running through it instead
-    const picture = (L.settle && ['illustration', 'photo', 'panel'].includes(L.kind)) || l.role === 'medallion';
+    // only a relief the reading names takes light running through it: on anything else that holds still, a sweep
+    // clipped to its cut showed hard edges and dark blocks where the refill sat
+    const picture = l.role === 'medallion';
     if ((L.fx === 'sheen' || broad || picture || (L.tone && TEXT.has(L.kind))) && !(lightInk && !ACCENT && !broad && !picture)) {
       const s = document.createElement('div'); s.className = 'sheen';
       Object.assign(s.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', backgroundSize: '320% 100%' });
@@ -460,7 +463,7 @@ function build() {
       glyphMask(r, x, y); $('top').appendChild(r); L.ripple = r;
       L.rippleC = l.ink && lum(l.ink) > 150 ? '0,0,0' : '255,255,255';
     }
-    if (L.kind === 'avatar') {
+    if (L.kind === 'avatar' && l.role === 'avatar') {  // a ring only where the reading asks for one: added, it reached past the card's edge
       const r = document.createElement('div'); r.className = 'ring';
       Object.assign(r.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', border: `3px solid rgba(${ACCENT || '255,255,255'},0.9)` });
       $('fx').appendChild(r); L.ring = r;
@@ -683,6 +686,7 @@ function exit(l, v, k = 0) {
 function idle(l, t, living) {
   if (l.carries && !l.flow) return {};
   if (C.busy && !l.role && !TEXT.has(l.kind)) return {};  // on a screenshot every part keeps its place, or the rows misalign
+  if (l.settle && !l.role && !l.flow) return {};  // what cannot leave cleanly cannot drift either: its rim would show
   if (l.role === 'medallion') return { s: 1 + 0.03 * ENERGY.idle * env(t) };  // a relief only leans in; the light does the rest
   if (l.flow) return float(l, t);
   if (l.wall) { const b = bump(t, 0.9 + 1.1 * l.wallD, 0.5); return { s: 1 + 0.08 * ENERGY.dist * b, y: -3 * b }; }

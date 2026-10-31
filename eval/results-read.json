@@ -13,9 +13,9 @@
   "frame0_local_pct": 0.0,
   "seam": 1,
   "step": 3,
-  "mp4_kb": 1142,
+  "mp4_kb": 1160,
   "jpg_kb": 149,
-  "seconds": 116.4,
+  "seconds": 118.4,
   "pass": true
  },
  {
@@ -27,13 +27,13 @@
   },
   "background": "detailed",
   "style": "living",
-  "frame0_mean": 0.359,
+  "frame0_mean": 0.358,
   "frame0_local_pct": 0.0,
-  "seam": 1,
+  "seam": 0,
   "step": 1,
-  "mp4_kb": 995,
+  "mp4_kb": 996,
   "jpg_kb": 149,
-  "seconds": 149.1,
+  "seconds": 151.9,
   "pass": true
  },
  {
@@ -51,7 +51,7 @@
   "step": 0,
   "mp4_kb": 351,
   "jpg_kb": 51,
-  "seconds": 40.7,
+  "seconds": 40.1,
   "pass": true
  },
  {
@@ -70,9 +70,9 @@
   "frame0_local_pct": 0.0,
   "seam": 0,
   "step": 3,
-  "mp4_kb": 688,
+  "mp4_kb": 696,
   "jpg_kb": 95,
-  "seconds": 87.5,
+  "seconds": 87.7,
   "pass": true
  },
  {
@@ -87,7 +87,7 @@
   "step": 243,
   "mp4_kb": 736,
   "jpg_kb": 82,
-  "seconds": 70.4,
+  "seconds": 75.4,
   "pass": true
  },
  {
@@ -104,17 +104,17 @@
   "step": 2,
   "mp4_kb": 706,
   "jpg_kb": 93,
-  "seconds": 114.5,
+  "seconds": 112.9,
   "pass": true
  },
  {
   "name": "openai-read",
   "layers": 18,
   "kinds": {
-   "shape": 2,
+   "shape": 3,
    "icon": 4,
    "headline": 2,
-   "illustration": 6,
+   "illustration": 5,
    "logo": 1,
    "stroke": 3
   },
@@ -122,11 +122,11 @@
   "style": "rebuild",
   "frame0_mean": 0.457,
   "frame0_local_pct": 0.0,
-  "seam": 133,
-  "step": 137,
-  "mp4_kb": 739,
+  "seam": 89,
+  "step": 90,
+  "mp4_kb": 703,
   "jpg_kb": 122,
-  "seconds": 62.2,
+  "seconds": 62.9,
   "pass": true
  },
  {
@@ -138,13 +138,13 @@
   },
   "background": "graded",
   "style": "living",
-  "frame0_mean": 0.368,
+  "frame0_mean": 0.369,
   "frame0_local_pct": 0.0,
   "seam": 1,
   "step": 2,
-  "mp4_kb": 893,
+  "mp4_kb": 883,
   "jpg_kb": 91,
-  "seconds": 54.5,
+  "seconds": 54.6,
   "pass": true
  },
  {
@@ -160,9 +160,9 @@
   "frame0_local_pct": 0.0,
   "seam": 237,
   "step": 234,
-  "mp4_kb": 739,
+  "mp4_kb": 738,
   "jpg_kb": 87,
-  "seconds": 57.3,
+  "seconds": 56.5,
   "pass": true
  }
 ]

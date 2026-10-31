@@ -260,9 +260,24 @@ def main():
             if smear or (grain > 1.2 and smooth < 0.4 * grain) or busy > 26 or lines_ > 0.05 or step_ > 10:
                 L["settle"] = True
                 poor.append(f"{lid} ({'smeared refill, ' if smear else ''}grain {grain:.1f} vs {smooth:.1f}, spread {busy:.0f})")
+        # what lies on something that stays (a heading in an app window that holds still) stays with it: leaving, it
+        # would expose the window under it, and the window cannot follow
+        holders = [L for L in cfg["layers"] if L.get("settle") and L.get("kind") not in ("headline", "text", "label")]
+        for L in cfg["layers"]:
+            if L.get("settle") or L.get("role"):
+                continue
+            lx, ly, lw, lh = L["box"]
+            cx_, cy_ = lx + lw / 2, ly + lh / 2
+            def over(M):  # its centre on it, or a tenth of it over it (a word running onto a window)
+                mx, my, mw, mh = M["box"]
+                ov = max(0, min(lx + lw, mx + mw) - max(lx, mx)) * max(0, min(ly + lh, my + mh) - max(ly, my))
+                return (mx <= cx_ <= mx + mw and my <= cy_ <= my + mh and mw * mh > lw * lh) or ov > 0.1 * lw * lh
+            if any(M is not L and over(M) for M in holders):
+                L["settle"] = True
+                poor.append(f"{L.get('id')} (on something that stays)")
         # type is one block: if one line has to stay, they all do (half a paragraph leaving reads as broken)
         TEXTISH = {"headline", "text", "label"}
-        if any(by_id[p_.split(" ")[0]].get("kind") in TEXTISH for p_ in poor):
+        if any(by_id.get(p_.split(" ")[0], {}).get("kind") in TEXTISH for p_ in poor):
             for L in cfg["layers"]:
                 if L.get("kind") in TEXTISH and not L.get("role") and not L.get("settle"):
                     L["settle"] = True

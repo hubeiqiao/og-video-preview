@@ -1,11 +1,10 @@
 {
  "name": "figma",
- "layers": 7,
+ "layers": 5,
  "kinds": {
   "headline": 3,
-  "stroke": 1,
   "illustration": 1,
-  "icon": 2
+  "icon": 1
  },
  "background": "flat",
  "style": "rebuild",
@@ -13,7 +12,7 @@
  "frame0_local_pct": 0.0,
  "seam": 1,
  "step": 2,
- "mp4_kb": 364,
+ "mp4_kb": 200,
  "jpg_kb": 61,
  "seconds": 68.9,
  "pass": true

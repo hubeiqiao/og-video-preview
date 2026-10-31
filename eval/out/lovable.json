@@ -1,17 +1,15 @@
 {
  "name": "lovable",
- "layers": 1,
- "kinds": {
-  "illustration": 1
- },
+ "layers": 0,
+ "kinds": {},
  "background": "detailed",
  "style": "living",
  "frame0_mean": 0.313,
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
- "mp4_kb": 636,
+ "mp4_kb": 736,
  "jpg_kb": 93,
- "seconds": 113.8,
+ "seconds": 114.0,
  "pass": true
 }

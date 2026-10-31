@@ -1,8 +1,8 @@
 {
  "name": "railway",
- "layers": 16,
+ "layers": 15,
  "kinds": {
-  "icon": 5,
+  "icon": 4,
   "label": 4,
   "text": 1,
   "logo": 1,
@@ -15,8 +15,8 @@
  "frame0_local_pct": 0.0,
  "seam": 1,
  "step": 2,
- "mp4_kb": 223,
+ "mp4_kb": 158,
  "jpg_kb": 52,
- "seconds": 49.3,
+ "seconds": 49.2,
  "pass": true
 }

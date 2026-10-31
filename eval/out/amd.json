@@ -1,9 +1,8 @@
 {
  "name": "amd",
- "layers": 9,
+ "layers": 10,
  "kinds": {
-  "label": 7,
-  "stroke": 2
+  "label": 10
  },
  "background": "detailed",
  "style": "living",
@@ -11,8 +10,8 @@
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
- "mp4_kb": 1033,
+ "mp4_kb": 1031,
  "jpg_kb": 117,
- "seconds": 123.2,
+ "seconds": 120.0,
  "pass": true
 }

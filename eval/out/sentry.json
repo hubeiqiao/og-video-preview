@@ -1,12 +1,11 @@
 {
  "name": "sentry",
- "layers": 10,
+ "layers": 8,
  "kinds": {
   "label": 3,
-  "icon": 1,
-  "illustration": 2,
-  "stroke": 3,
-  "logo": 1
+  "stroke": 2,
+  "logo": 1,
+  "illustration": 2
  },
  "background": "detailed",
  "style": "living",
@@ -14,8 +13,8 @@
  "frame0_local_pct": 0.0,
  "seam": 1,
  "step": 2,
- "mp4_kb": 626,
+ "mp4_kb": 627,
  "jpg_kb": 86,
- "seconds": 83.1,
+ "seconds": 82.2,
  "pass": true
 }

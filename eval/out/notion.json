@@ -1,11 +1,11 @@
 {
  "name": "notion",
- "layers": 9,
+ "layers": 8,
  "kinds": {
   "logo": 1,
   "headline": 2,
   "illustration": 2,
-  "stroke": 2,
+  "stroke": 1,
   "icon": 1,
   "label": 1
  },
@@ -15,8 +15,8 @@
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 3,
- "mp4_kb": 401,
+ "mp4_kb": 407,
  "jpg_kb": 72,
- "seconds": 40.9,
+ "seconds": 40.5,
  "pass": true
 }

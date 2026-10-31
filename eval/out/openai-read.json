@@ -2,10 +2,10 @@
  "name": "openai-read",
  "layers": 18,
  "kinds": {
-  "shape": 2,
+  "shape": 3,
   "icon": 4,
   "headline": 2,
-  "illustration": 6,
+  "illustration": 5,
   "logo": 1,
   "stroke": 3
  },
@@ -13,10 +13,10 @@
  "style": "rebuild",
  "frame0_mean": 0.457,
  "frame0_local_pct": 0.0,
- "seam": 133,
- "step": 137,
- "mp4_kb": 739,
+ "seam": 89,
+ "step": 90,
+ "mp4_kb": 703,
  "jpg_kb": 122,
- "seconds": 62.2,
+ "seconds": 62.9,
  "pass": true
 }

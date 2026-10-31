@@ -38,7 +38,7 @@ Each unit is a box in card pixels and a role. Everything the reading found insid
 |---|---|---|
 | `window`, `panel` | an app window, a card in a collage, a screenshot | whole, its full rectangle; leaves and comes back in one piece. A box drawn by eye usually stops inside the window's border: it grows out to where the card is plain again, so the border and drop shadow leave with it |
 | `button` | a call to action: a pill or a box with words in it | a pointer glides in, hovers, clicks; the button presses and a ripple spreads inside it |
-| `scribble` | a brush stroke, a hand-drawn line or arrow | draws itself at a pen's pace; `dir` gives the way (`[1, 0]` left to right, `[0, -1]` upward); `ink` (a hex colour) takes only that colour from the box |
+| `scribble` | a brush stroke, a hand-drawn line or arrow | draws itself at a pen's pace; `dir` gives the way (`[1, 0]` left to right, `[0, -1]` upward); `ink` (a hex colour) takes only that colour from the box, `tol` how far from it (120 by default; more for an anti-aliased end over another colour) |
 | `medallion` | a coin, a relief, a seal | leans in slowly while light glides across it |
 | `float` | a sticker, a balloon, a print in a scattered collage | never leaves: drifts on its own path all through the loop (a little sideways, up and down, a slight turn and 3D tilt); `"cut": "rect"` takes the whole box (a photo tile) instead of its foreground, for tiles that stand apart: tiles that overlap leave seams of each other in the plate |
 | `typing` | the text in a prompt box, a search field, a chat input | deleted a letter at a time, a caret blinking, then typed again; whole at both ends of the loop. Box the text and its caret; `caret` sets the caret's colour. The input's own fill goes behind it |
@@ -125,7 +125,7 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 | wordmark | unfurls out of its logo, left to right | | | sweep |
 | `pill` | pops on the spring curve (overshoot) | shrinks | a small pulse (living) | a sweep, or a light circling it |
 | `icon` | springs up from 30 % with a small turn | shrinks | bob and tilt | the same turn as the card's logo; in a crowd of more than three, small icons only pop in turn |
-| `avatar` | springs up from 50 % with a turn | shrinks and turns | float | ring ripple |
+| `avatar` | springs up from 50 % with a turn | shrinks and turns | float | |
 | `photo` | opens from the middle (clip) while settling from 110 % | fade, slight shrink | slow push-in and drift | |
 | `panel` | lifts 42 px with a scale from 94 % and a clearing blur | fade, drop | float | glancing reflection |
 | `illustration` | rises with a squash on landing | fade, drop | sway and bob | |
@@ -151,8 +151,9 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 - Letter shapes on one baseline, same colour and letter-spaced, are one wordmark; strokes of one colour packed together (IBM's stripes) are one mark, and a long one only moves whole, never turns. A piece whose own colour runs on beside it into ink that nothing moves (the "li" of a wordmark whose other letters stayed) stays too.
 - A crowd of four or more small, line-like pieces close together (labels, toolbar icons, lines of code) is a screenshot: it stays whole in the plate with everything inside it, type included, and the card lives in place (`busy`): no part of it moves, the camera breathes and the type takes its light. A wall of logos (one size, in rows) or a field of dots is not a screenshot. Name a window in the reading to move it.
 - Faint colourless scenery behind everything (the islands of a map, a watermark) is background: it stays in the plate.
+- A thing inside another thing (the 7 on a calendar, a symbol on a badge) moves with it; a part just outside a scene that stays in the plate (an owl's foot) stays with it; what lies on something that holds still, or runs onto it (a heading in an app window, a word over a window), holds still too, and so does that thing: it does not drift, turn or take a light. A screenshot's icons are never a wall of logos.
 - An element leaves only when at least 90 % of what lies just around it is the card's plain background and its refill would not show: refilled from the background, not smeared from its neighbours; no grain, picture, grid lines or colour step at the edge; and the card's background model and the surroundings' own refill agree there. Otherwise it moves in place; if one line of type has to, all of them do. On a flat surface of its own (type on a notepad) the hole takes that surface's colour.
-- A lone mark is never cut into sliding bands, logos never warp, no stars or rings are added beside type or marks, and no beam of light crosses the card.
+- A lone mark is never cut into sliding bands, logos never warp, no stars or rings are added beside type, marks or avatars, no beam of light crosses the card, and no light sweeps through something that holds still.
 - A texture warps only around the solid things left in its plate (a button on a dot grid holds still), and a big flat graphic (a bolt) never warps.
 - When there are more elements than layers, what the reading named is kept first.
 

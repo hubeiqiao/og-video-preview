@@ -1,8 +1,7 @@
 {
  "name": "sequoiacap",
- "layers": 3,
+ "layers": 2,
  "kinds": {
-  "stroke": 1,
   "illustration": 1,
   "panel": 1
  },
@@ -11,9 +10,9 @@
  "frame0_mean": 0.641,
  "frame0_local_pct": 0.0,
  "seam": 1,
- "step": 3,
- "mp4_kb": 1449,
+ "step": 2,
+ "mp4_kb": 1732,
  "jpg_kb": 175,
- "seconds": 115.3,
+ "seconds": 116.2,
  "pass": true
 }

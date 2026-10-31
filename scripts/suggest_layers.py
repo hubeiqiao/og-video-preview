@@ -879,6 +879,54 @@ def main():
                 break
     texts = [L for L in layers if L["kind"] in TEXT_KINDS]
 
+    # a thing inside another thing (the 7 on a calendar, a symbol on a badge) is part of it
+    for P_ in sorted([L for L in layers if not L.get("role") and L["kind"] not in TEXT_KINDS], key=lambda L: L["box"][2] * L["box"][3]):
+        px, py, pw, ph = P_["box"]
+        host = next((M for M in layers if M is not P_ and not M.get("role") and M["kind"] not in TEXT_KINDS
+                     and M["box"][0] <= px and M["box"][1] <= py and px + pw <= M["box"][0] + M["box"][2] and py + ph <= M["box"][1] + M["box"][3]
+                     and M["box"][2] * M["box"][3] < 0.35 * W * H), None)
+        if host is not None:
+            host["own"] = ((host["own"] > 0) | (P_["own"] > 0)).astype(np.uint8)
+            host["f"] = features(img, host["own"], host["box"])
+            layers = [L for L in layers if L is not P_]
+            print(f"part: {P_['kind']} at {P_['box']} lies on {host['kind']} and moves with it")
+    # a part of a scene that stays in the plate (a foot just outside the owl's box) stays with it
+    for bx in [b for b in backdrops if len(b) > 4]:
+        x_, y_, w_, h_ = bx[:4]
+        keep_ = []
+        for L in layers:
+            lx, ly, lw, lh = L["box"]
+            gap = max(lx - (x_ + w_), x_ - (lx + lw), ly - (y_ + h_), y_ - (ly + lh))
+            if not L.get("role") and L["kind"] not in TEXT_KINDS and gap <= 16 and lw * lh < 0.05 * W * H:
+                print(f"part: {L['kind']} at {L['box']} belongs to the scene beside it and stays")
+                continue
+            keep_.append(L)
+        layers = keep_
+
+    # a part touching a larger thing is part of it (Duo's foot, the 7 on a calendar, a badge's rim): apart, it leaves
+    # on its own and the thing is missing a piece on the way
+    changed_ = True
+    while changed_:
+        changed_ = False
+        parts_ = sorted([L for L in layers if not L.get("role") and L["kind"] not in TEXT_KINDS], key=lambda L: (L["own"] > 0).sum())
+        for P_ in parts_:
+            near_ = cv2.dilate((P_["own"] > 0).astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+            for M in reversed(parts_):
+                if M is P_ or (M["own"] > 0).sum() <= (P_["own"] > 0).sum() or not (near_ & (M["own"] > 0)).any():
+                    continue
+                own = ((M["own"] > 0) | (P_["own"] > 0)).astype(np.uint8)
+                ys_, xs_ = np.nonzero(own)
+                box = [int(xs_.min()), int(ys_.min()), int(xs_.max() - xs_.min() + 1), int(ys_.max() - ys_.min() + 1)]
+                if box[2] * box[3] > 0.35 * W * H:
+                    continue
+                M.update({"own": own, "box": box, "f": features(img, own, box)})
+                layers = [L for L in layers if L is not P_]
+                print(f"part: {P_['kind']} at {P_['box']} touches {M['kind']} and moves with it")
+                changed_ = True
+                break
+            if changed_:
+                break
+
     # faint scenery behind everything (the grey islands of a map, a watermark): barely apart from the card, it is part
     # of the background. Cut out, it leaves a pale block where it was; it stays in the plate and moves with the camera
     faint_ = [L for L in layers if not L.get("role") and L["kind"] not in TEXT_KINDS and (L["own"] > 0).sum() > 200
@@ -1150,7 +1198,7 @@ def main():
                 take = fg_all[y:y + h, x:x + w]
                 if U.get("ink"):  # only its own colour: an orange scribble under a chair, beside coloured dots
                     ink = np.array([int(U["ink"][k:k + 2], 16) for k in (1, 3, 5)], np.float32)
-                    near = dist(img[y:y + h, x:x + w], ink) < 120
+                    near = dist(img[y:y + h, x:x + w], ink) < U.get("tol", 120)  # tol: how far from the ink colour (anti-aliased ends)
                     take = take & near
                     own[y:y + h, x:x + w] &= near
                 own[y:y + h, x:x + w] |= take  # what the reading missed inside it joins it

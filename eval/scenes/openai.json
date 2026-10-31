@@ -1,5 +1,5 @@
 {
- "note": "A sticker collage around the wordmark. Three marks are drawn by hand, so they draw themselves: the orange zigzag left to right, the green arrow upward, the blue zigzag downward. The chair sits on the orange scribble. The stickers on the right drift on their own paths: the pixel hand, the strawberry, the sun and the green frog.",
+ "note": "A sticker collage around the wordmark. Three marks are drawn by hand, so they draw themselves: the orange zigzag left to right, the green arrow upward, the blue zigzag downward. The chair sits on the orange scribble. The stickers on the right drift on their own paths: the strawberry, the sun and the green frog (the pixel hand lies over two dots, so it holds still).",
  "units": [
   {
    "box": [
@@ -17,7 +17,7 @@
     350,
     425,
     115,
-    125
+    135
    ],
    "role": "scribble",
    "ink": "#06b84a",
@@ -25,7 +25,8 @@
     0,
     -1
    ],
-   "note": "the green arrow, drawn upward"
+   "note": "the green arrow, drawn upward",
+   "tol": 170
   },
   {
    "box": [
@@ -59,20 +60,9 @@
   },
   {
    "box": [
-    660,
+    930,
     465,
-    240,
-    125
-   ],
-   "role": "float",
-   "ink": "#000000",
-   "note": "the pixel-art hand"
-  },
-  {
-   "box": [
-    935,
-    465,
-    150,
+    140,
     165
    ],
    "role": "float",

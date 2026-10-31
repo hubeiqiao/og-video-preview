@@ -7,12 +7,12 @@
  },
  "background": "graded",
  "style": "living",
- "frame0_mean": 0.368,
+ "frame0_mean": 0.369,
  "frame0_local_pct": 0.0,
  "seam": 1,
  "step": 2,
- "mp4_kb": 893,
+ "mp4_kb": 883,
  "jpg_kb": 91,
- "seconds": 54.5,
+ "seconds": 54.6,
  "pass": true
 }
