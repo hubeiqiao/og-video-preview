@@ -14,6 +14,10 @@ An open-source agent skill for Claude Code, OpenAI Codex, Cursor and every agent
 
 ![On the left a still og:image, on the right the og:video the skill made from that same image, playing](social/hero.gif)
 
+The og:images of nine well-known sites, each turned into an og:video by the skill with no hand tuning:
+
+![The og:videos the skill made from the og:images of ycombinator.com, x.ai, shopify.com, stripe.com, openai.com, notion.com, slack.com, pitch.com and elevenlabs.io, playing together](social/showcase.gif)
+
 </div>
 
 ## Overview

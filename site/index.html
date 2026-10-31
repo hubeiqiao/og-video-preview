@@ -142,7 +142,8 @@ section { padding-top: clamp(96px, 12vw, 160px); }
 /* the eval cards: light tile videos play by themselves while on screen; a click opens the full one */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: clamp(10px, 1.2vw, 16px); }
 .tile { text-align: left; }
-#jsgrid .tile span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mosaic .media { aspect-ratio: 1956 / 780; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+.mosaic video { width: 100%; height: 100%; display: block; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .tile .media { aspect-ratio: 1200 / 630; border-radius: 10px; box-shadow: 0 0 0 0.5px oklch(1 0 0 / 0.06), 0 6px 18px oklch(0 0 0 / 0.25); transition: transform 240ms var(--ease); }
 .tile:hover .media { transform: translateY(-2px); }
@@ -157,7 +158,14 @@ dialog .nav { display: flex; gap: 8px; }
 dialog .media { aspect-ratio: 1200 / 630; }
 
 /* questions: numbered, one line each; the answer slides open under its question and focuses in */
-.qa { max-width: 860px; counter-reset: q; }
+.qa { counter-reset: q; }
+/* two columns on wide screens: the heading stays in view on the left while the questions fill the right */
+@media (min-width: 900px) {
+  .faq { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr); gap: clamp(32px, 5vw, 88px); align-items: start; }
+  .faq .head { position: sticky; top: 48px; margin-bottom: 0; }
+}
+.faq .sub a { color: var(--amber); text-decoration: none; }
+.faq .sub a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .qa details { counter-increment: q; position: relative; border-top: 1px solid oklch(1 0 0 / 0.08); interpolate-size: allow-keywords; }
 .qa details:last-child { border-bottom: 1px solid oklch(1 0 0 / 0.08); }
 .qa summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 20px; padding: 22px 0;
@@ -264,9 +272,10 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
   <section id="cards">
     <div class="head">
       <h2>One site, <span class="amber nw">every card.</span></h2>
-      <p class="sub">joespeaking.com · {{JS_CARDS}} og:videos, one for every social card in five languages, all made with this skill</p>
+      <p class="sub">joespeaking.com · 74 og:videos, one for every social card in five languages, all made with this skill</p>
     </div>
-    <div id="jsgrid"><!-- js-grid --></div>
+    <figure class="mosaic"><div class="media"><video class="auto" muted loop playsinline preload="none" poster="media/joespeaking-cards.webp"
+      data-src="media/joespeaking-cards.mp4" aria-label="Twelve of joespeaking.com's social cards, each playing its og:video"></video></div></figure>
   </section>
 
   <section id="eval">
@@ -278,7 +287,8 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
   </section>
 
   <section class="faq" id="faq">
-    <div class="head"><h2>Questions</h2></div>
+    <div class="head"><h2>Questions</h2>
+      <p class="sub">Still have one? <a href="https://github.com/hubeiqiao/og-video-preview/issues" target="_blank" rel="noopener">Ask on GitHub ↗</a></p></div>
     <div class="qa"><!-- faq --></div>
   </section>
 
@@ -476,21 +486,6 @@ tiles.map(b => [Math.random(), b]).sort((a, b) => a[0] - b[0]).forEach(([, b]) =
   }
   grid.appendChild(b);
   tileImages.observe(b.querySelector('img'));
-});
-
-// Joe Speaking's cards: the same tiles, playing their own og:video under the pointer
-document.querySelectorAll('#jsgrid .tile').forEach(b => {
-  tileImages.observe(b.querySelector('img'));
-  if (!hover || still) return;
-  b.addEventListener('pointerenter', () => {
-    if (!tileVideo) { tileVideo = document.createElement('video'); tileVideo.muted = true; tileVideo.loop = true; tileVideo.playsInline = true; tileVideo.setAttribute('aria-hidden', 'true'); tileVideo.style.cssText = 'position:absolute;inset:0'; }
-    tileVideo.pause(); tileVideo.src = b.dataset.tile;
-    b.querySelector('.media').appendChild(tileVideo); tileVideo.play().catch(() => {});
-  });
-  b.addEventListener('pointerleave', () => {
-    if (!tileVideo || !b.contains(tileVideo)) return;
-    tileVideo.pause(); tileVideo.removeAttribute('src'); tileVideo.load(); tileVideo.remove();
-  });
 });
 
 // the viewer

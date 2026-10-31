@@ -61,13 +61,6 @@ def main():
     page = (ROOT / 'site/index.html').read_text().replace('{{BASE}}', BASE)
     page = page.replace('<!-- faq -->', faq_html)
     page = page.replace('<!-- eval-grid -->', '<div class="grid">' + '\n'.join(tiles) + '</div>')
-    # Joe Speaking's og:videos, one tile per social card (tools/joespeaking_cards.sh)
-    cards = json.loads((ROOT / 'site/media/js-cards.json').read_text())
-    page = page.replace('{{JS_CARDS}}', str(len(cards)))
-    page = page.replace('<!-- js-grid -->', '<div class="grid">' + '\n'.join(
-        f'<div class="tile" title="{html.escape(n, quote=True)}" data-tile="media/js-cards/{html.escape(n, quote=True)}.mp4"><div class="media">'
-        f'<img data-src="media/js-cards/{html.escape(n, quote=True)}.webp" alt="" width="1200" height="630" loading="lazy" decoding="async"></div>'
-        f'<span>{html.escape(n)}</span></div>' for n in cards) + '</div>')
     page = page.replace('Real sites. <span', f'{len(names)} real sites. <span')
     page = page.replace("Each card made by the skill from the site's own og:image.", stats)
     graph = {'@context': 'https://schema.org', '@graph': [

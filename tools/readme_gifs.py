@@ -2,6 +2,7 @@
 """The README's before-and-after GIFs: the approved og:image on the left, the og:video the skill made on the right.
 
   social/hero.gif           this project's own og:video (a still in, a video out), for the top of the README
+  social/showcase.gif       nine famous sites' og:videos playing at once, right under it
   social/pairs/<name>.gif   one card per GIF, for Examples
   social/eval-pairs.gif     six eval cards in one grid, for Evaluation
 
@@ -24,6 +25,23 @@ EXAMPLES = [(n, f"eval/out/{n}.jpg", f"eval/out/{n}.mp4", d) for n, d in [  # na
     ("ycombinator", "ycombinator.com"), ("x", "x.ai"), ("shopify", "shopify.com"),
     ("slack", "slack.com"), ("pitch", "pitch.com"), ("notion", "notion.com")]]
 EVAL = ["openai", "stripe", "cal", "github", "raycast", "cloudflare"]
+SHOWCASE = ["ycombinator", "x", "shopify", "stripe", "openai", "notion", "slack", "pitch", "elevenlabs"]
+
+
+def showcase(out):
+    """The og:videos the skill made for nine famous sites, playing together in a 3 x 3 grid."""
+    cw, ch, g = 400, 210, 12
+    args, chain = [], ""
+    for k, n in enumerate(SHOWCASE):
+        args += ["-i", os.path.join(ROOT, "eval", "out", n + ".mp4")]
+        chain += f"[{k}:v]fps=15,scale={cw}:{ch}:flags=lanczos,setsar=1[v{k}];"
+    layout = "|".join(f"{(k % 3) * (cw + g)}_{(k // 3) * (ch + g)}" for k in range(len(SHOWCASE)))
+    clip_ = os.path.join(WORK, "showcase.mp4")
+    os.makedirs(WORK, exist_ok=True)
+    subprocess.run(["ffmpeg", "-v", "error", "-y", *args, "-filter_complex",
+                    chain + "".join(f"[v{k}]" for k in range(len(SHOWCASE))) + f"xstack=inputs={len(SHOWCASE)}:layout={layout}:fill=0x0f0d0b[g]",
+                    "-map", "[g]", "-t", "4", "-c:v", "libx264", "-crf", "12", "-pix_fmt", "yuv444p", clip_], check=True)
+    gif([clip_], out, width=880)
 
 PAGE = """<!doctype html><html><head><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Fragment+Mono&display=block" rel="stylesheet">
@@ -125,6 +143,7 @@ def main():
         gif([clip(name, 24 * 2 + 360 * 2 + 56, 40 + ch + 40, body, [slot], 560)], os.path.join(ROOT, "social", "pairs", name + ".gif"))
     # the hero: the project's own og:video (site/og/build.sh), which says it all: a still in, a video out
     gif([os.path.join(ROOT, "site", "og", "out", "og.mp4")], os.path.join(ROOT, "social", "hero.gif"), width=880)
+    showcase(os.path.join(ROOT, "social", "showcase.gif"))
     # the eval grid: two pairs a row, three rows
     cw, gapx, x0, y0, rowh = 250, 60, 24, 44, 0
     parts, slots = [], []
