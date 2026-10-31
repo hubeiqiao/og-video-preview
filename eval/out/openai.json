@@ -1,20 +1,20 @@
 {
  "name": "openai",
- "layers": 17,
+ "layers": 15,
  "kinds": {
-  "shape": 5,
-  "icon": 8,
+  "shape": 4,
+  "icon": 7,
   "headline": 2,
   "illustration": 2
  },
  "background": "flat",
  "style": "rebuild",
- "frame0_mean": 0.452,
+ "frame0_mean": 0.45,
  "frame0_local_pct": 0.0,
  "seam": 1,
  "step": 2,
- "mp4_kb": 671,
+ "mp4_kb": 643,
  "jpg_kb": 122,
- "seconds": 66.6,
+ "seconds": 68.0,
  "pass": true
 }

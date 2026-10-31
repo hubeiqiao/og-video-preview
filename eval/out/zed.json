@@ -1,21 +1,22 @@
 {
  "name": "zed",
- "layers": 18,
+ "layers": 16,
  "kinds": {
-  "icon": 1,
+  "icon": 2,
+  "stroke": 4,
   "headline": 1,
-  "label": 3,
-  "illustration": 9,
-  "stroke": 4
+  "label": 2,
+  "illustration": 6,
+  "logo": 1
  },
  "background": "graded",
- "style": "rebuild",
- "frame0_mean": 0.379,
+ "style": "living",
+ "frame0_mean": 0.38,
  "frame0_local_pct": 0.0,
- "seam": 0,
- "step": 3,
- "mp4_kb": 836,
+ "seam": 1,
+ "step": 2,
+ "mp4_kb": 1285,
  "jpg_kb": 82,
- "seconds": 82.0,
+ "seconds": 79.9,
  "pass": true
 }

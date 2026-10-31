@@ -1,4 +1,21 @@
-{"note": "The 6 in its glowing ring, with the avatars and icons of a community all around it: the community orbits the mark.",
+{
+ "note": "The 6 in its glowing ring, with the avatars and icons of a community all around it: the community orbits the mark.",
  "units": [
-  {"box": [0, 0, 1200, 630], "role": "orbit", "center": [600, 315], "inner": 232, "deg": 24, "note": "everything outside the ring turns about it and back"}
- ]}
+  {
+   "box": [
+    0,
+    0,
+    1200,
+    630
+   ],
+   "role": "orbit",
+   "center": [
+    600,
+    315
+   ],
+   "inner": 232,
+   "deg": 9,
+   "note": "everything outside the ring turns about it together, a few degrees, and back"
+  }
+ ]
+}

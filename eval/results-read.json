@@ -11,11 +11,11 @@
   "style": "living",
   "frame0_mean": 0.53,
   "frame0_local_pct": 0.0,
-  "seam": 1,
+  "seam": 0,
   "step": 3,
   "mp4_kb": 1162,
   "jpg_kb": 149,
-  "seconds": 124.0,
+  "seconds": 115.7,
   "pass": true
  },
  {
@@ -30,10 +30,10 @@
   "frame0_mean": 0.358,
   "frame0_local_pct": 0.0,
   "seam": 0,
-  "step": 2,
-  "mp4_kb": 1119,
+  "step": 1,
+  "mp4_kb": 995,
   "jpg_kb": 149,
-  "seconds": 154.5,
+  "seconds": 150.5,
   "pass": true
  },
  {
@@ -49,9 +49,30 @@
   "frame0_local_pct": 0.011,
   "seam": 0,
   "step": 0,
-  "mp4_kb": 352,
+  "mp4_kb": 351,
   "jpg_kb": 51,
-  "seconds": 40.4,
+  "seconds": 40.2,
+  "pass": true
+ },
+ {
+  "name": "fly-read",
+  "layers": 10,
+  "kinds": {
+   "icon": 4,
+   "headline": 3,
+   "avatar": 1,
+   "text": 1,
+   "pill": 1
+  },
+  "background": "graded",
+  "style": "rebuild",
+  "frame0_mean": 0.374,
+  "frame0_local_pct": 0.0,
+  "seam": 0,
+  "step": 3,
+  "mp4_kb": 722,
+  "jpg_kb": 95,
+  "seconds": 86.8,
   "pass": true
  },
  {
@@ -62,51 +83,108 @@
   "style": "rebuild",
   "frame0_mean": 0.236,
   "frame0_local_pct": 0.0,
-  "seam": 239,
+  "seam": 240,
   "step": 243,
-  "mp4_kb": 796,
+  "mp4_kb": 736,
   "jpg_kb": 82,
-  "seconds": 72.4,
+  "seconds": 71.1,
+  "pass": true
+ },
+ {
+  "name": "lovable-read",
+  "layers": 1,
+  "kinds": {
+   "illustration": 1
+  },
+  "background": "detailed",
+  "style": "living",
+  "frame0_mean": 0.313,
+  "frame0_local_pct": 0.0,
+  "seam": 0,
+  "step": 2,
+  "mp4_kb": 706,
+  "jpg_kb": 93,
+  "seconds": 113.2,
+  "pass": true
+ },
+ {
+  "name": "netlify-read",
+  "layers": 16,
+  "kinds": {
+   "icon": 8,
+   "text": 1,
+   "illustration": 1,
+   "headline": 2,
+   "avatar": 3,
+   "shape": 1
+  },
+  "background": "graded",
+  "style": "rebuild",
+  "frame0_mean": 0.272,
+  "frame0_local_pct": 0.0,
+  "seam": 1,
+  "step": 3,
+  "mp4_kb": 528,
+  "jpg_kb": 60,
+  "seconds": 72.5,
   "pass": true
  },
  {
   "name": "openai-read",
-  "layers": 17,
+  "layers": 18,
   "kinds": {
-   "shape": 4,
-   "icon": 5,
+   "shape": 3,
+   "icon": 3,
    "headline": 2,
-   "illustration": 3,
+   "illustration": 7,
    "stroke": 3
   },
   "background": "flat",
   "style": "rebuild",
-  "frame0_mean": 0.455,
+  "frame0_mean": 0.457,
   "frame0_local_pct": 0.0,
-  "seam": 0,
-  "step": 2,
-  "mp4_kb": 676,
+  "seam": 158,
+  "step": 172,
+  "mp4_kb": 733,
   "jpg_kb": 122,
-  "seconds": 63.8,
+  "seconds": 61.2,
+  "pass": true
+ },
+ {
+  "name": "warp-read",
+  "layers": 14,
+  "kinds": {
+   "illustration": 10,
+   "icon": 2,
+   "shape": 2
+  },
+  "background": "flat",
+  "style": "rebuild",
+  "frame0_mean": 0.221,
+  "frame0_local_pct": 0.0,
+  "seam": 157,
+  "step": 173,
+  "mp4_kb": 465,
+  "jpg_kb": 65,
+  "seconds": 72.2,
   "pass": true
  },
  {
   "name": "webflow-read",
-  "layers": 9,
+  "layers": 8,
   "kinds": {
    "panel": 7,
-   "logo": 1,
-   "label": 1
+   "logo": 1
   },
   "background": "graded",
-  "style": "rebuild",
-  "frame0_mean": 0.368,
+  "style": "living",
+  "frame0_mean": 0.369,
   "frame0_local_pct": 0.0,
-  "seam": 0,
+  "seam": 1,
   "step": 2,
-  "mp4_kb": 1026,
+  "mp4_kb": 891,
   "jpg_kb": 91,
-  "seconds": 53.5,
+  "seconds": 55.1,
   "pass": true
  },
  {
@@ -122,9 +200,9 @@
   "frame0_local_pct": 0.0,
   "seam": 237,
   "step": 234,
-  "mp4_kb": 730,
+  "mp4_kb": 745,
   "jpg_kb": 87,
-  "seconds": 58.3,
+  "seconds": 57.8,
   "pass": true
  }
 ]

@@ -1,19 +1,17 @@
 {
  "name": "bvp",
- "layers": 3,
+ "layers": 1,
  "kinds": {
-  "stroke": 1,
-  "shape": 1,
   "icon": 1
  },
  "background": "detailed",
  "style": "living",
- "frame0_mean": 0.433,
+ "frame0_mean": 0.432,
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 1,
- "mp4_kb": 1128,
+ "mp4_kb": 1126,
  "jpg_kb": 143,
- "seconds": 146.4,
+ "seconds": 144.7,
  "pass": true
 }

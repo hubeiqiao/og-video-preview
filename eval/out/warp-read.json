@@ -1,0 +1,19 @@
+{
+ "name": "warp-read",
+ "layers": 14,
+ "kinds": {
+  "illustration": 10,
+  "icon": 2,
+  "shape": 2
+ },
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 0.221,
+ "frame0_local_pct": 0.0,
+ "seam": 157,
+ "step": 173,
+ "mp4_kb": 465,
+ "jpg_kb": 65,
+ "seconds": 72.2,
+ "pass": true
+}

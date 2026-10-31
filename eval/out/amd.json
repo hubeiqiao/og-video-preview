@@ -1,22 +1,19 @@
 {
  "name": "amd",
- "layers": 18,
+ "layers": 13,
  "kinds": {
-  "illustration": 2,
-  "label": 11,
-  "shape": 1,
-  "icon": 2,
-  "text": 1,
-  "stroke": 1
+  "label": 10,
+  "stroke": 2,
+  "text": 1
  },
  "background": "detailed",
  "style": "living",
- "frame0_mean": 0.413,
+ "frame0_mean": 0.412,
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
- "mp4_kb": 1053,
+ "mp4_kb": 1107,
  "jpg_kb": 117,
- "seconds": 121.3,
+ "seconds": 121.1,
  "pass": true
 }

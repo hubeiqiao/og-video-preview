@@ -1,5 +1,31 @@
-{"note": "The motto above two rows of company logos that run off both edges: a carousel. The rows slide in opposite directions.",
+{
+ "note": "The motto above two rows of company logos that run off both edges: a carousel. The rows slide in opposite directions. The logos sit 85.8 px apart, so what slides in at an edge is the next whole logo.",
  "units": [
-  {"box": [0, 466, 1200, 82], "role": "marquee", "dir": -1, "shift": 70, "note": "the upper row of logos"},
-  {"box": [0, 548, 1200, 82], "role": "marquee", "dir": 1, "shift": 70, "note": "the lower row of logos"}
- ]}
+  {
+   "box": [
+    0,
+    466,
+    1200,
+    82
+   ],
+   "role": "marquee",
+   "dir": -1,
+   "shift": 70,
+   "note": "the upper row of logos",
+   "pitch": 85.8
+  },
+  {
+   "box": [
+    0,
+    548,
+    1200,
+    82
+   ],
+   "role": "marquee",
+   "dir": 1,
+   "shift": 70,
+   "note": "the lower row of logos",
+   "pitch": 85.8
+  }
+ ]
+}

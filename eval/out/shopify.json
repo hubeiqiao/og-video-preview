@@ -1,9 +1,8 @@
 {
  "name": "shopify",
- "layers": 6,
+ "layers": 5,
  "kinds": {
   "headline": 1,
-  "stroke": 1,
   "icon": 4
  },
  "background": "flat",
@@ -12,8 +11,8 @@
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 11,
- "mp4_kb": 453,
+ "mp4_kb": 441,
  "jpg_kb": 77,
- "seconds": 69.0,
+ "seconds": 67.4,
  "pass": true
 }

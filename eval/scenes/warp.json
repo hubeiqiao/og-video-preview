@@ -1,0 +1,115 @@
+{
+ "note": "Ten pictures float in a loose ring around the Warp mark, like prints pinned in the air: each drifts on its own path, whole.",
+ "units": [
+  {
+   "box": [
+    328,
+    75,
+    190,
+    145
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "green study"
+  },
+  {
+   "box": [
+    503,
+    28,
+    193,
+    143
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "sky with clouds"
+  },
+  {
+   "box": [
+    168,
+    152,
+    193,
+    143
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "aurora rays"
+  },
+  {
+   "box": [
+    838,
+    152,
+    193,
+    145
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "blue swirl"
+  },
+  {
+   "box": [
+    168,
+    333,
+    193,
+    143
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "aurora curtain"
+  },
+  {
+   "box": [
+    838,
+    333,
+    193,
+    145
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "violet arc"
+  },
+  {
+   "box": [
+    979,
+    243,
+    193,
+    145
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "comets"
+  },
+  {
+   "box": [
+    682,
+    410,
+    190,
+    143
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "grey storm"
+  },
+  {
+   "box": [
+    503,
+    458,
+    193,
+    140
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "blue streaks"
+  },
+  {
+   "box": [
+    30,
+    243,
+    190,
+    143
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "light fan"
+  }
+ ]
+}

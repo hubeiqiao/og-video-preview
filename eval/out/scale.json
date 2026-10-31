@@ -1,8 +1,7 @@
 {
  "name": "scale",
- "layers": 4,
+ "layers": 3,
  "kinds": {
-  "logo": 1,
   "headline": 1,
   "text": 2
  },
@@ -10,10 +9,10 @@
  "style": "rebuild",
  "frame0_mean": 0.178,
  "frame0_local_pct": 0.0,
- "seam": 0,
- "step": 1,
- "mp4_kb": 154,
+ "seam": 1,
+ "step": 3,
+ "mp4_kb": 317,
  "jpg_kb": 37,
- "seconds": 33.4,
+ "seconds": 33.7,
  "pass": true
 }

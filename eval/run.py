@@ -76,7 +76,7 @@ def one(card, keep, resume, scene=None):
     kinds = {}
     for L in cfg["layers"]:
         kinds[L["kind"]] = kinds.get(L["kind"], 0) + 1
-    style = cfg["style"] if cfg["style"] != "auto" else ("living" if cfg["background"] == "detailed" else "rebuild")
+    style = cfg["style"] if cfg["style"] != "auto" else ("living" if cfg["background"] == "detailed" or cfg.get("busy") else "rebuild")
     res = {
         "name": name, "layers": len(cfg["layers"]), "kinds": kinds, "background": cfg["background"], "style": style,
         "frame0_mean": round(mean, 3), "frame0_local_pct": round(local, 3), "seam": seam, "step": step,

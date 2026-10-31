@@ -42,8 +42,12 @@ KINDS = ["headline", "text", "label", "logo", "pill", "icon", "avatar", "photo",
          "panel", "illustration", "shape", "stroke"]
 TEXT_KINDS = {"headline", "text", "label"}
 # roles a reading of the card (--scene) can give: a unit that moves as one layer, or a region of the card that moves
-ROLE_KIND = {"window": "panel", "panel": "panel", "button": "pill", "scribble": "stroke", "medallion": "photo"}
+ROLE_KIND = {"window": "panel", "panel": "panel", "button": "pill", "scribble": "stroke", "medallion": "photo", "float": "illustration", "typing": "illustration"}
 REGION_ROLES = {"orbit", "marquee", "list", "shine"}
+# how much of what lies just around an element must be the card's plain background for the element to leave: anything
+# less (a faint grid, a map, a pattern, a neighbour's shadow) and its hole would show, so it moves in place instead.
+# 0.75 let grids and maps through; the frame-by-frame review found them all
+SETTLE_ON_BG = 0.9
 
 
 def load_card(path):
@@ -787,6 +791,187 @@ def main():
             texts = [L for L in layers if L["kind"] in TEXT_KINDS]
             print(f"texture: {len(pieces)} pieces of a fine line pattern stay in the plate and move as one surface")
 
+    # letters of a wordmark read as separate shapes (tldraw: t, l, d, ra, w): same colour, sitting on one baseline,
+    # letter-spaced. They are one word: cut apart, a letter leaves alone and the word reads "ldraw"
+    def tone_of(L):
+        return np.array(L["f"].get("tone_rgb", [0, 0, 0]), np.float32)
+    pieces_ = sorted([L for L in layers if not L.get("role") and L["kind"] in ("shape", "icon", "stroke", "illustration", "logo")
+                      and 12 <= L["box"][3] <= 0.5 * H], key=lambda L: L["box"][0])
+    used = set()
+    for L in pieces_:
+        if id(L) in used:
+            continue
+        run = [L]
+        for M in pieces_:
+            if id(M) in used or M in run or M["box"][0] < run[-1]["box"][0]:
+                continue
+            P = run[-1]
+            px, py, pw, ph = P["box"]; mx, my, mw, mh = M["box"]
+            hmax = max(ph, mh)
+            if abs((py + ph) - (my + mh)) < 0.12 * hmax and -0.05 * hmax < mx - (px + pw) < 0.35 * hmax \
+                    and float(dist(tone_of(P)[None, None], tone_of(M))[0, 0]) < 50:
+                run.append(M)
+        if len(run) >= 3:
+            used |= {id(X) for X in run}
+            own = np.zeros((H, W), np.uint8)
+            for X in run:
+                own |= (X["own"] > 0).astype(np.uint8)
+            ys_, xs_ = np.nonzero(own)
+            box = [int(xs_.min()), int(ys_.min()), int(xs_.max() - xs_.min() + 1), int(ys_.max() - ys_.min() + 1)]
+            N = {**run[0], "box": box, "own": own, "kind": "logo", "f": {**features(img, own, box), "wordmark": True},
+                 "why": f"a wordmark: {len(run)} letters on one baseline"}
+            layers = [N if X is run[0] else X for X in layers if not any(X is Y for Y in run[1:])]
+            print(f"wordmark: {len(run)} letter shapes at {box} move as one word")
+    # a mark built of separate strokes (IBM's stripes, a logo of bars): pieces of one colour packed close together are
+    # one mark; apart, its bars arrive one by one and the logo is unreadable on the way
+    while True:
+        cand_ = [L for L in layers if not L.get("role") and L["kind"] in ("shape", "icon", "stroke", "illustration", "logo", "pill")]
+        found = None
+        for L in cand_:
+            group_ = [L]
+            changed = True
+            while changed:
+                changed = False
+                for M in cand_:
+                    if M in group_:
+                        continue
+                    for G in group_:
+                        gx, gy, gw, gh = G["box"]; mx, my, mw, mh = M["box"]
+                        gap = max(mx - (gx + gw), gx - (mx + mw), my - (gy + gh), gy - (my + mh))
+                        # bars stacked one over another (overlapping across) may sit a bar's height apart; a row of pills
+                        # side by side is a row of tags, not a mark
+                        stacked = min(gx + gw, mx + mw) - max(gx, mx) > 0 and gap <= 0.8 * min(gh, mh)
+                        close = gap <= 10 and "pill" not in (G["kind"], M["kind"])
+                        if (stacked or close) and float(dist(tone_of(G)[None, None], tone_of(M))[0, 0]) < 30:
+                            group_.append(M); changed = True; break
+            if len(group_) >= 3:
+                found = group_
+                break
+        if not found:
+            break
+        own = np.zeros((H, W), np.uint8)
+        for X in found:
+            own |= (X["own"] > 0).astype(np.uint8)
+        ys_, xs_ = np.nonzero(own)
+        box = [int(xs_.min()), int(ys_.min()), int(xs_.max() - xs_.min() + 1), int(ys_.max() - ys_.min() + 1)]
+        if box[2] * box[3] > 0.5 * W * H:  # too big to be one mark: leave them as they are
+            break
+        # a compact one is a mark (it may turn); a long one (bars of a wordmark, a block of code) only moves whole
+        kind_ = "logo" if 0.6 < box[2] / box[3] < 1.6 else "illustration"
+        N = {**found[0], "box": box, "own": own, "kind": kind_, "f": features(img, own, box), "why": f"one mark: {len(found)} strokes of one colour packed together"}
+        layers = [N if X is found[0] else X for X in layers if not any(X is Y for Y in found[1:])]
+        print(f"mark: {len(found)} strokes at {box} move as one")
+
+    # faint scenery behind everything (the grey islands of a map, a watermark): barely apart from the card, it is part
+    # of the background. Cut out, it leaves a pale block where it was; it stays in the plate and moves with the camera
+    faint_ = [L for L in layers if not L.get("role") and L["kind"] not in TEXT_KINDS and (L["own"] > 0).sum() > 200
+              and L["f"].get("sat", 1) < 0.08 and np.median(dist(img[L["own"] > 0].astype(np.float32), B[L["own"] > 0].astype(np.float32))) < 110]
+    if faint_:
+        layers = [L for L in layers if L not in faint_]
+        print(f"scenery: {len(faint_)} faint shapes behind everything stay in the plate")
+
+    # a fragment of something that stays in the plate (the "li" of a wordmark whose other letters were not read): ink of
+    # its own colour runs on, letter-spaced, beside it and belongs to nothing. Cut out, it would leave the word in pieces
+    anyone_ = np.zeros((H, W), bool)
+    for L in layers:
+        anyone_ |= L["own"] > 0
+    keep = []
+    for L in layers:
+        x_, y_, w_, h_ = L["box"]
+        if L.get("role") or L["kind"] in TEXT_KINDS or h_ < 12 or L["box"][2] * h_ > 0.05 * W * H:
+            keep.append(L); continue
+        g_ = max(3, int(0.35 * h_))
+        band = slice(y_, y_ + h_)
+        side = [img[band, max(0, x_ - g_):x_], img[band, x_ + w_:min(W, x_ + w_ + g_)]]
+        free = [~anyone_[band, max(0, x_ - g_):x_], ~anyone_[band, x_ + w_:min(W, x_ + w_ + g_)]]
+        t_ = tone_of(L)
+        near_ink = sum(int(((dist(sd.astype(np.float32), t_) < 40) & fr).sum()) for sd, fr in zip(side, free) if sd.size)
+        if near_ink > 0.04 * 2 * g_ * h_:
+            print(f"fragment: {L['kind']} at {L['box']} is part of ink left in place; it stays too")
+            continue
+        keep.append(L)
+    layers = keep
+    texts = [L for L in layers if L["kind"] in TEXT_KINDS]
+
+    # the rest of a line that another element swallowed ("ideas" read as part of the window it overlaps): walk along
+    # the line from each end while the gaps stay word-sized, take the ink of the line's own colour, and give it back
+    for L in [X for X in layers if X["kind"] in ("headline", "text")]:
+        if not any(X is L for X in layers):
+            continue
+        lx, ly, lw, lh = L["box"]
+        # another line's type is never taken: two halves of one line are joined below, as a whole
+        typed_ = np.zeros((H, W), bool)
+        for X in layers:
+            if X is not L and X["kind"] in TEXT_KINDS:
+                typed_ |= X["own"] > 0
+        if lh < 14:
+            continue
+        cap = L.get("cap", lh) or lh
+        tone = np.array(L["f"]["tone_rgb"], np.float32)
+        near = (dist(img[ly:ly + lh].astype(np.float32), tone) < 40) & ~(L["own"][ly:ly + lh] > 0) & ~typed_[ly:ly + lh]
+        cols = near.sum(0) >= 2
+        take = np.zeros((H, W), bool)
+        for step, start in ((1, lx + lw), (-1, lx - 1)):
+            x_, last = start, None
+            while 0 <= x_ < W and abs(x_ - (last if last is not None else start - step)) < 1.3 * cap:
+                if cols[x_]:
+                    last = x_
+                x_ += step
+            if last is not None:
+                a_, b_ = sorted((start, last))
+                # only whole glyphs that sit inside the line's height: a mark beside it of the same colour and taller
+                # (a logo square, a mascot) is not cut in two along the line's edges
+                y0_, y1_ = max(0, ly - lh), min(H, ly + 2 * lh)
+                wide_near = (dist(img[y0_:y1_, a_:b_ + 1].astype(np.float32), tone) < 40) & ~(L["own"][y0_:y1_, a_:b_ + 1] > 0) & ~typed_[y0_:y1_, a_:b_ + 1]
+                n_, lab_, st_, _ = cv2.connectedComponentsWithStats(wide_near.astype(np.uint8))
+                seg = np.zeros_like(wide_near)
+                for j in range(1, n_):
+                    cy0, ch_ = st_[j][1] + y0_, st_[j][3]
+                    if cy0 >= ly - 0.2 * lh and cy0 + ch_ <= ly + 1.2 * lh:
+                        seg |= lab_ == j
+                if seg.any(1)[ly - y0_:ly - y0_ + lh].mean() > 0.5:  # tall like letters of this line, not a rule or a dot
+                    take[y0_:y1_, a_:b_ + 1] |= seg
+        if take.sum() > 0.02 * (L["own"] > 0).sum():
+            rim = cv2.dilate(take.astype(np.uint8), np.ones((7, 7), np.uint8)) > 0  # its soft edge comes back with it
+            for M in layers:
+                if M is not L and M["kind"] not in TEXT_KINDS:
+                    M["own"] = (M["own"] > 0) & ~rim
+                    M["own"] = M["own"].astype(np.uint8)
+            own = ((L["own"] > 0) | take).astype(np.uint8)
+            ys_, xs_ = np.nonzero(own)
+            box = [int(xs_.min()), int(ys_.min()), int(xs_.max() - xs_.min() + 1), int(ys_.max() - ys_.min() + 1)]
+            print(f"line {L['box']} takes back its ink beside it -> {box}")
+            L.update({"own": own, "box": box, "f": features(img, own, box)})
+    layers = [M for M in layers if M["own"].sum() > 20]
+    texts = [X for X in layers if X["kind"] in TEXT_KINDS]
+
+    # pieces of one line of type read as one line: the reading can split a line where a word gap is wide ("Push your" |
+    # "ideas"), and the two halves would then come and go apart, leaving half a sentence on screen
+    merged = True
+    while merged:
+        merged = False
+        for L in texts:
+            for M in texts:
+                if L is M or L not in layers or M not in layers:
+                    continue
+                lx, ly, lw, lh = L["box"]; mx, my, mw, mh = M["box"]
+                if mx < lx:
+                    continue
+                same_row = abs((ly + lh / 2) - (my + mh / 2)) < 0.3 * min(lh, mh) and max(lh, mh) < 1.4 * min(lh, mh)
+                gap = mx - (lx + lw)
+                if same_row and -0.2 * lh < gap < 1.3 * max(L.get("cap", lh), M.get("cap", mh)) and dist(np.array(L["f"]["tone_rgb"] if "tone_rgb" in L["f"] else [0, 0, 0]), np.array(M["f"]["tone_rgb"] if "tone_rgb" in M["f"] else [0, 0, 0])) < 60:
+                    own = ((L["own"] > 0) | (M["own"] > 0)).astype(np.uint8)
+                    box = [min(lx, mx), min(ly, my), max(lx + lw, mx + mw) - min(lx, mx), max(ly + lh, my + mh) - min(ly, my)]
+                    N = {**L, "box": box, "own": own, "f": features(img, own, box), "why": L["why"] + " + one line with its neighbour",
+                         "kind": max(L["kind"], M["kind"], key={"label": 0, "text": 1, "headline": 2}.get), "cap": max(L.get("cap", 0), M.get("cap", 0))}
+                    layers = [N if X is L else X for X in layers if X is not M]
+                    texts = [X for X in layers if X["kind"] in TEXT_KINDS]
+                    print(f"one line: {L['box']} + {M['box']}")
+                    merged = True
+                    break
+            if merged:
+                break
+
     # lines of one block read as one: a line between headline lines of the same size is headline too
     for _ in range(2):
         for L in texts:
@@ -810,6 +995,55 @@ def main():
                     top_kind = max(L["kind"], M["kind"], key=rank.get)
                     L["kind"] = M["kind"] = top_kind
 
+    # a screenshot of an app on the card (an editor, a calendar, a chat) reads as a crowd of small pieces close together:
+    # labels, toolbar icons, lines of code, thin rules. They are its content, not elements of their own: cut out one by one
+    # they leave the screenshot in fragments, with a smear wherever one was. So a crowd stays whole in the plate, and the
+    # card's larger elements and its camera carry the motion (a reading can still name the window and move it whole)
+    def crumb(L):
+        x_, y_, w_, h_ = L["box"]
+        if L.get("role") or (L["kind"] == "headline" and h_ >= 28):
+            return False
+        return w_ * h_ < 0.015 * W * H or min(w_, h_) < 22
+    small = [L for L in layers if crumb(L)]
+    group = {id(L): k for k, L in enumerate(small)}
+    def root(k):
+        while group[id(small[k])] != k:
+            k = group[id(small[k])]
+        return k
+    for p_, L in enumerate(small):
+        for q_, M in enumerate(small[:p_]):
+            lx, ly, lw, lh = L["box"]; mx, my, mw, mh = M["box"]
+            if max(mx - (lx + lw), lx - (mx + mw), my - (ly + lh), ly - (my + mh)) < 36:
+                group[id(small[root(p_)])] = root(q_)
+    crowds = {}
+    busy = False  # a screenshot of an app on the card
+    for k in range(len(small)):
+        crowds.setdefault(root(k), []).append(small[k])
+    for members in crowds.values():
+        hs_ = np.array([L["box"][3] for L in members], float)
+        if len(members) >= 8 and hs_.std() < 0.3 * hs_.mean():
+            continue  # a wall of logos (one size, in rows), not a screenshot: it keeps its own motion
+        if np.median([L["box"][2] / max(1, L["box"][3]) for L in members]) < 2:
+            continue  # a field of dots, avatars or lights: a screenshot is mostly lines of text and rules
+        if len(members) >= 4:
+            for _ in range(3):  # what else lies within the screenshot (a block of code, a sidebar) is its content too
+                xs = [L["box"][0] for L in members] + [L["box"][0] + L["box"][2] for L in members]
+                ys = [L["box"][1] for L in members] + [L["box"][1] + L["box"][3] for L in members]
+                hx0, hy0, hx1, hy1 = min(xs) - 24, min(ys) - 24, max(xs) + 24, max(ys) + 24
+                # type inside it too (a chat message, a block of code): it is the screenshot's, not the card's headline
+                def inside_(L):
+                    lx, ly, lw, lh = L["box"]
+                    ov = max(0, min(hx1, lx + lw) - max(hx0, lx)) * max(0, min(hy1, ly + lh) - max(hy0, ly))
+                    return ov > 0.8 * lw * lh
+                more = [L for L in layers if L not in members and not L.get("role") and inside_(L) and L["box"][2] * L["box"][3] < 0.15 * W * H]
+                if not more:
+                    break
+                members = members + more
+            layers = [L for L in layers if L not in members]
+            busy = True
+            print(f"crowd: {len(members)} small pieces of a screenshot at {[min(xs), min(ys), max(xs) - min(xs), max(ys) - min(ys)]} stay whole in the plate")
+    texts = [L for L in layers if L["kind"] in TEXT_KINDS]
+
     # the reading of the card, when there is one: each unit becomes one layer with its role (everything found inside
     # its box joins it, so a window never comes apart), or a region of the card that moves as a whole
     regions = []
@@ -818,8 +1052,30 @@ def main():
         for U in json.load(open(a.scene)).get("units", []):
             x, y, w, h = [int(v) for v in U["box"]]
             role = U["role"]
+            if role in {"window", "panel"} or U.get("cut") == "rect":
+                # a box read by eye stops a little inside the window: grow each side out to where the card is plain again,
+                # so the window's border and drop shadow leave with it instead of staying behind as a ghost
+                d_ = dist(img, B)
+                plain = lambda v: v.size == 0 or np.percentile(v, 90) < tol
+                for _ in range(32 if role in {"window", "panel"} else 10):  # a tile in a pile touches others: only its own rim
+                    grew = False
+                    if x > 0 and not plain(d_[y:y + h, x - 1]): x, w, grew = x - 1, w + 1, True
+                    if x + w < W and not plain(d_[y:y + h, x + w]): w, grew = w + 1, True
+                    if y > 0 and not plain(d_[y - 1, x:x + w]): y, h, grew = y - 1, h + 1, True
+                    if y + h < H and not plain(d_[y + h, x:x + w]): h, grew = h + 1, True
+                    if not grew:
+                        break
+                if [x, y, w, h] != [int(v) for v in U["box"]]:
+                    print(f"window {U['box']} grown to its edge {[x, y, w, h]}")
+                U = {**U, "box": [x, y, w, h]}
             # a unit the reading already made (a chair on a scribble) stays itself
-            inside = [L for L in layers if not L.get("role") and x <= L["box"][0] + L["box"][2] / 2 <= x + w and y <= L["box"][1] + L["box"][3] / 2 <= y + h]
+            def within(L):  # its centre is in the box, or (for a window) most of it is
+                lx, ly, lw, lh = L["box"]
+                if x <= lx + lw / 2 <= x + w and y <= ly + lh / 2 <= y + h:
+                    return True
+                ov = max(0, min(x + w, lx + lw) - max(x, lx)) * max(0, min(y + h, ly + lh) - max(y, ly))
+                return role in {"window", "panel"} and ov > 0.5 * lw * lh
+            inside = [L for L in layers if not L.get("role") and within(L)]
             if role in REGION_ROLES:  # it moves as a part of the card: what was read inside it stays in the plate
                 layers = [L for L in layers if L not in inside]
                 R = {k: v for k, v in U.items() if k != "note"}
@@ -871,8 +1127,8 @@ def main():
             own = np.zeros((H, W), bool)
             for L in inside:
                 own |= L["own"] > 0
-            if role in {"window", "panel"}:
-                own[y:y + h, x:x + w] = True  # a window is all of its rectangle
+            if role in {"window", "panel"} or U.get("cut") == "rect":
+                own[y:y + h, x:x + w] = True  # a window (or a tile the reading cuts whole) is all of its rectangle
             else:
                 take = fg_all[y:y + h, x:x + w]
                 if U.get("ink"):  # only its own colour: an orange scribble under a chair, beside coloured dots
@@ -912,7 +1168,8 @@ def main():
 
     # keep the biggest elements when there are too many; small leftovers stay in the plate
     if len(layers) > a.max:
-        layers.sort(key=lambda L: -(L["box"][2] * L["box"][3]) * (3 if L["kind"] in TEXT_KINDS else 1))
+        # what the reading named comes first: dropping it would leave its pixels in the plate as a ghost
+        layers.sort(key=lambda L: (not L.get("role"), -(L["box"][2] * L["box"][3]) * (3 if L["kind"] in TEXT_KINDS else 1)))
         layers = layers[:a.max]
 
     # reading order: rows top to bottom, left to right inside a row
@@ -954,7 +1211,7 @@ def main():
             on_bg = (dist(img[ring], B[ring]) < a.tol * 1.4).mean() if ring.sum() > 20 else 1
             if on_bg < 0.9:
                 item["boxed"] = True
-            if on_bg < 0.75 and not L.get("scene"):
+            if on_bg < SETTLE_ON_BG and not L.get("scene"):
                 item["settle"] = True  # type on a scribble or a picture: its hole would be a smear, so it stays
         else:
             # what lies just around its own pixels, where nothing else that leaves is: if that is not the plain
@@ -964,7 +1221,7 @@ def main():
             ring = near & ~(cv2.dilate(own.astype(np.uint8), np.ones((9, 9), np.uint8)) > 0) & ~anyone
             on_bg = (dist(img[ring], B[ring]) < a.tol * 1.4).mean() if ring.sum() > 20 else 1
             # a window the reading names leaves whole: its hole is plain card, even where it touches the edge or a neighbour
-            if (k in {"photo", "panel", "illustration", "avatar"} and w * h > 0.2 * W * H) or (on_bg < 0.75 and L.get("role") not in ("window", "panel")):
+            if (k in {"photo", "panel", "illustration", "avatar"} and w * h > 0.2 * W * H) or (on_bg < SETTLE_ON_BG and L.get("role") not in ("window", "panel")):
                 item["settle"] = True  # its hole could not be filled cleanly: it moves in place
         item["why"] = L["why"]
         if L.get("role"):  # from the reading (--scene): what this element is, and how it moves
@@ -974,6 +1231,11 @@ def main():
                 item["cut"] = "rect"
             elif L["role"] == "listline":
                 item["cut"] = "ink"
+            elif L["role"] == "typing":  # where each letter ends, so the text is typed a whole letter at a time
+                bx_ = img[y:y + h, x:x + w].astype(np.float32)
+                fill = np.median(np.concatenate([bx_[:2].reshape(-1, 3), bx_[-2:].reshape(-1, 3)]), 0)
+                ink_ = dist(bx_, fill) > 60  # the letters (and the caret), not the soft edge around them
+                item["stops"] = [int(p + q) for p, q in columns(ink_, 1)]
         out_layers.append(item)
 
     # each marked pixel belongs to exactly one layer: the element it was found in
@@ -983,12 +1245,28 @@ def main():
         L["mask"] = n
     Image.fromarray(owner).save(os.path.join(a.out, "cut-mask.png"))
 
+    still_boxes = []
+    if texture:
+        solid_ = (foreground(img, B, tol) > 0).astype(np.uint8)
+        for P_ in pieces:
+            solid_[P_["own"] > 0] = 0
+        for L in layers:
+            solid_[L["own"] > 0] = 0
+        solid_ = cv2.morphologyEx(solid_, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+        n_, _, st_, _ = cv2.connectedComponentsWithStats(cv2.dilate(solid_, np.ones((9, 9), np.uint8)))
+        still_boxes = [[int(v) for v in st_[j][:4]] for j in range(1, n_) if st_[j][4] > 900]
+        if still_boxes:
+            print(f"texture: {len(still_boxes)} solid parts left in the plate hold still while it moves")
     config = {
         "image": "card.jpg", "layerImage": "layers.png", "cuts": "cuts/", "glyphs": "glyphs.png",
         "width": W, "height": H, "loop": 4.0,
-        "style": a.style, "energy": a.energy, "cleanPlate": bool(a.plate), "sphere": list(sphere) if sphere else None, "regions": regions,
-        # a fine pattern, or a big flat graphic behind the type (a bolt, a band): the plate moves as one surface
-        "texture": texture or any(len(b) > 4 and b[4] == "graphic" and b[2] * b[3] > 0.45 * W * H for b in backdrops),
+        "style": a.style, "energy": a.energy,
+        # a busy card (a screenshot, a crowd of parts) lives in place: whatever left it would leave a hole among its parts
+        "busy": busy, "cleanPlate": bool(a.plate), "sphere": list(sphere) if sphere else None, "regions": regions,
+        # a fine pattern moves as one surface (a big flat graphic does not: warped, its straight edges go wavy)
+        "texture": texture,
+        # what solid stays in the plate beside a texture (a button, a mark): the warp fades to nothing around it
+        "still": still_boxes,
         "paper": "#%02x%02x%02x" % tuple(int(v) for v in mode_colour(np.concatenate([img[0], img[-1], img[:, 0], img[:, -1]]))[0]),
         # type on a large picture: refills behind it never look clean, so the card lives in place
         "background": "detailed" if any(len(b) > 4 and b[2] * b[3] > 0.45 * W * H for b in backdrops) else "flat" if flat else "graded",

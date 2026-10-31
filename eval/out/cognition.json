@@ -1,8 +1,8 @@
 {
  "name": "cognition",
- "layers": 8,
+ "layers": 7,
  "kinds": {
-  "stroke": 2,
+  "stroke": 1,
   "illustration": 3,
   "label": 1,
   "panel": 1,
@@ -14,8 +14,8 @@
  "frame0_local_pct": 0.0,
  "seam": 1,
  "step": 1,
- "mp4_kb": 501,
+ "mp4_kb": 491,
  "jpg_kb": 80,
- "seconds": 151.0,
+ "seconds": 124.2,
  "pass": true
 }

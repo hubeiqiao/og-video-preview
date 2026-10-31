@@ -1,19 +1,18 @@
 {
  "name": "webflow-read",
- "layers": 9,
+ "layers": 8,
  "kinds": {
   "panel": 7,
-  "logo": 1,
-  "label": 1
+  "logo": 1
  },
  "background": "graded",
- "style": "rebuild",
- "frame0_mean": 0.368,
+ "style": "living",
+ "frame0_mean": 0.369,
  "frame0_local_pct": 0.0,
- "seam": 0,
+ "seam": 1,
  "step": 2,
- "mp4_kb": 1026,
+ "mp4_kb": 891,
  "jpg_kb": 91,
- "seconds": 53.5,
+ "seconds": 55.1,
  "pass": true
 }

@@ -1,18 +1,17 @@
 {
  "name": "indexventures",
- "layers": 6,
+ "layers": 1,
  "kinds": {
-  "pill": 5,
   "illustration": 1
  },
  "background": "flat",
- "style": "rebuild",
+ "style": "living",
  "frame0_mean": 0.064,
  "frame0_local_pct": 0.0,
  "seam": 1,
  "step": 1,
- "mp4_kb": 53,
+ "mp4_kb": 15,
  "jpg_kb": 20,
- "seconds": 21.5,
+ "seconds": 20.5,
  "pass": true
 }

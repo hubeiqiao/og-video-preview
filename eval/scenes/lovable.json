@@ -1,0 +1,16 @@
+{
+ "note": "The Lovable prompt box: the prompt is typed into it, so it is deleted and typed again with a caret.",
+ "units": [
+  {
+   "box": [
+    146,
+    482,
+    356,
+    56
+   ],
+   "role": "typing",
+   "caret": "#4a6cf0",
+   "note": "Build something lovable, and its caret"
+  }
+ ]
+}

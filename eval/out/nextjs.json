@@ -10,9 +10,9 @@
  "frame0_mean": 0.049,
  "frame0_local_pct": 0.0,
  "seam": 46,
- "step": 46,
- "mp4_kb": 85,
+ "step": 45,
+ "mp4_kb": 44,
  "jpg_kb": 15,
- "seconds": 23.4,
+ "seconds": 20.9,
  "pass": true
 }

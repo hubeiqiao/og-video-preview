@@ -1,0 +1,21 @@
+{
+ "name": "fly-read",
+ "layers": 10,
+ "kinds": {
+  "icon": 4,
+  "headline": 3,
+  "avatar": 1,
+  "text": 1,
+  "pill": 1
+ },
+ "background": "graded",
+ "style": "rebuild",
+ "frame0_mean": 0.374,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 3,
+ "mp4_kb": 722,
+ "jpg_kb": 95,
+ "seconds": 86.8,
+ "pass": true
+}

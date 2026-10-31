@@ -1,21 +1,21 @@
 {
  "name": "framer",
- "layers": 16,
+ "layers": 11,
  "kinds": {
-  "stroke": 4,
-  "icon": 5,
+  "stroke": 3,
+  "icon": 3,
   "illustration": 3,
   "headline": 1,
-  "shape": 3
+  "shape": 1
  },
  "background": "detailed",
  "style": "living",
  "frame0_mean": 0.497,
  "frame0_local_pct": 0.0,
  "seam": 0,
- "step": 2,
- "mp4_kb": 893,
+ "step": 3,
+ "mp4_kb": 886,
  "jpg_kb": 151,
- "seconds": 116.5,
+ "seconds": 110.7,
  "pass": true
 }

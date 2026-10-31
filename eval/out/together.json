@@ -1,10 +1,9 @@
 {
  "name": "together",
- "layers": 7,
+ "layers": 4,
  "kinds": {
-  "shape": 2,
   "illustration": 1,
-  "label": 2,
+  "label": 1,
   "headline": 2
  },
  "background": "flat",
@@ -13,8 +12,8 @@
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 1,
- "mp4_kb": 199,
+ "mp4_kb": 208,
  "jpg_kb": 46,
- "seconds": 45.9,
+ "seconds": 44.6,
  "pass": true
 }

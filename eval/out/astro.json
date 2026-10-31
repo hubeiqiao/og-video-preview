@@ -1,9 +1,8 @@
 {
  "name": "astro",
- "layers": 13,
+ "layers": 12,
  "kinds": {
   "illustration": 8,
-  "logo": 1,
   "text": 1,
   "headline": 2,
   "pill": 1
@@ -13,9 +12,9 @@
  "frame0_mean": 0.397,
  "frame0_local_pct": 0.0,
  "seam": 0,
- "step": 3,
- "mp4_kb": 742,
+ "step": 2,
+ "mp4_kb": 717,
  "jpg_kb": 94,
- "seconds": 124.6,
+ "seconds": 128.5,
  "pass": true
 }

@@ -1,21 +1,20 @@
 {
  "name": "obsidian",
- "layers": 9,
+ "layers": 5,
  "kinds": {
-  "illustration": 2,
-  "stroke": 1,
+  "illustration": 1,
   "headline": 1,
-  "text": 2,
-  "label": 3
+  "text": 1,
+  "label": 2
  },
  "background": "flat",
  "style": "rebuild",
- "frame0_mean": 0.159,
+ "frame0_mean": 0.157,
  "frame0_local_pct": 0.0,
- "seam": 1,
- "step": 1,
- "mp4_kb": 188,
+ "seam": 0,
+ "step": 0,
+ "mp4_kb": 157,
  "jpg_kb": 38,
- "seconds": 49.4,
+ "seconds": 57.9,
  "pass": true
 }

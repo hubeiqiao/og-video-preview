@@ -97,7 +97,7 @@ const DARK = lum(C.paper || '#000000') < 110;  // a dark card: light accents rea
 const SEED = C.layers.reduce((a, l) => (a * 31 + l.box[0] * 7 + l.box[1] * 13 + l.box[2] * 3 + l.box[3]) % 1000003, 17);
 const pick = (list, salt) => { const v = Math.sin(SEED * 0.0137 + salt * 91.7) * 43758.5453; return list[Math.floor((v - Math.floor(v)) * list.length)]; };
 const FX = {
-  headline: (C.fx || {}).headline || pick(['sheen', 'hop', 'glint'], 1),  // light through the letters, letters hopping in turn, a star on the last letter
+  headline: (C.fx || {}).headline || pick(['sheen', 'hop'], 1),  // light through the letters, or letters hopping in turn (a star added beside type collided with it)
   mark: (C.fx || {}).mark || pick(['spin', 'flip', 'wobble', 'pop'], 2),  // how a logo or icon turns once: flat, in 3D, a swing, a pop
   pill: (C.fx || {}).pill || pick(['sheen', 'orbit'], 3),                 // a sweep, or a light circling it
 };
@@ -133,7 +133,8 @@ function textureSetup(canvas, card) {
   const head = layers.filter(l => TEXT.has(l.kind)), f = FOCAL;
   // how far from the type the pattern may move: 0 inside the type's own area, 1 well clear of it
   const calm = new Float32Array(W * H);
-  const boxes = head.map(l => [l.x - 24, l.y - 24, l.x + l.w + 24, l.y + l.h + 24]);
+  const boxes = head.map(l => [l.x - 24, l.y - 24, l.x + l.w + 24, l.y + l.h + 24])
+    .concat((C.still || []).map(([x, y, w, h]) => [x - 16, y - 16, x + w + 16, y + h + 16]));  // solid things in the plate hold still too
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     let d = 1e9;
     for (const [a, b, c, e] of boxes) d = Math.min(d, Math.hypot(Math.max(a - x, 0, x - c), Math.max(b - y, 0, y - e)));
@@ -217,12 +218,10 @@ function regionFrame(t) {
       });
       R.sats.forEach(([X, Y, w, h]) => {
         const mx = X + w / 2, my = Y + h / 2, dx = mx - cx, dy = my - cy, r = Math.hypot(dx, dy);
-        let a = -th * clamp((r - r0) / 40) * Math.pow(clamp((r1 - r) / (r1 - r0)), 0.6);
-        let nx = cx + dx * Math.cos(a) - dy * Math.sin(a), ny = cy + dx * Math.sin(a) + dy * Math.cos(a);
-        // one that would leave the card turns less, so it stays whole on it
-        const room = Math.min(nx - w / 2, W - nx - w / 2, ny - h / 2, H - ny - h / 2);
-        if (room < 0) { const k2 = clamp(Math.min(mx - w / 2, W - mx - w / 2, my - h / 2, H - my - h / 2) / (Math.hypot(nx - mx, ny - my) + 1));
-          a *= k2; nx = cx + dx * Math.cos(a) - dy * Math.sin(a); ny = cy + dx * Math.sin(a) + dy * Math.cos(a); }
+        // all of them turn by one angle: a rigid turn keeps every distance, so none runs into another (one that turns
+        // past the card's edge is clipped by it)
+        const a = -th;
+        const nx = cx + dx * Math.cos(a) - dy * Math.sin(a), ny = cy + dx * Math.sin(a) + dy * Math.cos(a);
         const ox = nx - mx, oy = ny - my;
         for (let y = Math.floor(Y + oy); y <= Math.ceil(Y + oy + h); y++) for (let x = Math.floor(X + ox); x <= Math.ceil(X + ox + w); x++) {
           if (x < 0 || y < 0 || x >= W || y >= H || !inDisc(x - ox, y - oy, X, Y, w, h)) continue;
@@ -230,10 +229,37 @@ function regionFrame(t) {
         }
       });
     } else if (R.role === 'marquee') {
+      if (R.pitch && !R._whole) {  // where the whole logos start and end: the gaps between logos, found on the card
+        const paper = hexRgb(C.paper || '#000000').split(',').map(Number);
+        const gapAt = x => { let d = 0; for (let y = by; y < by + bh; y++) { const p = (y * W + bx + x) * 4; d += Math.abs(s[p] - paper[0]) + Math.abs(s[p + 1] - paper[1]) + Math.abs(s[p + 2] - paper[2]); } return d; };
+        let g = 0, best = 1e18;
+        for (let x = 0; x < Math.min(bw, Math.ceil(R.pitch)); x++) { const d = gapAt(x); if (d < best) { best = d; g = x; } }
+        const n = Math.floor((bw - g) / R.pitch);
+        R._whole = [g, g + n * R.pitch];
+      }
       const sh = (R.shift || 70) * ENERGY.idle * Math.sin(w2) * (R.dir || 1);
       if (Math.abs(sh) < 1e-3) continue;
       for (let y = Math.max(0, by); y < Math.min(H, by + bh); y++) for (let x = Math.max(0, bx); x < Math.min(W, bx + bw); x++) {
-        let sx = x - bx - sh; sx = ((sx % bw) + bw) % bw;
+        // with the reading's logo pitch, the row is a loop of its whole logos: what comes in at an edge is a whole logo
+        // from the other end, never the half one the card's edge cuts (that one fades out as the row starts to move, so frame 0 is the
+        // card); without a pitch the row wraps around its own width
+        let sx = x - bx - sh;
+        if (R.pitch) {
+          const [g0, g1] = R._whole;
+          // the row is a loop of its whole logos: what leaves at one end comes back at the other
+          const span = g1 - g0;
+          let wx = sx;
+          while (wx < g0) wx += span;
+          while (wx > g1 - 1.001) wx -= span;
+          const q = (y * W + x) * 4;
+          if (wx === sx) { sample(q, bx + sx, y); continue; }
+          const k = Math.min(1, Math.abs(sh) / 24);
+          sample(q, bx + wx, y);
+          if (k < 1) { const c0 = [o[q], o[q + 1], o[q + 2]]; sample(q, bx + Math.max(0, Math.min(bw - 1.001, sx)), y);
+            for (let c = 0; c < 3; c++) o[q + c] = o[q + c] * (1 - k) + c0[c] * k; }
+          continue;
+        }
+        sx = ((sx % bw) + bw) % bw;
         sample((y * W + x) * 4, bx + Math.min(bw - 1.001, sx), y);
       }
     }
@@ -284,7 +310,7 @@ function glyphMask(node, x, y) {
 function build() {
   // type on a photo or a 3D scene cannot leave without showing a refill, so those cards live in place
   // with a clean background behind every element (--plate), nothing has to hide its hole: the card flows
-  const style = C.style && C.style !== 'auto' ? C.style : C.cleanPlate ? 'flow' : C.background === 'detailed' ? 'living' : 'rebuild';
+  const style = C.style && C.style !== 'auto' ? C.style : C.cleanPlate ? 'flow' : C.background === 'detailed' || C.busy ? 'living' : 'rebuild';
   const head = C.layers.filter(l => l.kind === 'headline');
   const marksN = C.layers.filter(l => ['logo', 'icon'].includes(l.kind)).length;
   const hc = FOCAL = head.length ? head.reduce((a, l) => [a[0] + l.box[0] + l.box[2] / 2, a[1] + l.box[1] + l.box[3] / 2], [0, 0]).map(v => v / head.length) : [W / 2, H / 2];
@@ -307,8 +333,10 @@ function build() {
     const L = { ...l, i, x, y, w, h, area, kind: l.kind || 'shape' };
     L.small = Math.max(w, h) < 150;
     L.wall = !!(wall && wall.has(l));
-    L.anchored = style === 'living' || style === 'flow' || L.wall;
-    L.flow = style === 'flow';
+    // a unit the reading calls "float" (a sticker, a balloon, a photo in a scattered collage) drifts on its own path
+    // all through the loop, as on a flowing card, and never leaves
+    L.anchored = style === 'living' || style === 'flow' || L.wall || l.role === 'float' || l.role === 'typing';
+    L.flow = style === 'flow' || l.role === 'float';
     L.settle = !C.cleanPlate && (!!l.settle || area > 0.35);  // its hole could not be refilled cleanly: it moves in place, never leaves
     L.motion = l.motion || L.kind;
     if (l.role === 'listline') {
@@ -345,7 +373,8 @@ function build() {
       // ...unless type sits on it (a button, a pill, a panel): its cut has holes where the type is and the type's cut
       // carries its surface, so it holds still while it lives and its outline holds
       L.carries = C.layers.some(o => TEXT.has(o.kind) && o.box[0] + o.box[2] / 2 > x && o.box[0] + o.box[2] / 2 < x + w && o.box[1] + o.box[3] / 2 > y && o.box[1] + o.box[3] / 2 < y + h);
-      L.fluid = L.kind === 'shape' && !L.small && (bleeds || area > 0.12) && !L.carries;
+      // a liquid edge only on what the reading calls a blob: on a logo or any drawn geometry it reads as damage
+      L.fluid = l.role === 'blob' && !L.carries;
       const pad = CUT_REACH + (L.fluid ? 28 : 0);  // room for the soft edge of the cut, and for a liquid edge
       const el = document.createElement('div'); el.className = 'el';
       Object.assign(el.style, { left: x - pad + 'px', top: y - pad + 'px', width: w + 2 * pad + 'px', height: h + 2 * pad + 'px',
@@ -362,18 +391,23 @@ function build() {
       }
     }
     // the element's accent: its card's choice for its kind, or what layers.js sets
-    // one star per card: only the last headline line takes it; type over a picture stays put, so it never hops
+    // type over a picture stays put, so it never hops
     // letters hop only where their cut's rim matches what they pass over: a flat card, not inside a pill or a panel
     const inside = C.layers.some(o => o !== l && !TEXT.has(o.kind) && o.box[2] * o.box[3] > w * h &&
       o.box[0] <= x + w / 2 && x + w / 2 <= o.box[0] + o.box[2] && o.box[1] <= y + h / 2 && y + h / 2 <= o.box[1] + o.box[3]);
-    const hfx = FX.headline === 'hop' && (style === 'living' || C.background !== 'flat' || inside || l.boxed) ? 'sheen' : FX.headline;
+    // a wordmark or a word set letter by letter is one shape: its letters never leave their baseline
+    const hfx = FX.headline === 'hop' && (style === 'living' || C.background !== 'flat' || inside || l.boxed || l.letters || l.wordmark) ? 'sheen' : FX.headline;
     L.fx = l.fx || (l.role === 'button' || l.role === 'listline' ? null : L.kind === 'headline' ? (hfx === 'glint' && l !== head[head.length - 1] ? null : hfx) : L.kind === 'pill' ? FX.pill : null);
     // a crowd of small icons only pops in turn: eight spinning at once is noise
     L.turn = L.wall ? null : ['logo', 'icon'].includes(L.kind) ? l.turn || (L.small && marksN > 3 && FX.mark !== 'wobble' ? 'pop' : FX.mark) : null;
+    // only a round or square mark turns all the way (a coin, a badge); a wide one (a cloud, a wordmark) turned over
+    // reads as a mistake, so it pops instead
+    if (C.busy && L.small && !l.role) L.turn = null;  // an icon in a screenshot's toolbar does not perform
+    if (!l.turn && (L.turn === 'spin' || L.turn === 'flip' || L.turn === 'wobble') && (l.wordmark || w / h > 1.35 || h / w > 1.35)) L.turn = 'pop';
     // light sweep through the element's own pixels
     const lightInk = l.ink ? lum(l.ink) > 165 : false;
-    // white type with no accent colour cannot take a sweep: the last line takes the star instead
-    if (L.fx === 'sheen' && L.kind === 'headline' && lightInk && !ACCENT) L.fx = l === head[head.length - 1] ? 'glint' : null;
+    // white type with no accent colour cannot take a sweep: it stays plain
+    if (L.fx === 'sheen' && L.kind === 'headline' && lightInk && !ACCENT) L.fx = null;
     // white type can only take a coloured sweep; without an accent colour it gets none
     const broad = L.kind === 'panel' || area > 0.35;  // big surfaces take a glancing reflection
     // a picture that has to stay in place comes alive with light running through it instead
@@ -389,10 +423,10 @@ function build() {
       s.style.backgroundSize = '320% 100%';
       $('top').appendChild(s); L.sheen = s;
     }
-    // a star that opens and turns on a corner: on the last letter of a headline, or on a mark that pops
+    // a star that opens and turns on a corner: only when layers.js sets fx "glint" on a layer
     const inkC = L.tone ? hexRgb(L.tone) : L.ink ? hexRgb(L.ink) : null;
     const starC = ACCENT || (DARK ? '255,255,255' : inkC || '30,30,30');
-    if (L.fx === 'glint' || (L.turn === 'pop' && !L.small)) {
+    if (L.fx === 'glint') {  // only when layers.js asks for it
       const g = document.createElement('div'); g.className = 'spark';
       const R = Math.max(22, Math.min(46, Math.min(L.w, L.h) * 0.55));
       Object.assign(g.style, { width: R + 'px', height: R + 'px', margin: `${-R / 2}px 0 0 ${-R / 2}px`, background: `rgb(${starC})`,
@@ -406,6 +440,15 @@ function build() {
       glyphMask(o, x, y); $('top').appendChild(o); L.orbit = o;
       L.orbitC = DARK || lightInk ? (ACCENT || '255,255,255') : '255,255,255';
     }
+    // text in an input the reading names "typing": it is deleted and typed again, a caret at its end while it changes
+    if (l.role === 'typing') {
+      const c = document.createElement('div'); c.className = 'abs';
+      Object.assign(c.style, { left: x + 'px', top: y + h * 0.08 + 'px', width: '2px', height: h * 0.84 + 'px', opacity: 0,
+        background: l.caret || (l.ink && lum(l.ink) > 150 ? '#fff' : '#111') });
+      $('top').appendChild(c); L.caretEl = c;
+      L.stops = l.stops && l.stops.length ? l.stops : Array.from({ length: Math.max(4, Math.round(w / (h * 0.5))) }, (_, k) => (k + 1) * w / Math.max(4, Math.round(w / (h * 0.5))));
+      L.chars = L.stops.length;
+    }
     // a button the reading names: a pointer glides in and clicks it, and a ripple spreads inside it from the click
     if (l.role === 'button') {
       const c = document.createElement('div'); c.className = 'abs';
@@ -417,7 +460,7 @@ function build() {
       glyphMask(r, x, y); $('top').appendChild(r); L.ripple = r;
       L.rippleC = l.ink && lum(l.ink) > 150 ? '0,0,0' : '255,255,255';
     }
-    if (L.kind === 'avatar' || (L.turn === 'pop' && !L.small)) {
+    if (L.kind === 'avatar') {
       const r = document.createElement('div'); r.className = 'ring';
       Object.assign(r.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', border: `3px solid rgba(${ACCENT || '255,255,255'},0.9)` });
       $('fx').appendChild(r); L.ring = r;
@@ -428,8 +471,8 @@ function build() {
   if (WALL) { const ws = layers.filter(l => l.wall), m = Math.max(1, ...ws.map(l => l.dist)); ws.forEach(l => { l.wallD = l.dist / m; }); }
   schedule(style);
 
-  // a lone mark (one visual on an empty card: a logo, a symbol) becomes the hero: it is cut into slices that assemble,
-  // a light rises behind it (or a shadow under it on a light card), a flare crosses once, and it turns slowly in 3D
+  // a lone mark (one visual on an empty card: a logo, a symbol) becomes the hero: it assembles in one piece out of a blur,
+  // a light rises behind it (or a shadow under it on a light card), and it turns slowly in 3D
   const marks = layers.filter(l => !TEXT.has(l.kind) && !['photo', 'panel'].includes(l.kind) && !l.settle);
   // beside a line of type only a real mark qualifies (an underline or a pill keeps its own motion)
   const heroL = style === 'rebuild' && marks.length === 1 && marks[0].area < 0.3 &&
@@ -443,7 +486,7 @@ function build() {
     // a colourless mark on a light card (an Apple, a quiet wordmark) is revealed like a product, not assembled:
     // it focuses in out of a soft blur, a slow reflection slides across it, and it barely breathes
     L.calm = !DARK && !L.tone;
-    const N = L.calm ? 1 : 7;
+    const N = 1;  // one piece: a mark cut into sliding bands reads as a glitch, never as the brand
     const ew = L.w + 2 * pad, eh = L.h + 2 * pad;
     L.parts = Array.from({ length: N }, (_, k) => {
       const el = el0.cloneNode(true); el0.parentNode.insertBefore(el, el0);
@@ -465,10 +508,9 @@ function build() {
     const r = Math.max(L.w, L.h) * 1.15, cx = L.x + L.w / 2, cy = L.y + L.h / 2;
     if (ink > paper + 30) {  // a light mark on a dark card: its own colour glows behind it (above the layers, screen blend)
       const c = L.tone ? hexRgb(L.tone) : ACCENT || '255,255,255';
-      Object.assign(halo.style, { left: cx - r + 'px', top: cy - r + 'px', width: 2 * r + 'px', height: 2 * r + 'px', background: `radial-gradient(circle, rgba(${c},.3) 0%, rgba(${c},.14) 28%, rgba(${c},.05) 48%, rgba(${c},0) 70%)` });
+      Object.assign(halo.style, { left: cx - r + 'px', top: cy - r + 'px', width: 2 * r + 'px', height: 2 * r + 'px', background: `radial-gradient(circle, rgba(${c},.16) 0%, rgba(${c},.07) 28%, rgba(${c},.02) 48%, rgba(${c},0) 70%)` });
       $('top').insertBefore(halo, $('flare'));
-      $('flare').style.background = `linear-gradient(90deg, transparent, rgba(${c},.12) 30%, rgba(255,255,255,.34) 50%, rgba(${c},.12) 70%, transparent)`;
-      L.flare = true;
+      // (no flare across the card: on a plain dark card a beam reads as a stage light, not as the brand)
     } else {  // a dark mark on a light card: a soft shadow grows under it as it lifts
       Object.assign(halo.style, { left: cx - r * 0.6 + 'px', top: L.y + L.h + 6 + 'px', width: 1.2 * r + 'px', height: 0.22 * r + 'px', mixBlendMode: 'multiply',
         background: 'radial-gradient(closest-side, rgba(0,0,0,.18), rgba(0,0,0,0))' });
@@ -486,19 +528,13 @@ function build() {
   });
   const GLOW = ACCENT || '255,255,255';
   if (ENERGY.accents >= 2 && style === 'rebuild') {
-    $('flare').style.background = `linear-gradient(90deg, transparent, rgba(${GLOW},.16) 30%, rgba(255,255,255,.42) 50%, rgba(${GLOW},.16) 70%, transparent)`;
     [[0.24, 0.28, 0.5], [0.76, 0.7, 0.38]].forEach(([gx, gy, o], k) => {
       const g = document.createElement('div'); g.className = 'glow'; const r = 300;
-      Object.assign(g.style, { width: 2 * r + 'px', height: 2 * r + 'px', background: `radial-gradient(circle, rgba(${GLOW},.5), rgba(${GLOW},0) 70%)` });
+      Object.assign(g.style, { width: 2 * r + 'px', height: 2 * r + 'px', background: `radial-gradient(circle, rgba(${GLOW},.22), rgba(${GLOW},0) 70%)` });
       // above the layers: under them, each cut (opaque over its halo) would block the glow and show as a dark patch
       $('top').insertBefore(g, $('flare')); extras.push({ type: 'glow', el: g, x: gx * W, y: gy * H, r, o, k });
     });
-    const last = layers.filter(l => l.kind === 'headline').pop();
-    if (last) for (let k = 0; k < 10; k++) {
-      const s = document.createElement('div'); s.className = 'spark'; s.style.background = `rgb(${GLOW})`;
-      s.style.left = last.x + last.w + 'px'; s.style.top = last.y + last.h / 2 + 'px'; $('top').appendChild(s);
-      extras.push({ type: 'spark', el: s, at: last.land + 0.05, a: k / 10 * 2 * Math.PI + (k % 2 ? 0.3 : 0), d: 60 + 30 * (k % 3) });
-    }
+    // (no sparks off the last line: beside type they read as stray specks)
   }
   window.plan = layers.map(l => ({ id: l.id, kind: l.kind, motion: l.settle ? 'settle' : l.motion, style: l.anchored ? 'living' : 'rebuild',
     at: +l.at.toFixed(2), parts: l.parts.length, accent: [l.sheen && 'sheen', l.fx === 'hop' && 'hop', l.glint && 'glint', l.orbit && 'orbit',
@@ -538,7 +574,9 @@ function schedule(style) {
   const hero = heads.length ? heads.reduce((a, b) => (a.land > b.land ? a : b)) : null;
   if (hero && ENERGY.accents >= 1) hero.punch = true;
 }
-const partGap = l => ENERGY.gap * (l.letters ? 0.42 : 0.75);
+// a line of type comes and goes whole: words or letters arriving one by one leave half a line on screen, and any frame of
+// a link preview may be the one people see (the parts only move apart for an accent, after the line has landed)
+const partGap = l => 0;
 // a list scrolls through its highlight: two rows up, each on a spring, then a smooth glide back down to the card.
 // Each line takes on the tone the card gives the row it is passing (darkest in the highlight, fading away from it)
 function listState(l, t) {
@@ -604,7 +642,7 @@ function enter(l, u, k) {
   const blur = (n) => u < 0.4 ? n * (1 - EASE.smooth(u / 0.4)) : 0;
   if (l.settle) { const s2 = spring(u, Math.min(1, z + 0.1), f * 0.9); return { s: 1.035 - 0.035 * s2, b: blur(2.5) }; }
   switch (l.motion) {
-    case 'headline': return { y: l.drop * (1 - sp), r: l.letters ? 6 * (1 - sp) : 0, b: blur(3) };
+    case 'headline': return { y: l.drop * (1 - sp), b: blur(3) };
     case 'text': return { o: e, y: 14 * D * (1 - e), b: blur(3) };
     case 'label': return { o: fast, x: -14 * D * (1 - e), clip: `inset(-20% ${(100 * (1 - e)).toFixed(1)}% -20% 0)` };
     case 'unfurl': return { o: fast, x: -28 * D * (1 - e), clip: `inset(-20% ${(100 * (1 - e)).toFixed(1)}% -20% 0)`, b: blur(2) };
@@ -644,6 +682,7 @@ function exit(l, v, k = 0) {
 // idle: movement in place; zero at t = 0 and t = T so the loop closes
 function idle(l, t, living) {
   if (l.carries && !l.flow) return {};
+  if (C.busy && !l.role && !TEXT.has(l.kind)) return {};  // on a screenshot every part keeps its place, or the rows misalign
   if (l.role === 'medallion') return { s: 1 + 0.03 * ENERGY.idle * env(t) };  // a relief only leans in; the light does the rest
   if (l.flow) return float(l, t);
   if (l.wall) { const b = bump(t, 0.9 + 1.1 * l.wallD, 0.5); return { s: 1 + 0.08 * ENERGY.dist * b, y: -3 * b }; }
@@ -709,13 +748,23 @@ window.render = function (t) {
     const fa = living ? l.at + 0.2 : l.land + 0.45 + (l.area > 0.035 && !TEXT.has(l.kind) ? 0.3 : 0), on = ENERGY.accents >= 1;
     l.parts.forEach((p, k) => {
       let st;
-      if (living) {
+      if (l.role === 'typing') {
+        // deleted a character at a time from 0.6 s (30 ms each), a pause, then typed again (65 ms each); whole by 3.4 s
+        const n = l.chars, d0 = 0.6, d1 = d0 + n * 0.03, t0 = d1 + 0.35, t1 = t0 + n * 0.065;
+        const left = t < d0 || t >= t1 ? n : t < d1 ? n - Math.floor((t - d0) / 0.03) : t < t0 ? 0 : Math.floor((t - t0) / 0.065);
+        const k = Math.max(0, Math.min(n, left)), edge = k >= n ? l.w : k === 0 ? 0 : l.stops[k - 1] + 1;  // after the k-th letter
+        const vis = edge / l.w;
+        st = { clip: `inset(-30% ${(CUT_REACH + l.w - edge).toFixed(1)}px -30% 0)` };
+        const busy = t >= d0 - 0.1 && t < t1 + 0.45, blink = t >= d1 && t < t0 ? (Math.floor((t - d1) / 0.4) % 2 === 0) : true;
+        l.caretEl.style.opacity = busy && blink ? 1 : 0;
+        l.caretEl.style.transform = `translateX(${(vis * l.w).toFixed(1)}px)`;
+      } else if (living) {
         st = id;
         // type stays still and readable; light moves through it (the sweep below) while the camera breathes
-        if (l.kind === 'stroke') { const un = away(P(t, 1.0, 0.35)), re = EASE.smooth(P(t, 1.45, 0.55));
+        if (l.kind === 'stroke' && !C.busy) { const un = away(P(t, 1.0, 0.35)), re = EASE.smooth(P(t, 1.45, 0.55));
           st = { clip: wipe(l, 0, 1 - un * (1 - re)) }; }
       } else if (t < EXIT_END) {
-        const off = Math.min(0.1, Math.min(0.08, l.i * 0.012) + (l.kind === 'headline' ? k * 0.008 : 0));
+        const off = Math.min(0.1, Math.min(0.08, l.i * 0.012) + 0);
         st = exit(l, P(t, off, EXIT_END - 0.1), k);
       } else {
         const start = l.at + (l.kind === 'headline' ? k * partGap(l) : 0);
@@ -734,9 +783,13 @@ window.render = function (t) {
       if (l.fx === 'hop' && on) st = add(st, { y: -Math.min(12, l.h * 0.16) * ENERGY.dist * bump(t, fa + k * Math.min(0.06, 0.5 / l.parts.length), 0.34) });
       // a mark turns once: flat, over in 3D (a coin), a swing that settles, or a pop
       if (l.turn && !l.hero && !l.flow && on && (l.idle ?? 1) > 0) {
-        const q = P(t, fa, l.turn === 'pop' ? 0.5 : 0.95), e = EASE.inOut(q);
+        const q = P(t, fa, l.turn === 'pop' || l.turn === 'beat' ? 0.6 : 0.95), e = EASE.inOut(q);
         st = add(st, l.turn === 'spin' ? { r: 360 * e % 360 } : l.turn === 'flip' ? { ry: 360 * e % 360 }
-          : l.turn === 'wobble' ? { r: q > 0 && q < 1 ? 15 * Math.sin(5 * Math.PI * q) * (1 - q) : 0 } : { s: 1 + 0.16 * bump(t, fa, 0.5) });
+          : l.turn === 'wobble' ? { r: q > 0 && q < 1 ? 15 * Math.sin(5 * Math.PI * q) * (1 - q) : 0 }
+          // an arrow pushes forward along its own way and back; a heart or a bolt beats (animate-ui's arrow-right and heart)
+          : l.turn === 'nudge' ? { x: 0.25 * l.w * bump(t, fa, 0.6) * (l.back ? -1 : 1) }
+          : l.turn === 'beat' ? { s: q > 0 && q < 1 ? (q < 0.33 ? 1 - 0.1 * q / 0.33 : q < 0.66 ? 0.9 + 0.3 * (q - 0.33) / 0.33 : 1.2 - 0.2 * (q - 0.66) / 0.34) : 1 }
+          : { s: 1 + 0.16 * bump(t, fa, 0.5) });
       }
       // the filter is on only while the edge moves: Chrome draws SVG filters at 1x, so with it on even a still
       // edge is softer than the card at 2x, and the first and last frames must be the card itself
@@ -807,16 +860,6 @@ window.render = function (t) {
   if (hl) {
     const on = EASE.smooth(P(t, hl.at + 0.35, 0.8)) * (1 - EASE.smooth(P(t, T - 0.55, 0.5)));  // zero at both ends
     hl.halo.style.opacity = (on * (0.85 + 0.15 * Math.sin(2 * Math.PI * t / T * 2))).toFixed(4);
-    if (hl.flare) {
-      const q = P(t, hl.at + 0.75, 0.95);
-      $('flare').style.opacity = q > 0 && q < 1 ? (0.9 * Math.sin(Math.PI * q)).toFixed(4) : 0;
-      $('flare').style.transform = `translateX(${((-0.5 + 2 * q) * W).toFixed(1)}px) skewX(-18deg)`;
-    }
-  }
-  const fp = P(t, 0.02, 0.8), fl = $('flare');
-  if (ENERGY.accents >= 2 && layers.some(l => !l.anchored) && !hl) {
-    fl.style.opacity = fp > 0 && fp < 1 ? 0.85 * Math.sin(Math.PI * fp) : 0;
-    fl.style.transform = `translateX(${((-0.5 + 2 * fp) * W).toFixed(1)}px) skewX(-18deg)`;
   }
 };
 

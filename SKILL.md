@@ -36,17 +36,22 @@ Each unit is a box in card pixels and a role. Everything the reading found insid
 
 | Role | Use it for | How it moves |
 |---|---|---|
-| `window`, `panel` | an app window, a card in a collage, a screenshot | whole, its full rectangle; leaves and comes back in one piece |
+| `window`, `panel` | an app window, a card in a collage, a screenshot | whole, its full rectangle; leaves and comes back in one piece. A box drawn by eye usually stops inside the window's border: it grows out to where the card is plain again, so the border and drop shadow leave with it |
 | `button` | a call to action: a pill or a box with words in it | a pointer glides in, hovers, clicks; the button presses and a ripple spreads inside it |
 | `scribble` | a brush stroke, a hand-drawn line or arrow | draws itself at a pen's pace; `dir` gives the way (`[1, 0]` left to right, `[0, -1]` upward); `ink` (a hex colour) takes only that colour from the box |
 | `medallion` | a coin, a relief, a seal | leans in slowly while light glides across it |
-| `logo`, `headline`, `text`, `illustration`, `photo`, `shape`, `icon` | anything the reading split or merged wrongly | as that kind |
-| `orbit` (region) | avatars or icons around a central mark | each small round thing turns about `center` and back, whole and upright; `inner` keeps the mark still, `deg` is the turn |
-| `marquee` (region) | a row of logos running off the card | the row slides sideways and back by `shift` px and wraps round; give rows opposite `dir` |
+| `float` | a sticker, a balloon, a print in a scattered collage | never leaves: drifts on its own path all through the loop (a little sideways, up and down, a slight turn and 3D tilt); `"cut": "rect"` takes the whole box (a photo tile) instead of its foreground |
+| `typing` | the text in a prompt box, a search field, a chat input | deleted a letter at a time, a caret blinking, then typed again; whole at both ends of the loop. Box the text and its caret; `caret` sets the caret's colour. The input's own fill goes behind it |
+| `blob` | a soft decorative blob of colour | its edge flows like liquid and settles back; the only unit that ever warps |
+| `logo`, `headline`, `text`, `illustration`, `photo`, `shape`, `icon` | anything the reading split or merged wrongly | as that kind. Give a mark the move that fits what it shows with `turn`: `spin` for a gear or a round badge, `wobble` for a bell, `nudge` for an arrow (`back` for one pointing left), `beat` for a heart or a bolt, `pop` for anything else |
+| `orbit` (region) | avatars or icons around a central mark | every small round thing turns about `center` by the same angle and back, whole and upright, so the ring keeps its spacing and none runs into another; `inner` keeps the mark still, `deg` is the turn (keep it under about 10 on a full card: the outer ones travel furthest) |
+| `marquee` (region) | a row of logos running off the card | the row slides sideways and back by `shift` px; give rows opposite `dir`. Give `pitch` (the distance from one logo to the next): the row is then its whole logos repeated, what slides in at an edge is a whole logo, and the half logo the card's edge cut fades as the row starts to move |
 | `list` (region) | a word rotator: a column of lines with one highlighted | scrolls through the highlight by `pitch` (the row height), `center` is the highlighted row's centre, `bar` its highlight; each line darkens in the highlight and fades away from it, as on the card |
 | `shine` (region) | a lamp, a glass orb, a star | a soft light swells there twice |
 
-A region moves a part of the card itself, sampled from the card, so nothing the refill made turns into view. The eval keeps its plans in `eval/scenes/` (Webflow's windows, Cloudflare's button, OpenAI's scribbles, Deno's list, Ghost's orbit, Y Combinator's carousel, a16z's medallion) and shows each of those cards both ways.
+A region moves a part of the card itself, sampled from the card, so nothing the refill made turns into view. The eval keeps its plans in `eval/scenes/` (Webflow's windows, Cloudflare's button, OpenAI's scribbles and floating stickers, Deno's list, Ghost's orbit, Y Combinator's carousel, a16z's medallion, Warp's floating prints, Fly's Sign up button, Lovable's prompt being typed) and shows each of those cards both ways.
+
+Read for what a person would expect to move: a call to action is clicked, a prompt is typed, a drawn line draws, a carousel slides, a list scrolls, things scattered around a mark drift or orbit, an app window is one piece. Leave alone what should hold still: a wordmark is one shape (never letters), a cloud or any wide mark never spins, a portrait never comes apart.
 
 ## Route A: from the approved image
 
@@ -113,10 +118,10 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 
 | Kind | Enters | Leaves | Lives | Accent |
 |---|---|---|---|---|
-| `headline` | words (or letters) rise out of the line's own mask, staggered, on a spring | sinks back into the mask | stays still | the card's choice: a light sweep through the glyphs, the letters hopping in turn, or a star opening on the last line; camera punch when the last line lands |
+| `headline` | each line rises whole out of its own mask, on a spring; lines follow one another | sinks back into the mask | stays still | the card's choice: a light sweep through the glyphs, or the letters hopping in turn (on a flat card, never on a wordmark); camera punch when the last line lands |
 | `text` | fade + 14 px rise + 3 px blur clearing, 0.42 s smooth | fade, drop, blur | | sweep if it has an accent colour |
 | `label` | wipes on left to right with a short slide | fade | | |
-| `logo` | scales up from 35 % with a spin, on a spring | shrinks and turns away | gentle bob and tilt | the card's choice of one turn: flat, over in 3D like a coin, a swing that settles, or a pop with a star and a ring |
+| `logo` | scales up from 35 % with a spin, on a spring | shrinks and turns away | gentle bob and tilt | the card's choice of one turn: flat, over in 3D like a coin, a swing that settles, or a pop. Only a round or square mark turns; a wide one (a cloud, a wordmark) pops |
 | wordmark | unfurls out of its logo, left to right | | | sweep |
 | `pill` | pops on the spring curve (overshoot) | shrinks | a small pulse (living) | a sweep, or a light circling it |
 | `icon` | springs up from 30 % with a small turn | shrinks | bob and tilt | the same turn as the card's logo; in a crowd of more than three, small icons only pop in turn |
@@ -125,7 +130,7 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 | `panel` | lifts 42 px with a scale from 94 % and a clearing blur | fade, drop | float | glancing reflection |
 | `illustration` | rises with a squash on landing | fade, drop | sway and bob | |
 | `shape` (small) | pops from 0, rippling outward from the headline | shrinks to 0 | twinkle | |
-| `shape` (large) | grows from 80 % out of a blur | fade | decorative blobs (large, or bleeding off the card) flow like liquid, then settle; a centred mark stays crisp | |
+| `shape` (large) | grows from 80 % out of a blur | fade | bob; it stays rigid (a liquid edge only for a unit the reading calls `blob`) | |
 | `stroke` | draws at a pen's even pace along its long axis; an arrow (its two barbs found on the skeleton) draws from its tail to its head | undraws | redraws (living) | |
 
 **Visuals that cannot leave cleanly settle instead.** A photo, panel, illustration or avatar that sits on something other than the plain background (a photo inside a UI, a poster in a stack), or covers a fifth of the card, never exposes the plate: it leans toward the viewer (scale 103.5 % with a light blur) during the exit and springs back when its turn comes. Light then runs through its own lit parts (`light.png`: where it is brighter than the background behind it), so a print, a glint or a pale object comes alive without the soft edge of its cut showing. Shapes on the background leave and come back, and their holes are refilled from the background model, not smeared from their neighbours.
@@ -135,11 +140,21 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 **Textures move as one surface.** A fine line pattern over the card (a wave grid, contour lines, a guilloche) is found as many thin, faint, colourless pieces spread across the card; they stay in the plate instead of flying apart as separate shapes (`texture` in `layers.js`), and the plate itself is warped in place: rings spreading from the headline (`ripple`), a wave passing across (`wind`) or a slow turn around the headline (`swirl`). The pattern stays calm right behind the type, and the warp is exactly zero at the loop point. Of the 103 eval cards, only ElevenLabs has one.
 
 **Special surfaces.**
-- **A big flat graphic behind the type** (a bolt, a band of colour drawn in two or three flat colours) is not a photo: the plate moves as one surface, like a texture, and white type with no accent colour takes a star on its last line.
+- **A big flat graphic behind the type** (a bolt, a band of colour drawn in two or three flat colours) is not a photo: the plate moves as one surface, like a texture.
 - **A globe** (a lit sphere on a plain card) turns about its axis and back. Each row is resampled through the sphere, so the land slides around the curve, and the turn fades toward the limb so arcs flying above it stay joined. The small bright pieces cut from its surface (city lights) go back into it. A disc inside a picture (a medallion) is left alone.
 - **A wall of logos** (eight or more small items in rows) never leaves: a pop runs across it from the headline outward, and on a dark card a band of light crosses the whole wall, lighting the logos the reading left in the plate too.
 - **A lone colourless mark on a light card** (an Apple) is revealed like a product instead of assembled: it focuses in out of a soft blur while settling from 106 %, a slow reflection slides across it, and it barely breathes.
 - **Anything sitting on something other than the plain background** (a sticker on a collage, a word on a scribble) moves in place instead of leaving, since its hole could only be filled with a smear. Letters hop only on a flat card and never inside a pill or a panel, whose surface their cut carries.
+
+**Safeguards from a frame-by-frame review.** Any frame of a link preview may be the one people see, so no frame may look broken. Codex reviewed every eval video at nine moments each; these rules came from what it found:
+- A line of type comes and goes whole. Pieces of one line the reading split apart are joined again, and ink of the line's colour that another element swallowed (a word over a window) is given back to the line, soft edge included.
+- Letter shapes on one baseline, same colour and letter-spaced, are one wordmark; strokes of one colour packed together (IBM's stripes) are one mark, and a long one only moves whole, never turns. A piece whose own colour runs on beside it into ink that nothing moves (the "li" of a wordmark whose other letters stayed) stays too.
+- A crowd of five or more small pieces close together (labels, toolbar icons, lines of code) is a screenshot: it stays whole in the plate, with whatever else lies within it, and the card's larger elements and its camera carry the motion. Name it as a `window` in the reading to move it.
+- Faint colourless scenery behind everything (the islands of a map, a watermark) is background: it stays in the plate.
+- An element leaves only when at least 90 % of what lies just around it is the card's plain background, and its refill would not show: no grain, picture, grid lines or a colour step at the refill's edge. Otherwise it moves in place; if one line of type has to, all of them do.
+- A lone mark is never cut into sliding bands, logos never warp, no stars or rings are added beside type or marks, and no beam of light crosses the card.
+- A texture warps only around the solid things left in its plate (a button on a dot grid holds still), and a big flat graphic (a bolt) never warps.
+- When there are more elements than layers, what the reading named is kept first.
 
 **Camera.** On a graded or pictorial background the whole card breathes: a slow push-in of about 2 % that returns to 1 at the loop point, so background and layers move together and nothing slides against what is behind it. The headline's landing adds a short, damped punch.
 
@@ -150,7 +165,7 @@ Each kind has an entrance, an exit, an idle movement and an accent, built on the
 - `flow` (default with `--plate`): nothing leaves, and every visual keeps moving through the whole loop, each on its own path: drift, a 3D tilt and a slow turn, nearer (bigger) visuals moving further, so the card has depth. Type stays still and readable. Every move is a sine of the loop, so frame 0 is the card and the loop closes on it.
 - `living` (default when the type sits on a photo or a 3D scene, where no refill behind it looks clean): nothing leaves. Type stays still and readable while light sweeps through it, the camera breathes, decorative blobs flow, a logo turns once, lines redraw. Jed Bridges' og:video cards are the model: the title stays readable the whole time while one or two things move.
 
-**Energy** (`energy`): `calm` (smaller moves, no overshoot, no accents), `lively` (default), `bold` (more overshoot, plus a flare across the card, drifting glows and sparks off the last headline word).
+**Energy** (`energy`): `calm` (smaller moves, no overshoot, no accents), `lively` (default), `bold` (more overshoot, plus a faint flare across the card and two drifting glows).
 
 **Overrides per layer**: `kind`, `motion` (use another kind's motion), `at` (start time in seconds), `idle` (how much it moves while it lives: 0 keeps it still, 1 is the default, up to 2; in a card that shows a change, keep the before still and let the after move). Top level: `fx` (above), `accent` ("r,g,b" for sweeps, stars and rings; otherwise the first saturated text colour, and white type without one gets no sweep), `loop`.
 

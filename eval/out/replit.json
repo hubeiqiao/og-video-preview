@@ -1,11 +1,11 @@
 {
  "name": "replit",
- "layers": 18,
+ "layers": 17,
  "kinds": {
   "illustration": 3,
-  "shape": 2,
   "label": 9,
   "icon": 2,
+  "shape": 1,
   "headline": 1,
   "text": 1
  },
@@ -15,8 +15,8 @@
  "frame0_local_pct": 0.0,
  "seam": 1,
  "step": 2,
- "mp4_kb": 547,
+ "mp4_kb": 523,
  "jpg_kb": 69,
- "seconds": 131.5,
+ "seconds": 128.0,
  "pass": true
 }

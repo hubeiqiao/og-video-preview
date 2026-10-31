@@ -1,7 +1,103 @@
-{"note": "A sticker collage around the wordmark. Three marks are drawn by hand, so they draw themselves: the orange zigzag left to right, the green arrow upward, the blue zigzag downward. The chair sits on the orange scribble.",
+{
+ "note": "A sticker collage around the wordmark. Three marks are drawn by hand, so they draw themselves: the orange zigzag left to right, the green arrow upward, the blue zigzag downward. The chair sits on the orange scribble. The stickers on the right drift on their own paths: the pixel hand, the strawberry, the sun and the green frog.",
  "units": [
-  {"box": [104, 386, 82, 110], "role": "illustration", "note": "the blue folding chair"},
-  {"box": [358, 434, 100, 110], "role": "scribble", "ink": "#06b84a", "dir": [0, -1], "note": "the green arrow, drawn upward"},
-  {"box": [8, 402, 476, 228], "role": "scribble", "ink": "#f17a28", "dir": [1, 0], "note": "the orange brush zigzag"},
-  {"box": [1090, 392, 110, 238], "role": "scribble", "ink": "#0387ff", "dir": [0, 1], "note": "the blue zigzag"}
- ]}
+  {
+   "box": [
+    104,
+    386,
+    82,
+    110
+   ],
+   "role": "illustration",
+   "note": "the blue folding chair",
+   "ink": "#2c6fe0"
+  },
+  {
+   "box": [
+    350,
+    425,
+    115,
+    125
+   ],
+   "role": "scribble",
+   "ink": "#06b84a",
+   "dir": [
+    0,
+    -1
+   ],
+   "note": "the green arrow, drawn upward"
+  },
+  {
+   "box": [
+    8,
+    402,
+    476,
+    228
+   ],
+   "role": "scribble",
+   "ink": "#f17a28",
+   "dir": [
+    1,
+    0
+   ],
+   "note": "the orange brush zigzag"
+  },
+  {
+   "box": [
+    1075,
+    380,
+    125,
+    250
+   ],
+   "role": "scribble",
+   "ink": "#0387ff",
+   "dir": [
+    0,
+    1
+   ],
+   "note": "the blue zigzag"
+  },
+  {
+   "box": [
+    660,
+    465,
+    240,
+    125
+   ],
+   "role": "float",
+   "ink": "#000000",
+   "note": "the pixel-art hand"
+  },
+  {
+   "box": [
+    940,
+    470,
+    130,
+    160
+   ],
+   "role": "float",
+   "note": "the strawberry"
+  },
+  {
+   "box": [
+    915,
+    0,
+    155,
+    140
+   ],
+   "role": "float",
+   "ink": "#f9d33c",
+   "note": "the yellow sun"
+  },
+  {
+   "box": [
+    850,
+    100,
+    105,
+    85
+   ],
+   "role": "float",
+   "note": "the green frog"
+  }
+ ]
+}

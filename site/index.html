@@ -63,6 +63,8 @@ body { background: var(--ink); color: var(--text); font-family: var(--sans); -we
 a { color: inherit; text-decoration: none; }
 img, video { display: block; }
 button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+a, button, summary { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+button, summary { -webkit-user-select: none; user-select: none; }
 .amber { color: var(--amber); }
 .nw { white-space: nowrap; }
 .wrap { max-width: 1320px; margin: 0 auto; padding: 0 var(--gutter); }
@@ -82,7 +84,7 @@ section { padding-top: clamp(96px, 12vw, 160px); }
 .top .name { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
 .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--amber); }
 .top a { color: var(--text-3); padding: 10px 0 10px 12px; transition: color 160ms var(--ease); }
-.top a:hover { color: var(--text); }
+@media (hover: hover) and (pointer: fine) { .top a:hover { color: var(--text); } }
 
 /* hero: the headline, and beside it the skill at work on one real card after another */
 .heroband { position: relative; isolation: isolate; }
@@ -103,10 +105,10 @@ section { padding-top: clamp(96px, 12vw, 160px); }
 .cmd code::before { content: '$ '; opacity: 0.55; }
 .btn { min-height: 40px; padding: 0 14px; border-radius: 10px; background: oklch(0.82 0.15 78 / 0.16); font-family: var(--mono); font-size: 14px; color: var(--amber);
   display: inline-flex; align-items: center; gap: 8px; flex: none; transition-property: background-color, transform; transition-duration: 160ms; transition-timing-function: var(--ease); }
-.btn:hover { background: oklch(0.82 0.15 78 / 0.26); }
+@media (hover: hover) and (pointer: fine) { .btn:hover { background: oklch(0.82 0.15 78 / 0.26); } }
 .btn:active { transform: scale(0.98); }
 .btn.quiet { background: var(--raised-2); color: var(--text); }
-.btn.quiet:hover { background: oklch(0.28 0.008 60); }
+@media (hover: hover) and (pointer: fine) { .btn.quiet:hover { background: oklch(0.28 0.008 60); } }
 
 .stage { position: relative; aspect-ratio: 1200 / 630; }
 .stage .still { position: absolute; inset: 0; filter: grayscale(0.9) brightness(0.62); }
@@ -119,7 +121,7 @@ section { padding-top: clamp(96px, 12vw, 160px); }
   box-shadow: 0 0 18px 4px oklch(0.82 0.15 78 / 0.75), 0 0 60px 14px oklch(0.82 0.15 78 / 0.35); }
 .status { margin-top: 16px; display: flex; justify-content: space-between; gap: 16px; font-family: var(--mono); font-size: 13px; color: var(--text-3); min-height: 20px; }
 .status a { color: var(--text); transition: color 160ms var(--ease); }
-.status a:hover { color: var(--amber); }
+@media (hover: hover) and (pointer: fine) { .status a:hover { color: var(--amber); } }
 .status b { color: var(--amber); font-weight: 400; }
 .status .k { white-space: nowrap; }
 
@@ -127,14 +129,14 @@ section { padding-top: clamp(96px, 12vw, 160px); }
 .filmband { padding-top: clamp(48px, 7vw, 96px); }  /* the film follows the hero directly, no heading */
 .film { position: relative; }
 .film .media { aspect-ratio: 16 / 9; }
-.film .sound { position: absolute; right: 14px; bottom: 14px; background: oklch(0.145 0.006 60 / 0.82); color: var(--text); }
-.film .sound:hover { background: oklch(0.145 0.006 60 / 0.95); }
+.film .sound { position: absolute; right: calc(14px + env(safe-area-inset-right, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); background: oklch(0.145 0.006 60 / 0.82); color: var(--text); }
+@media (hover: hover) and (pointer: fine) { .film .sound:hover { background: oklch(0.145 0.006 60 / 0.95); } }
 
 /* live sites */
 .live { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(16px, 2vw, 28px); }
 .site figcaption { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-family: var(--mono); font-size: 14px; color: var(--text-3); }
 .site a { color: var(--text); padding: 8px 0; transition: color 160ms var(--ease); }
-.site a:hover { color: var(--amber); }
+@media (hover: hover) and (pointer: fine) { .site a:hover { color: var(--amber); } }
 .site .on { display: inline-flex; align-items: center; gap: 8px; }
 .site .on i { width: 7px; height: 7px; border-radius: 50%; background: var(--live); }
 .site .media { aspect-ratio: 1200 / 630; }
@@ -147,8 +149,9 @@ section { padding-top: clamp(96px, 12vw, 160px); }
 .mosaic video { width: 100%; height: 100%; display: block; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .tile .media { aspect-ratio: 1200 / 630; border-radius: 10px; box-shadow: 0 0 0 0.5px oklch(1 0 0 / 0.06), 0 6px 18px oklch(0 0 0 / 0.25); transition: transform 240ms var(--ease); }
-.tile:hover .media { transform: translateY(-2px); }
+@media (hover: hover) and (pointer: fine) { .tile:hover .media { transform: translateY(-2px); } }
 .tile span { display: block; font-family: var(--mono); font-size: 12px; color: var(--text-3); margin-top: 8px; }
+.hint, .more { display: none; }
 .tile:focus-visible { outline: 2px solid var(--amber); outline-offset: 4px; border-radius: 12px; }
 
 dialog { margin: auto; border: 0; padding: 0; background: transparent; color: var(--text); width: min(1100px, calc(100vw - 2 * var(--gutter))); overflow: visible; }
@@ -166,7 +169,7 @@ dialog .media { aspect-ratio: 1200 / 630; }
   .faq .head { position: sticky; top: 48px; margin-bottom: 0; }
 }
 .faq .sub a { color: var(--amber); text-decoration: none; }
-.faq .sub a:hover { text-decoration: underline; text-underline-offset: 3px; }
+@media (hover: hover) and (pointer: fine) { .faq .sub a:hover { text-decoration: underline; text-underline-offset: 3px; } }
 .qa details { counter-increment: q; position: relative; border-top: 1px solid oklch(1 0 0 / 0.08); interpolate-size: allow-keywords; }
 .qa details:last-child { border-bottom: 1px solid oklch(1 0 0 / 0.08); }
 .qa summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 20px; padding: 22px 0;
@@ -177,8 +180,8 @@ dialog .media { aspect-ratio: 1200 / 630; }
 .qa summary span { flex: 1; min-width: 0; }
 .qa summary::after { content: '+'; flex: none; font-family: var(--mono); font-weight: 400; color: var(--amber); transition: transform 240ms var(--ease); }
 .qa details[open] summary::after { transform: rotate(45deg); }
-.qa summary:hover, .qa details[open] summary { color: var(--amber); }
-.qa summary:hover::before, .qa details[open] summary::before { color: var(--amber); }
+.qa details[open] summary, .qa details[open] summary::before { color: var(--amber); }  /* the open state stays amber on every device */
+@media (hover: hover) and (pointer: fine) { .qa summary:hover, .qa summary:hover::before { color: var(--amber); } }
 .qa summary:focus-visible { outline: 2px solid var(--amber-line); outline-offset: 4px; border-radius: 6px; }
 .qa details::details-content { block-size: 0; overflow: clip;
   transition: block-size 360ms var(--ease), content-visibility 360ms allow-discrete; }
@@ -199,7 +202,7 @@ dialog .media { aspect-ratio: 1200 / 630; }
 .end .actions { justify-content: center; }
 footer { margin-top: clamp(80px, 10vw, 128px); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 24px; font-family: var(--mono); font-size: 13px; color: var(--text-3); }
 footer a { padding: 8px 0; transition: color 160ms var(--ease); }
-footer a:hover { color: var(--text); }
+@media (hover: hover) and (pointer: fine) { footer a:hover { color: var(--text); } }
 footer .by { display: inline-flex; align-items: center; gap: 10px; }
 footer .face { width: 28px; height: 28px; border-radius: 50%; overflow: hidden; background: oklch(0.3 0.01 60); flex: none;
   box-shadow: 0 0 0 1px oklch(1 0 0 / 0.12); }
@@ -210,6 +213,35 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
   .live { grid-template-columns: minmax(0, 1fr); }
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .cmd { font-size: 13px; }
+  /* the film runs edge to edge, unframed, so it reads apart from the framed preview card above it */
+  .film { margin-inline: calc(-1 * var(--gutter)); }
+  .film .media { border-radius: 0; box-shadow: none; }
+  .film .media::after { content: none; }
+  /* the gallery opens on twelve cards; the rest are one tap away */
+  .more:not([hidden]) { display: flex; margin: 24px auto 0; }
+  #eval[data-clamp] .grid > .tile:nth-child(n + 13) { display: none; }
+}
+@media (max-width: 600px) {
+  section { padding-top: 72px; }
+  #cards .sub, #eval .sub { font-family: var(--sans); font-size: 16px; line-height: 1.5; }
+  /* the stage's element labels render near 6 px on a phone: keep the boxes, drop the chips */
+  .stage svg text, .stage svg rect.chip { display: none; }
+  /* a long domain gets its own row in the viewer, the buttons the row below */
+  dialog .bar { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  dialog .bar a { min-width: 0; overflow-wrap: anywhere; line-height: 1.4; }
+  dialog .nav { justify-content: flex-end; }
+}
+@media (pointer: coarse) {
+  .hint { display: block; font-size: 16px; line-height: 1.5; color: var(--text-2); }
+  .btn { min-width: 44px; min-height: 44px; }
+  .top a, .site a, footer a, dialog .bar a { display: inline-flex; align-items: center; min-height: 44px; }
+  footer a { min-width: 44px; justify-content: center; }
+  .status a, .faq .sub a { position: relative; display: inline-block; }
+  .status a::before, .faq .sub a::before { content: ''; position: absolute; left: 50%; top: 50%;
+    width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%); }
+  .tile { -webkit-touch-callout: none; }
+  .tile:active .media { transform: scale(0.98); }
+  .top a:active, .site a:active, .status a:active, footer a:active, .qa summary:active, .qa summary:active::before { color: var(--amber); }
 }
 @media (prefers-reduced-motion: reduce) {
   .in { animation: none; }
@@ -283,8 +315,10 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
     <div class="head">
       <h2 id="evalTitle">Real sites. <span class="amber nw">Zero hand-tuning.</span></h2>
       <p class="sub" id="stats">Each card made by the skill from the site's own og:image.</p>
+      <p class="hint">Tap a card to play its video.</p>
     </div>
     <div id="groups"><!-- eval-grid --></div>
+    <button class="btn quiet more" id="more" type="button" aria-controls="groups" aria-expanded="false" hidden>Show all sites</button>
   </section>
 
   <section class="faq" id="faq">
@@ -488,6 +522,18 @@ tiles.map(b => [Math.random(), b]).sort((a, b) => a[0] - b[0]).forEach(([, b]) =
   grid.appendChild(b);
   tileImages.observe(b.querySelector('img'));
 });
+
+// on phones and tablets the gallery opens on twelve cards (CSS hides the rest while #eval has data-clamp)
+const evalSec = document.getElementById('eval'), more = document.getElementById('more');
+if (tiles.length > 12) {
+  const label = () => { const open = more.getAttribute('aria-expanded') === 'true'; more.textContent = open ? 'Show fewer sites' : `Show all ${tiles.length} sites`; };
+  evalSec.dataset.clamp = ''; more.hidden = false; label();
+  more.addEventListener('click', () => {
+    const open = more.getAttribute('aria-expanded') !== 'true';
+    more.setAttribute('aria-expanded', String(open)); evalSec.toggleAttribute('data-clamp', !open); label();
+    if (!open) more.scrollIntoView({ block: 'center' });  // the page just got shorter: keep the button under the finger
+  });
+}
 
 // the viewer
 const dlg = document.getElementById('viewer'), big = document.getElementById('big'), link = document.getElementById('link');

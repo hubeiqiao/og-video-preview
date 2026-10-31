@@ -1,22 +1,22 @@
 {
  "name": "intercom",
- "layers": 13,
+ "layers": 9,
  "kinds": {
-  "headline": 7,
+  "headline": 2,
+  "text": 2,
   "icon": 2,
   "panel": 1,
   "illustration": 1,
-  "photo": 1,
-  "text": 1
+  "photo": 1
  },
  "background": "flat",
  "style": "rebuild",
  "frame0_mean": 0.416,
  "frame0_local_pct": 0.0,
- "seam": 38,
- "step": 37,
- "mp4_kb": 494,
+ "seam": 30,
+ "step": 29,
+ "mp4_kb": 453,
  "jpg_kb": 78,
- "seconds": 50.4,
+ "seconds": 55.0,
  "pass": true
 }

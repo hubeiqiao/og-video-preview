@@ -1,19 +1,19 @@
 {
  "name": "ideogram",
- "layers": 9,
+ "layers": 5,
  "kinds": {
   "headline": 1,
-  "shape": 6,
+  "shape": 2,
   "label": 2
  },
  "background": "detailed",
  "style": "living",
- "frame0_mean": 0.39,
+ "frame0_mean": 0.391,
  "frame0_local_pct": 0.0,
  "seam": 0,
- "step": 2,
- "mp4_kb": 1271,
+ "step": 1,
+ "mp4_kb": 1260,
  "jpg_kb": 163,
- "seconds": 166.4,
+ "seconds": 164.5,
  "pass": true
 }

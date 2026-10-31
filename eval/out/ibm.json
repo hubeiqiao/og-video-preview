@@ -1,18 +1,18 @@
 {
  "name": "ibm",
- "layers": 18,
+ "layers": 2,
  "kinds": {
-  "pill": 17,
+  "illustration": 1,
   "headline": 1
  },
  "background": "flat",
  "style": "rebuild",
- "frame0_mean": 0.164,
+ "frame0_mean": 0.165,
  "frame0_local_pct": 0.0,
- "seam": 0,
- "step": 1,
- "mp4_kb": 142,
+ "seam": 2,
+ "step": 4,
+ "mp4_kb": 214,
  "jpg_kb": 52,
- "seconds": 32.6,
+ "seconds": 33.4,
  "pass": true
 }

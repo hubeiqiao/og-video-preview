@@ -51,7 +51,7 @@ Then ask your agent: *"Use /og-video-preview to make my og:image move."*
 
 | Feature | What it does |
 |---|---|
-| **Element-aware motion** | Twelve element kinds, each with its own entrance, exit, idle movement and accent, on one set of easing curves and damped springs. Accents differ from card to card (a sweep, hopping letters, a star, a coin flip, a swing), and a fine background texture moves as one surface |
+| **Element-aware motion** | Twelve element kinds, each with its own entrance, exit, idle movement and accent, on one set of easing curves and damped springs. Accents differ from card to card (a sweep, hopping letters, a coin flip, a swing), and a fine background texture moves as one surface. A line of type, a wordmark and an app screenshot always move whole |
 | **Works from the finished image** | Any PNG or JPG, made in Figma, Canva or code (route A), or a configurable HTML card (route B) |
 | **Clean cut-outs** | Each element owns its exact pixels; the background behind it is refilled, and visuals that cannot be refilled cleanly move in place instead of leaving |
 | **Seamless 4 s loops at 60 fps** | Every idle, accent and camera move is exactly zero at the loop point |
@@ -156,7 +156,9 @@ The skill is tested on the Open Graph images of 103 well-known sites, each put t
 | Seam | the jump from the last frame to the first is at most 1.5 ordinary frame steps (plus 4 levels of slack) |
 | Size | MP4 ≤ 2 MB, frame-0 JPEG ≤ 180 KB |
 
-All 103 pass. Run it after any change to the engine:
+All 103 pass. The checks above are numbers; a video can pass them and still look broken in the middle of its loop (half a line on screen, a wordmark missing a letter, a smear where an icon left). So every video is also reviewed by eye, at nine moments of its loop, and each kind of defect found becomes a rule in the engine (listed in [SKILL.md](SKILL.md#3-motion-comes-from-the-kind) under "Safeguards").
+
+Run it after any change to the engine:
 
 ```bash
 python3 eval/fetch.py                            # download the og:image of every site in eval/sites.txt

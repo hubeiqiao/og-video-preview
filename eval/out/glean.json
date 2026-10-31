@@ -1,22 +1,21 @@
 {
  "name": "glean",
- "layers": 18,
+ "layers": 11,
  "kinds": {
-  "label": 8,
-  "shape": 5,
+  "label": 6,
+  "shape": 1,
   "icon": 2,
   "illustration": 1,
-  "stroke": 1,
   "text": 1
  },
  "background": "graded",
- "style": "rebuild",
- "frame0_mean": 0.152,
+ "style": "living",
+ "frame0_mean": 0.151,
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 1,
- "mp4_kb": 388,
+ "mp4_kb": 356,
  "jpg_kb": 66,
- "seconds": 96.5,
+ "seconds": 86.9,
  "pass": true
 }

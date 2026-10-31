@@ -1,0 +1,15 @@
+{
+ "note": "A headline, a stack of illustrated launches and a Sign up button: the button is the call to action, so a pointer clicks it.",
+ "units": [
+  {
+   "box": [
+    916,
+    496,
+    212,
+    72
+   ],
+   "role": "button",
+   "note": "Sign up"
+  }
+ ]
+}
