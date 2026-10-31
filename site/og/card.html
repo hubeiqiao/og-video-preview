@@ -8,6 +8,7 @@
 <script src="work/frames.js"></script>
 <style>
 @font-face { font-family: 'Familjen Grotesk'; font-weight: 400 700; src: url('../fonts/familjen-grotesk-latin-v11.woff2') format('woff2'); }
+@font-face { font-family: 'Geist Serif'; font-weight: 400; src: url('../fonts/geist-serif-v1.9.0.woff2') format('woff2'); }
 @font-face { font-family: 'Fragment Mono'; font-weight: 400; src: url('../fonts/fragment-mono-latin-v6.woff2') format('woff2'); }
 :root {
   --ink: oklch(0.145 0.006 60); --text: oklch(0.97 0.004 60); --text-2: oklch(0.82 0.008 60); --text-3: oklch(0.72 0.01 60);
@@ -17,7 +18,7 @@
 * { margin:0; box-sizing:border-box; }
 html, body { width:1200px; height:630px; overflow:hidden; background:var(--ink); }
 body { font-family:'Familjen Grotesk', sans-serif; color:var(--text); -webkit-font-smoothing:antialiased; font-synthesis:none; position:relative; }
-h1 { position:absolute; left:60px; top:58px; font-size:70px; font-weight:700; line-height:1; letter-spacing:-0.035em; white-space:nowrap; }
+h1 { position:absolute; left:60px; top:52px; font-family:'Geist Serif', serif; font-size:78px; font-weight:400; line-height:1; letter-spacing:-0.02em; white-space:nowrap; }
 h1 span { color:var(--amber); }
 .tag { position:absolute; top:182px; font-family:'Fragment Mono', monospace; font-size:21px; color:var(--text-2); display:flex; align-items:center; gap:10px; }
 .tag b { font-weight:400; color:var(--text); }

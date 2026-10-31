@@ -209,5 +209,6 @@ og-video-preview/
 - Inspired by [Michael Pfister](https://x.com/pfista)'s [post on X](https://x.com/pfista/status/2113288415546638515): "this is your sign to start using og:video on your website".
 - Built by [Joe Hu](https://x.com/hubeiqiao) while making the link previews for [Joe Speaking](https://joespeaking.com).
 - The film uses music ("Digital Clouds" by Alejandro Magaña) and sound effects from [Mixkit](https://mixkit.co) under the Mixkit free license. The website uses the Watch texture from [Textures](https://textures.dev) (MIT).
+- The website and its link preview are set in [Geist Serif](https://vercel.com/blog/introducing-geist-serif) by Vercel, Familjen Grotesk and Fragment Mono, all under the SIL Open Font License (licences in `site/fonts/`).
 
 Released under the [MIT License](LICENSE).

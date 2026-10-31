@@ -37,10 +37,12 @@
 <!-- structured-data -->
 <link rel="preload" href="fonts/familjen-grotesk-latin-v11.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/fragment-mono-latin-v6.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/geist-serif-v1.9.0.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" as="image" href="media/joespeaking.webp" fetchpriority="high">
 <link rel="preload" as="image" href="media/promo-poster.webp" fetchpriority="high">
 <style>
 @font-face { font-family: 'Familjen Grotesk'; font-style: normal; font-weight: 400 700; font-display: swap; src: url('fonts/familjen-grotesk-latin-v11.woff2') format('woff2'); }
+@font-face { font-family: 'Geist Serif'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/geist-serif-v1.9.0.woff2') format('woff2'); }
 @font-face { font-family: 'Fragment Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/fragment-mono-latin-v6.woff2') format('woff2'); }
 :root {
   color-scheme: dark;
@@ -50,7 +52,7 @@
   --live: oklch(0.66 0.21 28);
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --shadow: 0 0 0 0.5px oklch(1 0 0 / 0.08), 0 1px 2px oklch(0 0 0 / 0.3), 0 12px 32px oklch(0 0 0 / 0.32), 0 40px 100px oklch(0 0 0 / 0.45);
-  --sans: 'Familjen Grotesk', ui-sans-serif, system-ui, sans-serif; --mono: 'Fragment Mono', ui-monospace, monospace;
+  --sans: 'Familjen Grotesk', ui-sans-serif, system-ui, sans-serif; --display: 'Geist Serif', ui-serif, Georgia, serif; --mono: 'Fragment Mono', ui-monospace, monospace;
   --gutter: clamp(16px, 4vw, 56px);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -64,7 +66,8 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .amber { color: var(--amber); }
 .nw { white-space: nowrap; }
 .wrap { max-width: 1320px; margin: 0 auto; padding: 0 var(--gutter); }
-h1, h2 { font-weight: 650; letter-spacing: -0.04em; text-wrap: balance; }
+/* headlines in Geist Serif (Vercel, OFL; a display face in one weight); everything smaller stays in Familjen Grotesk */
+h1, h2 { font-family: var(--display); font-weight: 400; letter-spacing: -0.02em; text-wrap: balance; }
 h2 { font-size: clamp(34px, 5vw, 72px); line-height: 1.04; }
 .media { border-radius: clamp(10px, 1.4vw, 16px); overflow: hidden; background: var(--raised); box-shadow: var(--shadow); position: relative; }
 .media img, .media video { width: 100%; height: 100%; object-fit: cover; }
