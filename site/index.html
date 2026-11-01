@@ -107,6 +107,15 @@ section { padding-top: clamp(96px, 12vw, 160px); }
   display: inline-flex; align-items: center; gap: 8px; flex: none; transition-property: background-color, transform; transition-duration: 160ms; transition-timing-function: var(--ease); }
 @media (hover: hover) and (pointer: fine) { .btn:hover { background: oklch(0.82 0.15 78 / 0.26); } }
 .btn:active { transform: scale(0.98); }
+/* for someone who has never opened a terminal: one sentence to paste into their agent, which installs the skill and runs it */
+.ask { margin-top: 20px; max-width: 34rem; }
+.ask > p { margin: 0 0 8px; font-size: 14px; line-height: 1.5; color: var(--text-3); }
+.prompt { display: flex; align-items: center; gap: 16px; padding: 6px 6px 6px 16px; border-radius: 14px; background: var(--raised);
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.1); text-align: start; }
+.prompt p { margin: 0; padding: 6px 0; min-width: 0; font-size: 15px; line-height: 1.5; color: var(--text-2); text-wrap: pretty; overflow-wrap: break-word; }
+.end .ask { margin-inline: auto; }
+/* on a phone the button goes below the sentence, so the sentence keeps the full width */
+@media (max-width: 520px) { .prompt { flex-direction: column; align-items: stretch; gap: 4px; padding: 6px; } .prompt p { padding: 6px 10px; } .prompt .btn { justify-content: center; } }
 .btn.quiet { background: var(--raised-2); color: var(--text); }
 @media (hover: hover) and (pointer: fine) { .btn.quiet:hover { background: oklch(0.28 0.008 60); } }
 
@@ -263,6 +272,10 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
         <div class="actions in" style="--d:4">
           <div class="cmd"><code>npx skills add <span class="nw">hubeiqiao/og-video-preview</span></code><button class="btn copy" aria-label="Copy the install command">Copy</button></div>
         </div>
+        <div class="ask in" style="--d:5">
+          <p>No terminal? Paste this into Claude Code or Codex:</p>
+          <div class="prompt"><p>Install the og-video-preview skill with npx skills add <span class="nw">hubeiqiao/og-video-preview,</span> then use it to turn my site&rsquo;s og:image into a looping og:video and add the meta tags.</p><button class="btn copy" data-copy="prompt" aria-label="Copy the prompt">Copy</button></div>
+        </div>
       </div>
       <div class="in" style="--d:3">
         <div class="media stage" id="stage">
@@ -333,6 +346,10 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
     <div class="actions">
       <div class="cmd"><code>npx skills add <span class="nw">hubeiqiao/og-video-preview</span></code><button class="btn copy" aria-label="Copy the install command">Copy</button></div>
       <a class="btn quiet" href="https://github.com/hubeiqiao/og-video-preview" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+    <div class="ask">
+      <p>No terminal? Paste this into Claude Code or Codex:</p>
+      <div class="prompt"><p>Install the og-video-preview skill with npx skills add <span class="nw">hubeiqiao/og-video-preview,</span> then use it to turn my site&rsquo;s og:image into a looping og:video and add the meta tags.</p><button class="btn copy" data-copy="prompt" aria-label="Copy the prompt">Copy</button></div>
     </div>
     <footer>
       <a href="https://x.com/pfista/status/2113288415546638515" target="_blank" rel="noopener">Inspired by @pfista</a>
@@ -551,9 +568,10 @@ dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 dlg.addEventListener('close', () => { big.pause(); big.removeAttribute('src'); big.load(); });
 dlg.addEventListener('keydown', e => { if (e.key === 'ArrowRight') open(at + 1); if (e.key === 'ArrowLeft') open(at - 1); });
 
-// copy the install command
+// copy the install command, or the prompt beside the button
 document.querySelectorAll('.copy').forEach(b => b.addEventListener('click', async () => {
-  try { await navigator.clipboard.writeText('npx skills add hubeiqiao/og-video-preview'); b.textContent = 'Copied'; } catch { b.textContent = 'Select it'; }
+  const text = b.dataset.copy ? b.previousElementSibling.textContent : 'npx skills add hubeiqiao/og-video-preview';
+  try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; } catch { b.textContent = 'Select it'; }
   setTimeout(() => { b.textContent = 'Copy'; }, 1600);
 }));
 
