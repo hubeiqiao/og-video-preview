@@ -96,26 +96,30 @@ section { padding-top: clamp(96px, 12vw, 160px); }
 .hero h1 .w { display: inline-block; }
 .hero h1 .l { display: inline-block; will-change: transform; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: clamp(24px, 3vw, 36px); align-items: center; container-type: inline-size; }
-/* the install command fits one line or breaks after "add" on purpose, so its box hugs the longer line instead
-   of keeping a one-line width beside a wrapped command */
-@container (max-width: 469px) { .cmd code .nw { display: block; } }
-.cmd { display: inline-flex; align-items: center; gap: 16px; max-width: 100%; padding: 6px 6px 6px 16px; border-radius: 14px; background: var(--amber-soft);
-  box-shadow: inset 0 0 0 1px var(--amber-line); font-family: var(--mono); font-size: 14px; color: var(--amber); }
-.cmd code { min-width: 0; overflow-wrap: break-word; }
-.cmd code::before { content: '$ '; opacity: 0.55; }
 .btn { min-height: 40px; padding: 0 14px; border-radius: 10px; background: oklch(0.82 0.15 78 / 0.16); font-family: var(--mono); font-size: 14px; color: var(--amber);
   display: inline-flex; align-items: center; gap: 8px; flex: none; transition-property: background-color, transform; transition-duration: 160ms; transition-timing-function: var(--ease); }
 @media (hover: hover) and (pointer: fine) { .btn:hover { background: oklch(0.82 0.15 78 / 0.26); } }
 .btn:active { transform: scale(0.98); }
-/* for someone who has never opened a terminal: one sentence to paste into their agent, which installs the skill and runs it */
-.ask { margin-top: 20px; max-width: 34rem; }
-.ask > p { margin: 0 0 8px; font-size: 14px; line-height: 1.5; color: var(--text-3); }
-.prompt { display: flex; align-items: center; gap: 16px; padding: 6px 6px 6px 16px; border-radius: 14px; background: var(--raised);
-  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.1); text-align: start; }
-.prompt p { margin: 0; padding: 6px 0; min-width: 0; font-size: 15px; line-height: 1.5; color: var(--text-2); text-wrap: pretty; overflow-wrap: break-word; }
-.end .ask { margin-inline: auto; }
-/* on a phone the button goes below the sentence, so the sentence keeps the full width */
-@media (max-width: 520px) { .prompt { flex-direction: column; align-items: stretch; gap: 4px; padding: 6px; } .prompt p { padding: 6px 10px; } .prompt .btn { justify-content: center; } }
+/* how to get it: one box, two ways in. Terminal shows the command; Claude Code / Codex shows one sentence for someone
+   who has never opened a terminal, which installs the skill and runs it. Both panes share one grid cell, so switching
+   never changes the box's height */
+.get { width: min(100%, 34rem); border-radius: 16px; background: var(--raised); box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.1);
+  container-type: inline-size; text-align: start; }
+.tabs { display: flex; gap: 4px; padding: 6px 6px 0; }
+.tabs button { min-height: 32px; padding: 0 12px; border-radius: 8px; font-family: var(--mono); font-size: 13px; color: var(--text-3);
+  transition-property: color, background-color; transition-duration: 160ms; transition-timing-function: var(--ease); }
+@media (hover: hover) and (pointer: fine) { .tabs button:hover { color: var(--text); } }
+.tabs button[aria-selected="true"] { background: var(--amber-soft); color: var(--amber); }
+.get .body { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 8px 6px 6px 18px; }
+.get .pane { grid-area: 1 / 1; min-width: 0; transition-property: opacity, visibility; transition-duration: 200ms; transition-timing-function: var(--ease); }
+.get[data-on="cmd"] .pane[data-pane="ask"], .get[data-on="ask"] .pane[data-pane="cmd"] { opacity: 0; visibility: hidden; }
+.get code { font-family: var(--mono); font-size: 14px; color: var(--amber); overflow-wrap: break-word; }
+.get code::before { content: '$ '; opacity: 0.55; }
+.get .pane p { font-size: 15px; line-height: 1.5; color: var(--text-2); text-wrap: pretty; overflow-wrap: break-word; }
+.get .btn { grid-area: 1 / 2; }
+/* on a phone the button goes under the text, so the sentence keeps the full width */
+@container (max-width: 440px) { .get code .nw { display: block; } .get .body { grid-template-columns: minmax(0, 1fr); padding: 8px 6px 6px; }
+  .get .pane { padding: 0 12px; } .get .btn { grid-area: 2 / 1; justify-content: center; margin-top: 8px; } }
 .btn.quiet { background: var(--raised-2); color: var(--text); }
 @media (hover: hover) and (pointer: fine) { .btn.quiet:hover { background: oklch(0.28 0.008 60); } }
 
@@ -221,7 +225,7 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
   .hero { grid-template-columns: minmax(0, 1fr); }
   .live { grid-template-columns: minmax(0, 1fr); }
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .cmd { font-size: 13px; }
+  .get code { font-size: 13px; }
   /* the film runs edge to edge, unframed, so it reads apart from the framed preview card above it */
   .film { margin-inline: calc(-1 * var(--gutter)); }
   .film .media { border-radius: 0; box-shadow: none; }
@@ -270,11 +274,14 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
       <div>
         <h1 id="title">Make your link <span class="nw">previews <span class="amber" id="move">move.</span></span></h1>
         <div class="actions in" style="--d:4">
-          <div class="cmd"><code>npx skills add <span class="nw">hubeiqiao/og-video-preview</span></code><button class="btn copy" aria-label="Copy the install command">Copy</button></div>
-        </div>
-        <div class="ask in" style="--d:5">
-          <p>No terminal? Paste this into Claude Code or Codex:</p>
-          <div class="prompt"><p>Install the og-video-preview skill with npx skills add <span class="nw">hubeiqiao/og-video-preview,</span> then use it to turn my site&rsquo;s og:image into a looping og:video and add the meta tags.</p><button class="btn copy" data-copy="prompt" aria-label="Copy the prompt">Copy</button></div>
+          <div class="get" data-on="cmd">
+            <div class="tabs" role="tablist" aria-label="How to install"><button type="button" role="tab" aria-selected="true" data-tab="cmd">Terminal</button><button type="button" role="tab" aria-selected="false" data-tab="ask">Claude Code / Codex</button></div>
+            <div class="body">
+              <div class="pane" data-pane="cmd"><code>npx skills add <span class="nw">hubeiqiao/og-video-preview</span></code></div>
+              <div class="pane" data-pane="ask"><p>Install the og-video-preview skill with npx skills add <span class="nw">hubeiqiao/og-video-preview,</span> then use it to turn my site&rsquo;s og:image into a looping og:video and add the meta tags.</p></div>
+              <button class="btn copy" type="button" aria-label="Copy">Copy</button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="in" style="--d:3">
@@ -344,12 +351,15 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
     <div class="tex" data-motion="ambient" aria-hidden="true"><div class="host" data-texture="watch" data-ink="oklch(0.82 0.15 78 / 0.5)" data-field="transparent"></div></div>
     <h2>One command. <span class="nw">Any <span class="amber">og:image.</span></span></h2>
     <div class="actions">
-      <div class="cmd"><code>npx skills add <span class="nw">hubeiqiao/og-video-preview</span></code><button class="btn copy" aria-label="Copy the install command">Copy</button></div>
+      <div class="get" data-on="cmd">
+        <div class="tabs" role="tablist" aria-label="How to install"><button type="button" role="tab" aria-selected="true" data-tab="cmd">Terminal</button><button type="button" role="tab" aria-selected="false" data-tab="ask">Claude Code / Codex</button></div>
+        <div class="body">
+          <div class="pane" data-pane="cmd"><code>npx skills add <span class="nw">hubeiqiao/og-video-preview</span></code></div>
+          <div class="pane" data-pane="ask"><p>Install the og-video-preview skill with npx skills add <span class="nw">hubeiqiao/og-video-preview,</span> then use it to turn my site&rsquo;s og:image into a looping og:video and add the meta tags.</p></div>
+          <button class="btn copy" type="button" aria-label="Copy">Copy</button>
+        </div>
+      </div>
       <a class="btn quiet" href="https://github.com/hubeiqiao/og-video-preview" target="_blank" rel="noopener">GitHub ↗</a>
-    </div>
-    <div class="ask">
-      <p>No terminal? Paste this into Claude Code or Codex:</p>
-      <div class="prompt"><p>Install the og-video-preview skill with npx skills add <span class="nw">hubeiqiao/og-video-preview,</span> then use it to turn my site&rsquo;s og:image into a looping og:video and add the meta tags.</p><button class="btn copy" data-copy="prompt" aria-label="Copy the prompt">Copy</button></div>
     </div>
     <footer>
       <a href="https://x.com/pfista/status/2113288415546638515" target="_blank" rel="noopener">Inspired by @pfista</a>
@@ -568,9 +578,17 @@ dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 dlg.addEventListener('close', () => { big.pause(); big.removeAttribute('src'); big.load(); });
 dlg.addEventListener('keydown', e => { if (e.key === 'ArrowRight') open(at + 1); if (e.key === 'ArrowLeft') open(at - 1); });
 
-// copy the install command, or the prompt beside the button
+// the install box: switch between the command and the sentence for an agent, and copy whichever is showing
+document.querySelectorAll('.get').forEach(g => {
+  const tabs = [...g.querySelectorAll('[role="tab"]')];
+  const pick = t => { g.dataset.on = t.dataset.tab; tabs.forEach(x => x.setAttribute('aria-selected', x === t)); };
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => pick(t));
+    t.addEventListener('keydown', e => { const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (d) { const n = tabs[(i + d + tabs.length) % tabs.length]; pick(n); n.focus(); } });
+  });
+});
 document.querySelectorAll('.copy').forEach(b => b.addEventListener('click', async () => {
-  const text = b.dataset.copy ? b.previousElementSibling.textContent : 'npx skills add hubeiqiao/og-video-preview';
+  const g = b.closest('.get'), text = g.querySelector(`.pane[data-pane="${g.dataset.on}"]`).textContent;
   try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; } catch { b.textContent = 'Select it'; }
   setTimeout(() => { b.textContent = 'Copy'; }, 1600);
 }));
