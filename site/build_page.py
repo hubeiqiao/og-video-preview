@@ -35,6 +35,56 @@ def png(size):
             + chunk(b'IDAT', zlib.compress(rows, 9)) + chunk(b'IEND', b''))
 
 
+def share_page(name, domain):
+    """Keep crawler metadata here; people continue to the landing page's viewer."""
+    assert re.fullmatch(r'[a-z0-9-]+', name), 'Unsafe card name'
+    values = {key: html.escape(value, quote=True) for key, value in {
+        'title': f'{domain}, as an og:video',
+        'description': f"The og:video OG Video Preview made from {domain}'s own og:image. Make yours with one command.",
+        'url': f'{BASE}s/{name}/',
+        'image': f'{BASE}eval/{name}.jpg',
+        'video': f'{BASE}eval/{name}.mp4',
+        'alt': f"The og:video made from {domain}'s own og:image, shown at frame 0",
+        'landing': f'../../?card={name}#eval',
+        'poster': f'../../eval/{name}.jpg',
+        'source': f'../../eval/{name}.mp4',
+    }.items()}
+    page = '''<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title}</title>
+<meta name="description" content="{description}">
+<link rel="canonical" href="{url}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OG Video Preview">
+<meta property="og:title" content="{title}">
+<meta property="og:description" content="{description}">
+<meta property="og:url" content="{url}">
+<meta property="og:image" content="{image}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{alt}">
+<meta property="og:video" content="{video}">
+<meta property="og:video:secure_url" content="{video}">
+<meta property="og:video:type" content="video/mp4">
+<meta property="og:video:width" content="1200">
+<meta property="og:video:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{image}">
+<meta name="twitter:image:alt" content="{alt}">
+</head>
+<body>
+<script>location.replace("{landing}");</script>
+<noscript><video controls playsinline poster="{poster}" src="{source}" width="1200" height="630"></video><p><a href="{landing}">Open on OG Video Preview</a></p></noscript>
+</body>
+</html>
+'''.format(**values)
+    assert '\u2014' not in page, 'No em dashes in share copy'
+    return page
+
+
 def main():
     sites = json.loads((ROOT / 'site/media/sites.json').read_text())
     results = json.loads((ROOT / 'eval/results.json').read_text())
@@ -94,10 +144,16 @@ def main():
         assert f"'{name}'" in page, name
         page = page.replace(f"'{name}'", f"'{ref}'")
     (OUT / 'index.html').write_text(page)
+    for name in names:
+        share = OUT / 's' / name
+        share.mkdir(parents=True, exist_ok=True)
+        (share / 'index.html').write_text(share_page(name, sites[name]['domain']))
     (OUT / 'robots.txt').write_text(f'User-agent: *\nAllow: /\n\nSitemap: {BASE}sitemap.xml\n')
     (OUT / 'sitemap.xml').write_text('<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-        f'<url><loc>{BASE}</loc></url><url><loc>{BASE}index.md</loc></url></urlset>\n')
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + '\n'.join(f'<url><loc>{html.escape(url, quote=True)}</loc></url>'
+                    for url in [BASE, BASE + 'index.md'] + [f'{BASE}s/{name}/' for name in names])
+        + '\n</urlset>\n')
     (OUT / 'favicon.svg').write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#f6b93b"/></svg>\n')
     for size in (16, 32, 192, 512):
         (OUT / f'favicon-{size}.png').write_bytes(png(size))

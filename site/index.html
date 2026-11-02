@@ -411,7 +411,7 @@ footer .face img { width: 100%; height: 100%; transform: scale(1.15); transform-
 <dialog id="viewer" aria-label="OG video">
   <div class="media"><video id="big" muted loop playsinline autoplay></video></div>
   <div class="bar"><a id="link" target="_blank" rel="noopener"></a>
-    <div class="nav"><button class="btn quiet" id="prev" aria-label="Previous card">←</button><button class="btn quiet" id="next" aria-label="Next card">→</button>
+    <div class="nav"><button class="btn quiet" id="copy-link" type="button" aria-live="polite">Copy link</button><button class="btn quiet" id="prev" aria-label="Previous card">←</button><button class="btn quiet" id="next" aria-label="Next card">→</button>
     <button class="btn quiet" id="close" aria-label="Close">Close</button></div></div>
 </dialog>
 
@@ -604,9 +604,11 @@ if (tiles.length > 12) {
 
 // the viewer
 const dlg = document.getElementById('viewer'), big = document.getElementById('big'), link = document.getElementById('link');
-let at = 0;
+const copyLink = document.getElementById('copy-link');
+let at = 0, copyTimer;
 function open(i) {
   at = (i + names.length) % names.length; const name = names[at];
+  clearTimeout(copyTimer); copyLink.textContent = 'Copy link';
   big.poster = `eval/${name}.jpg`; big.src = `eval/${name}.mp4`; big.play().catch(() => {});
   link.href = `https://${SITES[name]}`; link.textContent = `${SITES[name]} ↗`;
   if (!dlg.open) dlg.showModal();
@@ -617,6 +619,25 @@ document.getElementById('close').onclick = () => dlg.close();
 dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 dlg.addEventListener('close', () => { big.pause(); big.removeAttribute('src'); big.load(); });
 dlg.addEventListener('keydown', e => { if (e.key === 'ArrowRight') open(at + 1); if (e.key === 'ArrowLeft') open(at - 1); });
+
+copyLink.onclick = async () => {
+  const name = names[at], url = new URL(`s/${name}/`, location.origin + location.pathname).href;
+  clearTimeout(copyTimer);
+  try {
+    await navigator.clipboard.writeText(url);
+    if (names[at] !== name) return;
+    copyLink.textContent = 'Copied';
+    copyTimer = setTimeout(() => { copyLink.textContent = 'Copy link'; }, 1800);
+  } catch { window.prompt('Copy this link:', url); }
+};
+
+// The grid and names are ready now, including cards hidden by the mobile gallery clamp.
+const card = new URLSearchParams(location.search).get('card') || new URLSearchParams(location.hash.slice(1)).get('card');
+const cardIndex = names.indexOf(card);
+if (cardIndex !== -1) {
+  open(cardIndex);
+  history.replaceState(history.state, '', location.pathname + '#eval');
+}
 
 // the install box: switch between the command and the sentence for an agent, and copy whichever is showing
 document.querySelectorAll('.get').forEach(g => {
