@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>/* the page's own folder, so its relative files still load while the address bar shows a card's share link */
+document.write('<base href="' + location.href.replace(/[?#].*$/, '').replace(/[^/]*$/, '').replace(/"/g, '%22') + '">');</script>
 <title>OG Video Preview: make your link previews move</title>
 <meta name="description" content="An open-source agent skill that turns any og:image into a looping og:video. Tested on 104 real OG images with no hand tuning.">
 <link rel="canonical" href="{{BASE}}">
@@ -605,23 +607,27 @@ if (tiles.length > 12) {
 // the viewer
 const dlg = document.getElementById('viewer'), big = document.getElementById('big'), link = document.getElementById('link');
 const copyLink = document.getElementById('copy-link');
-let at = 0, copyTimer;
+// while a card is open the address bar shows its share link (s/<name>/), whose own preview is that card's og:video;
+// closing the viewer puts back the address the page had
+const ROOT = document.baseURI, share = name => new URL(`s/${name}/`, ROOT).href;
+let at = 0, copyTimer, home = location.href;
 function open(i) {
   at = (i + names.length) % names.length; const name = names[at];
   clearTimeout(copyTimer); copyLink.textContent = 'Copy link';
   big.poster = `eval/${name}.jpg`; big.src = `eval/${name}.mp4`; big.play().catch(() => {});
   link.href = `https://${SITES[name]}`; link.textContent = `${SITES[name]} ↗`;
-  if (!dlg.open) dlg.showModal();
+  if (!dlg.open) { home = location.href; dlg.showModal(); }
+  history.replaceState(history.state, '', share(name));
 }
 document.getElementById('prev').onclick = () => open(at - 1);
 document.getElementById('next').onclick = () => open(at + 1);
 document.getElementById('close').onclick = () => dlg.close();
 dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
-dlg.addEventListener('close', () => { big.pause(); big.removeAttribute('src'); big.load(); });
+dlg.addEventListener('close', () => { big.pause(); big.removeAttribute('src'); big.load(); history.replaceState(history.state, '', home); });
 dlg.addEventListener('keydown', e => { if (e.key === 'ArrowRight') open(at + 1); if (e.key === 'ArrowLeft') open(at - 1); });
 
 copyLink.onclick = async () => {
-  const name = names[at], url = new URL(`s/${name}/`, location.origin + location.pathname).href;
+  const name = names[at], url = share(name);
   clearTimeout(copyTimer);
   try {
     await navigator.clipboard.writeText(url);
@@ -635,8 +641,8 @@ copyLink.onclick = async () => {
 const card = new URLSearchParams(location.search).get('card') || new URLSearchParams(location.hash.slice(1)).get('card');
 const cardIndex = names.indexOf(card);
 if (cardIndex !== -1) {
+  history.replaceState(history.state, '', new URL('#eval', ROOT).href);  // closing it lands on the gallery, not on this link again
   open(cardIndex);
-  history.replaceState(history.state, '', location.pathname + '#eval');
 }
 
 // the install box: switch between the command and the sentence for an agent, and copy whichever is showing
