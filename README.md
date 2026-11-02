@@ -28,6 +28,14 @@ A link preview is the first thing people see of your page in a chat. In iMessage
 - **Frame 0 is your image, pixel for pixel.** Apps that cannot play video show the same still they show today, so the preview is never worse than before.
 - **It is checked, not hoped for.** Every render is tested for frame-0 identity, a seamless loop, real motion and file-size budgets, and the live server is tested for the HTTP Range support Apple's players require.
 
+**Quick start.** Copy this sentence and paste it into Claude Code, Codex or any coding agent. It installs the skill and runs it on your site:
+
+```text
+Install the og-video-preview skill with npx skills add hubeiqiao/og-video-preview, then use it to turn my site's og:image into a looping og:video and add the meta tags.
+```
+
+Or install it from a terminal:
+
 ```bash
 npx skills add hubeiqiao/og-video-preview
 ```
@@ -59,6 +67,12 @@ Then ask your agent: *"Use /og-video-preview to make my og:image move."*
 | **Deploys correctly** | Meta tags, versioned filenames, a Range check for the live server, and a Cloudflare Worker that adds `206 Partial Content` |
 
 ## Installation
+
+**Ask your agent** (no terminal needed): paste this into Claude Code, Codex or any agent that supports Agent Skills.
+
+```text
+Install the og-video-preview skill with npx skills add hubeiqiao/og-video-preview, then use it to turn my site's og:image into a looping og:video and add the meta tags.
+```
 
 **Agent Skills** (any compatible agent):
 
