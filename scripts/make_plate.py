@@ -71,6 +71,7 @@ def main():
         own = owner[y0:y1, x0:x1]
         # only this layer's own pixels; a layer added by hand has none, so it is cut as a rectangle (or a disc)
         sub = (own == L["mask"]).astype(np.uint8) if "mask" in L else np.zeros_like(own)
+        sub_own = None
         m = np.zeros((y1 - y0, x1 - x0), np.uint8)
         kind = L.get("kind", "")
         if L.get("cut") == "disc" or kind == "avatar":
@@ -81,7 +82,16 @@ def main():
             # faint strokes too: inside its own line, anything clearly off the line's surroundings is type
             box_img = img[y0:y1, x0:x1]
             ring = np.concatenate([box_img[:2].reshape(-1, 3), box_img[-2:].reshape(-1, 3), box_img[:, :2].reshape(-1, 3), box_img[:, -2:].reshape(-1, 3)])
-            faint_ink = (dist(box_img, np.median(ring, 0)) > 22) & ((own == 0) | (own == L.get("mask", -1)))
+            # against what lies behind: one colour on a flat card; on a gradient the background model, which follows it
+            # (one median colour there marks whole stretches of gradient as ink, and they travelled with the words as a box)
+            # ink differs from both the line's surroundings and the background model: on a gradient the model follows
+            # the background (one median colour there marked whole stretches of gradient as ink), on a collage the
+            # surroundings do (the model there is meaningless, and a whole tile became "ink", a box for the sweep)
+            far = dist(box_img, np.median(ring, 0)) > 22
+            if not flat:
+                far &= dist(box_img, B[y0:y1, x0:x1]) > 22
+            faint_ink = far & ((own == 0) | (own == L.get("mask", -1)))
+            sub_own = sub.copy()  # the letters as found, for the sweep's mask: faint ink on silk reached into the silk
             sub = np.maximum(sub, faint_ink.astype(np.uint8))
             # antialiasing and JPEG ringing go too; on a gradient or picture also a soft shadow or glow
             k = 7 if flat else 13
@@ -116,7 +126,16 @@ def main():
             m[others] = 0
         cut[y0:y1, x0:x1] |= m
         own_cut.append((L.get("id", f"layer{len(own_cut) + 1}"), x0, y0, x1, y1, m, L.get("cut") == "ink"))
-        glyph[y0:y1, x0:x1] |= sub if sub.sum() else m
+        g_ = sub_own if (kind in TEXT_KINDS and not flat and sub_own is not None and sub_own.sum()) else sub
+        if kind in TEXT_KINDS and not flat and L.get("ink"):
+            # the letters by their own ink colour, where they also stand off the background: on grain or silk the pixels
+            # found for a line can be the grain around the letters, and the sweep lit a box with the letters cut out
+            ink_ = np.array([int(L["ink"][i:i + 2], 16) for i in (1, 3, 5)], np.float32)
+            bi_ = img[y0:y1, x0:x1]
+            by_ink = (dist(bi_, ink_[None, None, :]) < 60) & (dist(bi_, B[y0:y1, x0:x1]) > 40)
+            if by_ink.sum() > 30:
+                g_ = by_ink.astype(np.uint8)
+        glyph[y0:y1, x0:x1] |= g_ if g_.sum() else m
 
     hole = cv2.dilate(cut, np.ones((3, 3), np.uint8)) > 0
     plate = pushpull(img, ~hole)

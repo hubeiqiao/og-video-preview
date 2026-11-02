@@ -48,6 +48,33 @@ REGION_ROLES = {"orbit", "marquee", "list", "shine", "slide"}
 # less (a faint grid, a map, a pattern, a neighbour's shadow) and its hole would show, so it moves in place instead.
 # 0.75 let grids and maps through; the frame-by-frame review found them all
 SETTLE_ON_BG = 0.9
+# how much what surrounds a line of type may vary around the smooth background model (p90 - p10, levels) before its
+# hole counts as unfillable: a lattice (Conviction) measured 10, silk and bumpy gradients 13 to 15; a clean gradient
+# 7, a card merely brighter than modelled 4
+PATTERN_SPREAD = 9
+
+
+def auto_surface(img, owns):
+    """How a graded background should flow: the direction of its own lines (a structure tensor over the background,
+    elements masked out) and how strongly lined it is. Lined (silk, light streaks): a billow along the lines.
+    Unlined but with some texture: slow ripples. A plain gradient: nothing, a warp of it would not show."""
+    g = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY).astype(np.float32)
+    bg = np.ones(g.shape, bool)
+    for o in owns:
+        bg &= ~(cv2.dilate((o > 0).astype(np.uint8), np.ones((31, 31), np.uint8)) > 0)
+    gx, gy = cv2.Sobel(g, cv2.CV_32F, 1, 0, ksize=5), cv2.Sobel(g, cv2.CV_32F, 0, 1, ksize=5)
+    w = bg.astype(np.float32)
+    jxx, jyy, jxy = (gx * gx * w).sum(), (gy * gy * w).sum(), (gx * gy * w).sum()
+    energy = (jxx + jyy) / max(w.sum(), 1)
+    if energy < 400:  # a plain gradient
+        return None
+    coherence = np.hypot(jxx - jyy, 2 * jxy) / max(jxx + jyy, 1e-6)
+    lines = (np.degrees(0.5 * np.arctan2(2 * jxy, jxx - jyy)) + 90) % 180  # across the gradient: along the lines
+    if lines > 90:
+        lines -= 180
+    if coherence > 0.25:
+        return {"form": "silk", "amp": 2.2, "angle": round(float(lines), 1)}
+    return {"form": "ripple", "amp": 1.2}
 
 
 def load_card(path):
@@ -548,6 +575,8 @@ def main():
     ap.add_argument("--plate", help="the same image with every element removed (from an image-edit tool): with it every\n"
                     "visual can move freely, and the style becomes flow")
     ap.add_argument("--energy", default="lively", choices=["calm", "lively", "bold"])
+    ap.add_argument("--no-surface", dest="surface", action="store_false",
+                    help="keep a graded background still instead of letting it flow as one surface")
     ap.add_argument("--scene", help="a reading of the card (scene.json, see SKILL.md): which parts are whole units and what "
                     "each one is (a window, a button, a scribble, a list, a ring of avatars, a carousel row); it overrides "
                     "the automatic reading inside each unit")
@@ -1115,6 +1144,8 @@ def main():
     # the reading of the card, when there is one: each unit becomes one layer with its role (everything found inside
     # its box joins it, so a window never comes apart), or a region of the card that moves as a whole
     regions = []
+    scene_ = json.load(open(a.scene)) if a.scene else {}
+    surface = scene_.get("surface")
     if a.scene:
         fg_all = foreground(img, B, tol) > 0
         for U in json.load(open(a.scene)).get("units", []):
@@ -1212,6 +1243,13 @@ def main():
             box = [x, y, w, h]
             layers = others + [{"box": box, "kind": ROLE_KIND.get(role, role), "why": f"read: {role}", "f": features(img, own, box),
                                 "own": own, "scene": False, "role": role, "params": {k: v for k, v in U.items() if k not in ("box", "role", "note")}}]
+        if scene_.get("only"):
+            # the reading's units are the whole story: whatever else the automatic reading found (a dotted field it took
+            # for a line of words) stays in the picture
+            dropped = [L for L in layers if not L.get("role")]
+            layers = [L for L in layers if L.get("role")]
+            if dropped:
+                print(f"scene: only its units move; {len(dropped)} other element(s) stay in the picture")
         texts = [L for L in layers if L["kind"] in TEXT_KINDS]
         print(f"scene: {len(json.load(open(a.scene)).get('units', []))} units read from {os.path.basename(a.scene)}")
 
@@ -1276,8 +1314,13 @@ def main():
             on_bg = (dist(img[ring], B[ring]) < a.tol * 1.4).mean() if ring.sum() > 20 else 1
             if on_bg < 0.9:
                 item["boxed"] = True
-            if on_bg < SETTLE_ON_BG and not L.get("scene"):
-                item["settle"] = True  # type on a scribble or a picture: its hole would be a smear, so it stays
+            # a faint pattern or a bumpy gradient passes the colour test but not the refill: what surrounds the type
+            # varies around the smooth background model (a lattice, silk); a model that is merely offset (a light card
+            # a little brighter than modelled) varies little and refills cleanly
+            d_ = (img[ring].astype(np.float32) - B[ring].astype(np.float32)).mean(1) if ring.sum() > 20 else np.zeros(1)
+            patterned = float(np.percentile(d_, 90) - np.percentile(d_, 10)) > PATTERN_SPREAD
+            if (on_bg < SETTLE_ON_BG or patterned) and not L.get("scene"):
+                item["settle"] = True  # type on a scribble, a picture or a pattern: its hole would be a smear, so it stays
         else:
             # what lies just around its own pixels, where nothing else that leaves is: if that is not the plain
             # background (a sticker on a collage, a chair on a scribble), its hole could only be filled with a smear
@@ -1285,6 +1328,11 @@ def main():
             near = cv2.dilate(own.astype(np.uint8), np.ones((19, 19), np.uint8)) > 0
             ring = near & ~(cv2.dilate(own.astype(np.uint8), np.ones((9, 9), np.uint8)) > 0) & ~anyone
             on_bg = (dist(img[ring], B[ring]) < a.tol * 1.4).mean() if ring.sum() > 20 else 1
+            # a faint pattern around it (a grid under wireframe numerals) passes the colour test, but the refill erased
+            # its lines: the same spread test as for type
+            d_ = (img[ring].astype(np.float32) - B[ring].astype(np.float32)).mean(1) if ring.sum() > 20 else np.zeros(1)
+            if float(np.percentile(d_, 90) - np.percentile(d_, 10)) > PATTERN_SPREAD and not L.get("scene"):
+                on_bg = 0
             # a window the reading names leaves whole: its hole is plain card, even where it touches the edge or a neighbour
             if (k in {"photo", "panel", "illustration", "avatar"} and w * h > 0.2 * W * H) or (on_bg < SETTLE_ON_BG and L.get("role") not in ("window", "panel")):
                 item["settle"] = True  # its hole could not be filled cleanly: it moves in place
@@ -1300,7 +1348,13 @@ def main():
                 bx_ = img[y:y + h, x:x + w].astype(np.float32)
                 fill = np.median(np.concatenate([bx_[:2].reshape(-1, 3), bx_[-2:].reshape(-1, 3)]), 0)
                 ink_ = dist(bx_, fill) > 60  # the letters (and the caret), not the soft edge around them
-                item["stops"] = [int(p + q) for p, q in columns(ink_, 1)]
+                cols_ = list(columns(ink_, 1))
+                # the card's own caret is a column a few pixels wide at the end: not a letter. Left in, the drawn caret
+                # stood beside it
+                if L.get("params", {}).get("caret") and len(cols_) > 1 and cols_[-1][1] <= 5:
+                    item["caretX"] = int(cols_[-1][0])  # where the card's caret stands: the drawn one takes its place
+                    cols_ = cols_[:-1]
+                item["stops"] = [int(p + q) for p, q in cols_]
         out_layers.append(item)
 
     # each marked pixel belongs to exactly one layer: the element it was found in
@@ -1310,8 +1364,15 @@ def main():
         L["mask"] = n
     Image.fromarray(owner).save(os.path.join(a.out, "cut-mask.png"))
 
+    # a graded background (silk, light, waves; not a photo, not a screenshot) flows as one surface on its own, unless
+    # the reading says how. Its lines' own direction comes from the card: the billow travels along them
+    background_ = "detailed" if any(len(b) > 4 and b[2] * b[3] > 0.45 * W * H for b in backdrops) else "flat" if flat else "graded"
+    if surface is None and a.surface and background_ == "graded" and not busy and not sphere and not regions and not texture:
+        surface = auto_surface(img, [L["own"] for L in layers])
+        if surface:
+            print(f"surface: the background flows as one surface ({surface['form']}, lines at {surface.get('angle', 0):.0f} deg)")
     still_boxes = []
-    if texture:
+    if texture or surface:
         solid_ = (foreground(img, B, tol) > 0).astype(np.uint8)
         for P_ in pieces:
             solid_[P_["own"] > 0] = 0
@@ -1329,12 +1390,19 @@ def main():
         # a busy card (a screenshot, a crowd of parts) lives in place: whatever left it would leave a hole among its parts
         "busy": busy, "cleanPlate": bool(a.plate), "sphere": list(sphere) if sphere else None, "regions": regions,
         # a fine pattern moves as one surface (a big flat graphic does not: warped, its straight edges go wavy)
-        "texture": texture,
+        "texture": texture or bool(surface),
+        # a reading can ask for the whole background to move as one surface (silk ribbons, a gradient field): the form
+        # of the warp and how strong it is; the type keeps its calm zone, so it never bends
+        "fx": {**({"texture": surface["form"]} if surface else {}), **(scene_.get("fx") or {})},
+        # a reading may name the accent colour (a warm light through white type, which otherwise takes no sweep)
+        **({"accent": scene_["accent"]} if scene_.get("accent") else {}),
+        "surfaceAmp": float(surface.get("amp", 1)) if surface else 1,
+        "surfaceAngle": float(surface.get("angle", 0)) if surface else 0,
         # what solid stays in the plate beside a texture (a button, a mark): the warp fades to nothing around it
         "still": still_boxes,
         "paper": "#%02x%02x%02x" % tuple(int(v) for v in mode_colour(np.concatenate([img[0], img[-1], img[:, 0], img[:, -1]]))[0]),
         # type on a large picture: refills behind it never look clean, so the card lives in place
-        "background": "detailed" if any(len(b) > 4 and b[2] * b[3] > 0.45 * W * H for b in backdrops) else "flat" if flat else "graded",
+        "background": background_,
         "plate": {"mode": "image", "src": "plate.png"},
         "layers": out_layers,
     }

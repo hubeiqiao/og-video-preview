@@ -1,16 +1,8 @@
 {
- "note": "The Lovable prompt box: the prompt is typed into it, so it is deleted and typed again with a caret.",
+ "note": "The Lovable lockup over a glow, and its prompt box: the heart beats, the prompt is deleted and typed again with a caret, then the send button is clicked.",
  "units": [
-  {
-   "box": [
-    146,
-    482,
-    356,
-    56
-   ],
-   "role": "typing",
-   "caret": "#4a6cf0",
-   "note": "Build something lovable, and its caret"
-  }
+  {"box": [146, 482, 356, 56], "role": "typing", "caret": "#4a6cf0", "note": "Build something lovable, and its caret"},
+  {"box": [972, 470, 82, 82], "role": "button", "note": "the send button"},
+  {"box": [352, 140, 92, 92], "role": "logo", "turn": "beat", "note": "the heart"}
  ]
 }

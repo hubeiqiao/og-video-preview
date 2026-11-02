@@ -1,0 +1,9 @@
+{
+ "note": "The Stripe wordmark over silk ribbons: the ribbons billow along their own direction as one surface, and a warm light runs through the white wordmark, which stays one shape.",
+ "surface": {"form": "silk", "amp": 2.6, "angle": 11},
+ "accent": "#ffd9a0",
+ "fx": {"headline": "sheen"},
+ "units": [
+  {"box": [395, 225, 410, 175], "role": "headline", "note": "the stripe wordmark"}
+ ]
+}
