@@ -1,0 +1,18 @@
+{
+ "name": "stripe-read",
+ "layers": 1,
+ "kinds": {
+  "headline": 1
+ },
+ "background": "graded",
+ "style": "rebuild",
+ "frame0_mean": 0.24,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 1,
+ "motion": 7.83,
+ "mp4_kb": 655,
+ "jpg_kb": 68,
+ "seconds": 178.3,
+ "pass": true
+}

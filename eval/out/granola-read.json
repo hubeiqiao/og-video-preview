@@ -1,0 +1,20 @@
+{
+ "name": "granola-read",
+ "layers": 8,
+ "kinds": {
+  "icon": 3,
+  "headline": 4,
+  "pill": 1
+ },
+ "background": "graded",
+ "style": "rebuild",
+ "frame0_mean": 0.504,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 2,
+ "motion": 22.02,
+ "mp4_kb": 771,
+ "jpg_kb": 117,
+ "seconds": 82.0,
+ "pass": true
+}

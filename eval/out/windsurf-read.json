@@ -1,0 +1,19 @@
+{
+ "name": "windsurf-read",
+ "layers": 4,
+ "kinds": {
+  "logo": 1,
+  "icon": 3
+ },
+ "background": "detailed",
+ "style": "living",
+ "frame0_mean": 0.467,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 2,
+ "motion": 11.43,
+ "mp4_kb": 1572,
+ "jpg_kb": 117,
+ "seconds": 138.5,
+ "pass": true
+}

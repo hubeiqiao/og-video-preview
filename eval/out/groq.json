@@ -2,18 +2,17 @@
  "name": "groq",
  "layers": 4,
  "kinds": {
-  "icon": 1,
-  "headline": 3
+  "headline": 4
  },
  "background": "detailed",
  "style": "living",
- "frame0_mean": 0.133,
+ "frame0_mean": 0.134,
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
- "motion": 7.93,
+ "motion": 7.94,
  "mp4_kb": 246,
  "jpg_kb": 55,
- "seconds": 44.7,
+ "seconds": 82.4,
  "pass": true
 }

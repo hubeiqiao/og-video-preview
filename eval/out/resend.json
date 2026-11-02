@@ -2,9 +2,10 @@
  "name": "resend",
  "layers": 4,
  "kinds": {
-  "illustration": 2,
-  "shape": 1,
-  "label": 1
+  "headline": 1,
+  "label": 1,
+  "illustration": 1,
+  "shape": 1
  },
  "background": "flat",
  "style": "living",
@@ -13,8 +14,8 @@
  "seam": 2,
  "step": 3,
  "motion": 4.96,
- "mp4_kb": 728,
+ "mp4_kb": 727,
  "jpg_kb": 42,
- "seconds": 79.3,
+ "seconds": 57.8,
  "pass": true
 }

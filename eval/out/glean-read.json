@@ -1,0 +1,18 @@
+{
+ "name": "glean-read",
+ "layers": 1,
+ "kinds": {
+  "headline": 1
+ },
+ "background": "graded",
+ "style": "rebuild",
+ "frame0_mean": 0.149,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 1,
+ "motion": 8.12,
+ "mp4_kb": 486,
+ "jpg_kb": 66,
+ "seconds": 98.0,
+ "pass": true
+}

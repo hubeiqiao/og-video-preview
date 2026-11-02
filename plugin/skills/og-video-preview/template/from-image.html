@@ -87,7 +87,7 @@ const TEXT = new Set(['headline', 'text', 'label']);
 const CUT_REACH = 30;  // how far make_plate.py's cut can reach past a box (dilation plus soft shadow)
 const VISUAL = new Set(['photo', 'panel', 'illustration', 'avatar']);
 const hexRgb = h => { const n = parseInt(h.slice(1), 16); return `${n >> 16 & 255},${n >> 8 & 255},${n & 255}`; };
-const ACCENT = C.accent || (C.layers.find(l => l.tone) ? hexRgb(C.layers.find(l => l.tone).tone) : null);
+const ACCENT = (C.accent && (C.accent[0] === '#' ? hexRgb(C.accent) : C.accent)) || (C.layers.find(l => l.tone) ? hexRgb(C.layers.find(l => l.tone).tone) : null);
 const lum = h => hexRgb(h).split(',').reduce((m, v) => m + +v, 0) / 3;
 const DARK = lum(C.paper || '#000000') < 110;  // a dark card: light accents read; on a light card they need colour or ink
 
@@ -103,7 +103,7 @@ const FX = {
 };
 
 // ---- build ----
-let layers = [], extras = [], FOCAL = [W / 2, H / 2], WALL = null, SPARSE = false, LIST = null;
+let layers = [], extras = [], FOCAL = [W / 2, H / 2], WALL = null, SPARSE = false, LIST = null, AMBIENT = null, GLINT = null;
 // a busy machine can drop a request: try each image three times before giving up
 const load = (src, tries = 3) => new Promise((ok, no) => {
   const i = new Image();
@@ -132,23 +132,36 @@ function textureSetup(canvas, card) {
   if (card) { const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'); x.drawImage(card, 0, 0, W, H); whole = x.getImageData(0, 0, W, H); }
   const head = layers.filter(l => TEXT.has(l.kind)), f = FOCAL;
   // how far from the type the pattern may move: 0 inside the type's own area, 1 well clear of it
-  const calm = new Float32Array(W * H);
-  const boxes = head.map(l => [l.x - 24, l.y - 24, l.x + l.w + 24, l.y + l.h + 24])
+  const calm = new Float32Array(W * H), near = new Float32Array(W * H);  // near: a tighter calm, for light that moves no pixel
+  // on a surface the reading or the card asked to flow, every layer is calm around it, not only type: a layer's cut
+  // carries a rim of the surface behind it, and a rim held still beside flowing silk showed as a pale patch or a shard
+  const calmL = C.surfaceAmp && C.surfaceAmp !== 1 || (C.fx || {}).texture ? layers : head;
+  const boxes = calmL.map(l => [l.x - 24, l.y - 24, l.x + l.w + 24, l.y + l.h + 24])
     .concat((C.still || []).map(([x, y, w, h]) => [x - 16, y - 16, x + w + 16, y + h + 16]));  // solid things in the plate hold still too
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     let d = 1e9;
     for (const [a, b, c, e] of boxes) d = Math.min(d, Math.hypot(Math.max(a - x, 0, x - c), Math.max(b - y, 0, y - e)));
-    const u = clamp(d / 140); calm[y * W + x] = boxes.length ? u * u * (3 - 2 * u) : 1;
+    const u = clamp(d / 140), v = clamp((d - 6) / 44); calm[y * W + x] = boxes.length ? u * u * (3 - 2 * u) : 1;
+    near[y * W + x] = boxes.length ? v * v * (3 - 2 * v) : 1;
   }
-  TEX = { ctx, src, whole, out: ctx.createImageData(W, H), calm, fx: f[0], fy: f[1], form: (C.fx || {}).texture || pick(['ripple', 'wind', 'swirl'], 4) };
+  // silk catches light: one broad soft band travels along the ribbons, over everything in soft light, so it lifts the
+  // bright folds most and passes over the type without a box (light painted into the plate alone outlined every cut)
+  if ((C.fx || {}).texture === 'silk') {
+    const g = document.createElement('div'), sa = C.surfaceAngle || 0;
+    Object.assign(g.style, { position: 'absolute', left: '-50%', top: '-50%', width: '200%', height: '200%', opacity: 0, pointerEvents: 'none',
+      mixBlendMode: 'soft-light', background: `linear-gradient(${90 + sa}deg, rgba(255,255,255,0) 40%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0) 60%)` });
+    $('top').appendChild(g); GLINT = g;
+  }
+  TEX = { ctx, src, whole, out: ctx.createImageData(W, H), calm, near, fx: f[0], fy: f[1], form: (C.fx || {}).texture || pick(['ripple', 'wind', 'swirl'], 4) };
 }
 function textureFrame(t) {
   if (C.sphere) return sphereFrame(t);
   if ((C.regions || []).some(r => r.role === 'orbit' || r.role === 'marquee' || r.role === 'slide')) return regionFrame(t);
   if (!C.texture) return wallFrame(t);
-  const { ctx, src, out, calm, fx, fy, form } = TEX, A = 7 * ENERGY.idle * env(t);
+  const { ctx, src, out, calm, near, fx, fy, form } = TEX, A = 7 * ENERGY.idle * env(t) * (C.surfaceAmp || 1);
   if (A < 0.02) { ctx.putImageData(src, 0, 0); return; }  // at rest: the plate exactly
   const s = src.data, o = out.data, ph = 2 * Math.PI * t / T, lam = 120;
+  const SA = (C.surfaceAngle || 0) * Math.PI / 180, SC = Math.cos(SA), SS = Math.sin(SA);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const i = y * W + x, k = A * calm[i];
     let sx = x, sy = y;
@@ -156,6 +169,12 @@ function textureFrame(t) {
       const dx = x - fx, dy = y - fy, r = Math.hypot(dx, dy) || 1;
       if (form === 'ripple') { const d = k * Math.sin(2 * Math.PI * r / lam - 2 * ph); sx -= d * dx / r; sy -= d * dy / r; }  // rings travel outward
       else if (form === 'wind') { sy -= k * Math.sin(2 * Math.PI * x / (lam * 2.2) - 2 * ph); sx -= 0.35 * k * Math.sin(2 * Math.PI * y / (lam * 1.6) + ph); }
+      else if (form === 'silk') {
+        // ribbons of fabric: a long, slow billow travels along the ribbons' own direction (C.surfaceAngle, degrees),
+        // bending them across their length, with a little give along it; never the short wiggle of 'wind'
+        const u = x * SC + y * SS, v = -x * SS + y * SC, d = k * Math.sin(2 * Math.PI * u / 640 - 2 * ph) * (0.7 + 0.3 * Math.sin(2 * Math.PI * v / 900 + ph));
+        sx -= -d * SS + 0.3 * k * Math.sin(2 * Math.PI * v / 420 + ph) * SC; sy -= d * SC + 0.3 * k * Math.sin(2 * Math.PI * v / 420 + ph) * SS;
+      }
       else { const a = k * 0.0045 * Math.exp(-r / 520), c = Math.cos(a), n = Math.sin(a); sx = fx + dx * c - dy * n; sy = fy + dx * n + dy * c; }
     }
     // bilinear sample, clamped to the card
@@ -178,7 +197,9 @@ function wallFrame(t) {
   for (let y = Math.max(0, y0); y < Math.min(H, y1); y++) for (let x = Math.max(0, x0); x < Math.min(W, x1); x++) {
     const d = x + 0.35 * (y - y0) - pos;
     if (Math.abs(d) > 3 * sig) continue;
-    const i = (y * W + x) * 4, k = clamp(((s[i] + s[i + 1] + s[i + 2]) / 3 - paper - 8) / 60);
+    // feathered at the band's own edges: cut off at the wall's box it showed as a hard-edged bar
+    const fe = clamp(Math.min(y - y0, y1 - y, x - x0, x1 - x) / 40), feather = fe * fe * (3 - 2 * fe);
+    const i = (y * W + x) * 4, k = feather * clamp(((s[i] + s[i + 1] + s[i + 2]) / 3 - paper - 8) / 60);
     if (k <= 0) continue;
     const b = amp * Math.exp(-d * d / (2 * sig * sig)) * k;
     for (let c = 0; c < 3; c++) o[i + c] = s[i + c] + (255 - s[i + c]) * b;
@@ -437,7 +458,8 @@ function build() {
     // only a relief the reading names takes light running through it: on anything else that holds still, a sweep
     // clipped to its cut showed hard edges and dark blocks where the refill sat
     const picture = l.role === 'medallion';
-    if ((L.fx === 'sheen' || broad || picture || (L.tone && TEXT.has(L.kind))) && !(lightInk && !ACCENT && !broad && !picture)) {
+    // a reading may turn the sweep off (fx headline "none"): on grain or silk its mask can be ragged
+    if (L.fx !== 'none' && (L.fx === 'sheen' || broad || picture || (L.tone && TEXT.has(L.kind))) && !(lightInk && !ACCENT && !broad && !picture)) {
       const s = document.createElement('div'); s.className = 'sheen';
       Object.assign(s.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', backgroundSize: '320% 100%' });
       glyphMask(s, x, y);
@@ -472,7 +494,7 @@ function build() {
         background: l.caret || (l.ink && lum(l.ink) > 150 ? '#fff' : '#111') });
       $('top').appendChild(c); L.caretEl = c;
       L.stops = l.stops && l.stops.length ? l.stops : Array.from({ length: Math.max(4, Math.round(w / (h * 0.5))) }, (_, k) => (k + 1) * w / Math.max(4, Math.round(w / (h * 0.5))));
-      L.chars = L.stops.length;
+      L.chars = L.stops.length; L.caretX = l.caretX;
     }
     // a button the reading names: a pointer glides in and clicks it, and a ripple spreads inside it from the click
     if (l.role === 'button') {
@@ -497,8 +519,8 @@ function build() {
   schedule(style);
 
   // a lone mark (one visual on an empty card: a logo, a symbol) becomes the hero. A compact light mark alone on a black
-  // card (x.ai) is cut into slices that assemble and a strong light rises behind it; elsewhere it
-  // assembles in one piece out of a blur, with a soft glow on a dark card or a shadow under it on a light one. Then it
+  // card (x.ai) has a strong light rise behind it as it lands; elsewhere it
+  // assembles out of a blur, with a soft glow on a dark card or a shadow under it on a light one. Then it
   // turns slowly in 3D
   const marks = layers.filter(l => !TEXT.has(l.kind) && !['photo', 'panel'].includes(l.kind) && !l.settle);
   // beside a line of type only a real mark qualifies (an underline or a pill keeps its own motion)
@@ -516,10 +538,10 @@ function build() {
     const paper = hexRgb(C.paper || '#000000').split(',').reduce((m, v) => m + +v, 0) / 3;
     const ink = L.ink ? hexRgb(L.ink).split(',').reduce((m, v) => m + +v, 0) / 3 : 255;
     const lit = ink > paper + 30;  // a light mark on a darker card
-    // an empty black stage with one compact symbol on it: the mark can make an entrance. Bands across a wordmark or a
-    // line of type tear its letters apart
+    // an empty black stage with one compact symbol on it: the mark can make an entrance, with the strong light. It
+    // stays one piece: cut into bands, it read as torn halfway in (X, GV), and on a wordmark bands tear the letters
     const stage = lit && layers.length === 1 && L.w <= 3 * L.h && C.background === 'flat' && paper < 30;
-    const N = stage ? 7 : 1;
+    const N = 1;
     const ew = L.w + 2 * pad, eh = L.h + 2 * pad;
     L.parts = Array.from({ length: N }, (_, k) => {
       const el = el0.cloneNode(true); el0.parentNode.insertBefore(el, el0);
@@ -567,6 +589,24 @@ function build() {
     });
     // (no sparks off the last line: beside type they read as stray specks)
   }
+  // ambient light: on a flat card, once everything has landed, a soft light drifts behind the type from one side to
+  // the other and fades, so the card keeps living through its hold instead of freezing after its entrance. It sits
+  // under the layers and over the plate, and it is exactly zero at both ends of the loop
+  const typeL = layers.filter(l => TEXT.has(l.kind) || l.kind === 'logo');
+  if (C.background === 'flat' && !C.busy && style === 'rebuild' && !heroL && typeL.length && ENERGY.accents >= 1) {
+    const x0 = Math.min(...typeL.map(l => l.x)), y0 = Math.min(...typeL.map(l => l.y)),
+      x1 = Math.max(...typeL.map(l => l.x + l.w)), y1 = Math.max(...typeL.map(l => l.y + l.h));
+    const c = ACCENT || (DARK ? '255,255,255' : null);
+    if (c) {
+      const g = document.createElement('div'), w = Math.max(520, (x1 - x0) * 1.2), h = Math.max(420, (y1 - y0) * 2.6);
+      Object.assign(g.style, { position: 'absolute', left: '0px', top: '0px', width: w + 'px', height: h + 'px', opacity: 0, pointerEvents: 'none',
+        background: `radial-gradient(closest-side, rgba(${c},${DARK ? 0.16 : 0.13}) 0%, rgba(${c},${DARK ? 0.07 : 0.05}) 45%, rgba(${c},0) 100%)`, mixBlendMode: DARK ? 'screen' : 'multiply' });
+      // over the layers: a cut carries a thin rim of the card behind its type, and light passing under it outlined every letter
+      $('top').prepend(g);
+      const land = Math.max(...layers.map(l => l.land || 0));
+      AMBIENT = { el: g, w, h, x0, x1, cy: (y0 + y1) / 2, a: Math.min(T - 2.2, land + 0.25), b: T - 0.15 };
+    }
+  }
   window.plan = layers.map(l => ({ id: l.id, kind: l.kind, motion: l.settle ? 'settle' : l.motion, style: l.anchored ? 'living' : 'rebuild',
     at: +l.at.toFixed(2), parts: l.parts.length, accent: [l.sheen && 'sheen', l.fx === 'hop' && 'hop', l.glint && 'glint', l.orbit && 'orbit',
       l.turn && !l.hero && l.turn, l.ring && 'ring', l.liquid && 'liquid', l.punch && 'punch'].filter(Boolean).join(' ') }));
@@ -577,18 +617,30 @@ const EXIT_END = 0.34, ENTER = 0.38;
 function schedule(style) {
   let t = ENTER;
   const order = layers.filter(l => !l.anchored);
+  // a container arrives before what sits inside it (a cloud before its wordmark): move it up to just ahead of its content
+  const holds = (b, a) => a !== b && !TEXT.has(b.kind) && a.x >= b.x - 4 && a.y >= b.y - 4 && a.x + a.w <= b.x + b.w + 4 && a.y + a.h <= b.y + b.h + 4 && a.w * a.h < b.w * b.h;
+  for (let i = 0; i < order.length; i++) {
+    const j = order.findIndex((o, k) => k > i && holds(o, order[i]));
+    if (j > i) { const [c] = order.splice(j, 1); order.splice(i, 0, c); i++; }
+  }
   const scatter = order.filter(l => l.small && (l.kind === 'shape' || l.kind === 'icon'));
   const maxD = Math.max(1, ...scatter.map(l => l.dist));
   const fixed = l => C.layers[l.i].at != null;  // a start time set in layers.js wins
   for (const l of order) {
     if (scatter.includes(l) || fixed(l)) continue;
     l.at = VISUAL.has(l.kind) ? Math.max(ENTER, t - 0.12) : t;   // visuals arrive with the words, not after them
-    const g = ENERGY.gap;
+    // a sparse card (a lockup, a line and its tagline) arrives one line after another: all at once it was a blink
+    // in the first half second and then a still for the rest of the loop
+    const g = ENERGY.gap * (style === 'rebuild' && order.length <= 3 ? 3.2 : 1);
     t += l.kind === 'headline' ? g * 0.75 * l.parts.length * (l.letters ? 0.55 : 1) + g
        : l.kind === 'logo' ? g * 1.4 : l.small ? g * 0.6 : g * 1.2;
   }
   const end = Math.max(t, ENTER + 0.01), limit = 1.7;
   if (end > limit) order.forEach(l => { if (l.at != null && !fixed(l)) l.at = ENTER + (l.at - ENTER) * (limit - ENTER) / (end - ENTER); });
+  // what sits inside another element (a wordmark in its cloud, a label on a badge) arrives after its container: its cut
+  // carries a rim of the container's colour, which floated as outlined letters over the bare card when it came first
+  const inside_ = (a, b) => a !== b && !TEXT.has(b.kind) && a.x >= b.x - 4 && a.y >= b.y - 4 && a.x + a.w <= b.x + b.w + 4 && a.y + a.h <= b.y + b.h + 4 && a.w * a.h < b.w * b.h;
+  order.forEach(l => { const c = order.find(o => inside_(l, o)); if (c && !fixed(l) && c.at != null && l.at < c.at + 0.12) l.at = c.at + 0.12; });
   // small decorations ripple outward from the headline
   scatter.forEach(l => { if (!fixed(l)) l.at = ENTER + 0.1 + 0.9 * (l.dist / maxD) + 0.02 * (l.i % 3); });
   // a wordmark draws out of its logo
@@ -664,10 +716,10 @@ function enter(l, u, k) {
     const e = EASE.smooth(clamp(u / 1.1));
     return { o: EASE.smooth(clamp(u / 0.8)), s: 1.06 - 0.06 * e, b: 10 * (1 - e) };
   }
-  if (l.hero) {  // a lone mark assembles: its slices slide in from alternate sides, out of a blur, and it settles on a spring
-    const v = u - k * 0.05, e2 = EASE.smooth(clamp(v / 0.6)), dir = k % 2 ? 1 : -1, s2 = spring(u, z, f * 0.9);
-    const off = 70 * D * (1 - e2) * dir;
-    return { o: clamp(v / 0.18), x: l.bandsH ? off : 0, y: l.bandsH ? 0 : off, s: 0.93 + 0.07 * s2, b: 7 * (1 - e2) };
+  if (l.hero) {  // a lone mark arrives in one piece out of a blur and settles on a spring; slices sliding in from
+    // alternate sides read as a torn glitch halfway (X, GV), and the light rising behind it carries the moment
+    const e2 = EASE.smooth(clamp(u / 0.6)), s2 = spring(u, z, f * 0.9);
+    return { o: clamp(u / 0.18), y: 18 * D * (1 - e2), s: 0.93 + 0.07 * s2, b: 7 * (1 - e2) };
   }
   const sp = spring(u, z, f), e = EASE.smooth(clamp(u / 0.42)), fast = EASE.out(clamp(u / 0.16));
   const blur = (n) => u < 0.4 ? n * (1 - EASE.smooth(u / 0.4)) : 0;
@@ -696,8 +748,7 @@ function enter(l, u, k) {
 // exit: v runs 0 to 1 over the exit; softer than the entrance
 function exit(l, v, k = 0) {
   if (l.calm) { const a = away(v); return { o: 1 - a, s: 1 + 0.03 * a, b: 8 * a }; }
-  if (l.hero) { const a = away(v), dir = k % 2 ? 1 : -1;  // the slices part, alternate ways
-    return l.bandsH ? { o: 1 - a, x: dir * 40 * a, b: 4 * a } : { o: 1 - a, y: dir * 40 * a, b: 4 * a }; }
+  if (l.hero) { const a = away(v); return { o: 1 - a, s: 1 - 0.05 * a, b: 4 * a }; }  // it fades back into the blur, whole
   const a = away(v);
   if (l.settle) return {};  // it never leaves, and nothing behind it shows
   switch (l.kind) {
@@ -773,7 +824,18 @@ window.render = function (t) {
   // a card where nothing can move on its own still breathes: the camera pushes in and back, plate and layers together.
   // A screenshot (busy) is one: its parts keep their places and its type does not leave, so without this it would freeze
   else if (C.busy || (layers.length && layers.every(l => l.settle))) cam *= 1 + 0.03 * ENERGY.idle * env(t);
+  cam = Math.max(1, cam);  // the punch swings both ways: below 1 the card's own edge showed as a frame
   $('cam').style.transform = cam === 1 ? 'none' : `scale(${cam.toFixed(5)})`;
+  if (GLINT) {
+    const q = P(t, 0.8, 2.6), sa = (C.surfaceAngle || 0) * Math.PI / 180, d = (-0.75 + 1.5 * EASE.inOut(q)) * W;
+    GLINT.style.opacity = (q > 0 && q < 1 ? Math.sin(Math.PI * q) : 0).toFixed(3);
+    GLINT.style.transform = `translate(${(d * Math.cos(sa)).toFixed(1)}px, ${(d * Math.sin(sa)).toFixed(1)}px)`;
+  }
+  if (AMBIENT) {
+    const { el, w, h, x0, x1, cy, a, b } = AMBIENT, q = P(t, a, b - a), cx = x0 + (x1 - x0) * EASE.inOut(q);
+    el.style.opacity = (q > 0 && q < 1 ? Math.sin(Math.PI * q) ** 1.5 : 0).toFixed(3);
+    el.style.transform = `translate(${(cx - w / 2).toFixed(1)}px, ${(cy - h / 2).toFixed(1)}px)`;
+  }
   $('cam').style.transformOrigin = hero ? `${hero.x + hero.w / 2}px ${hero.y + hero.h / 2}px` : '50% 50%';
 
   layers.forEach(l => {
@@ -784,15 +846,18 @@ window.render = function (t) {
     l.parts.forEach((p, k) => {
       let st;
       if (l.role === 'typing') {
-        // deleted a character at a time from 0.6 s (30 ms each), a pause, then typed again (65 ms each); whole by 3.4 s
-        const n = l.chars, d0 = 0.6, d1 = d0 + n * 0.03, t0 = d1 + 0.35, t1 = t0 + n * 0.065;
-        const left = t < d0 || t >= t1 ? n : t < d1 ? n - Math.floor((t - d0) / 0.03) : t < t0 ? 0 : Math.floor((t - t0) / 0.065);
-        const k = Math.max(0, Math.min(n, left)), edge = k >= n ? l.w : k === 0 ? 0 : l.stops[k - 1] + 1;  // after the k-th letter
+        // deleted a character at a time from 0.6 s (30 ms each), a pause, then typed again (65 ms each); whole by 3.4 s.
+        // A long line changes only its last 24 characters: the whole of one ran past the end of the loop (resend)
+        const n = l.chars, m = Math.min(n, 24), d0 = 0.6, d1 = d0 + m * 0.03, t0 = d1 + 0.35, t1 = t0 + m * 0.065;
+        const left = t < d0 || t >= t1 ? n : t < d1 ? n - Math.floor((t - d0) / 0.03) : t < t0 ? n - m : n - m + Math.floor((t - t0) / 0.065);
+        const busy = t >= d0 - 0.1 && t < t1 + 0.45, blink = t >= d1 && t < t0 ? (Math.floor((t - d1) / 0.4) % 2 === 0) : true;
+        // while the drawn caret shows, the card's own caret (inside the box, after the last letter) is clipped off: two
+        // carets stood side by side before the deleting began and after the typing ended
+        const k = Math.max(0, Math.min(n, left)), edge = k >= n ? (busy && l.stops.length ? l.stops[n - 1] + 1 : l.w) : k === 0 ? 0 : l.stops[k - 1] + 1;  // after the k-th letter
         const vis = edge / l.w;
         st = { clip: `inset(-30% ${(CUT_REACH + l.w - edge).toFixed(1)}px -30% 0)` };
-        const busy = t >= d0 - 0.1 && t < t1 + 0.45, blink = t >= d1 && t < t0 ? (Math.floor((t - d1) / 0.4) % 2 === 0) : true;
         l.caretEl.style.opacity = busy && blink ? 1 : 0;
-        l.caretEl.style.transform = `translateX(${(vis * l.w).toFixed(1)}px)`;
+        l.caretEl.style.transform = `translateX(${(k >= n && l.caretX != null ? l.caretX : vis * l.w).toFixed(1)}px)`;
       } else if (living) {
         st = id;
         // type stays still and readable; light moves through it (the sweep below) while the camera breathes

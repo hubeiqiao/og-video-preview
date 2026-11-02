@@ -1,11 +1,13 @@
 {
  "name": "dub",
- "layers": 8,
+ "layers": 11,
  "kinds": {
-  "headline": 2,
-  "illustration": 1,
+  "text": 2,
+  "headline": 1,
   "icon": 3,
-  "stroke": 2
+  "stroke": 2,
+  "label": 2,
+  "shape": 1
  },
  "background": "flat",
  "style": "living",
@@ -14,8 +16,8 @@
  "seam": 2,
  "step": 4,
  "motion": 12.87,
- "mp4_kb": 713,
+ "mp4_kb": 706,
  "jpg_kb": 75,
- "seconds": 59.1,
+ "seconds": 62.7,
  "pass": true
 }

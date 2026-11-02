@@ -26,12 +26,12 @@ def best(n):  # a card the reading step was run on shows that version
 
 
 EXAMPLES = [(n, f"eval/out/{n}.jpg", best(n), d) for n, d in [  # name, still, video, caption
-    ("ycombinator", "ycombinator.com"), ("x", "x.ai"), ("shopify", "shopify.com"),
-    ("gumroad", "gumroad.com"), ("intercom", "intercom.com"), ("notion", "notion.com"),
-    ("huggingface", "huggingface.co"), ("chatbase", "chatbase.co")]]
+    ("ycombinator", "ycombinator.com"), ("x", "x.ai"), ("deno", "deno.com"),
+    ("lovable", "lovable.dev"), ("intercom", "intercom.com"), ("notion", "notion.com"),
+    ("v0", "v0.app"), ("chatbase", "chatbase.co")]]
 EVAL = ["granola", "salesforce", "tldraw", "miro", "cloudflare", "framer"]
 # only cards whose motion reads at a glance: a card that barely moves (Stripe, Lovable, ElevenLabs) undersells the skill here
-SHOWCASE = ["ycombinator", "x", "shopify", "gumroad", "openai", "notion", "intercom", "github", "huggingface"]
+SHOWCASE = ["ycombinator", "x", "deno", "v0", "lovable", "supabase", "intercom", "github", "slack"]
 
 
 def showcase(out):

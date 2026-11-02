@@ -1,0 +1,18 @@
+{
+ "name": "bolt-read",
+ "layers": 1,
+ "kinds": {
+  "headline": 1
+ },
+ "background": "graded",
+ "style": "rebuild",
+ "frame0_mean": 0.17,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 1,
+ "motion": 4.98,
+ "mp4_kb": 288,
+ "jpg_kb": 39,
+ "seconds": 106.7,
+ "pass": true
+}

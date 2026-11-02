@@ -1,0 +1,16 @@
+{
+ "name": "together-read",
+ "layers": 0,
+ "kinds": {},
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 0.151,
+ "frame0_local_pct": 0.0,
+ "seam": 1,
+ "step": 4,
+ "motion": 10.88,
+ "mp4_kb": 402,
+ "jpg_kb": 46,
+ "seconds": 59.7,
+ "pass": true
+}

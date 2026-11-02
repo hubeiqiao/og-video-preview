@@ -1,0 +1,19 @@
+{
+ "name": "discord-read",
+ "layers": 6,
+ "kinds": {
+  "illustration": 5,
+  "logo": 1
+ },
+ "background": "graded",
+ "style": "living",
+ "frame0_mean": 0.273,
+ "frame0_local_pct": 0.0,
+ "seam": 152,
+ "step": 168,
+ "motion": 10.79,
+ "mp4_kb": 574,
+ "jpg_kb": 87,
+ "seconds": 95.5,
+ "pass": true
+}

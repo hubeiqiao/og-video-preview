@@ -1,0 +1,19 @@
+{
+ "name": "pika-read",
+ "layers": 2,
+ "kinds": {
+  "headline": 1,
+  "text": 1
+ },
+ "background": "detailed",
+ "style": "living",
+ "frame0_mean": 0.256,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 1,
+ "motion": 7.57,
+ "mp4_kb": 647,
+ "jpg_kb": 86,
+ "seconds": 128.3,
+ "pass": true
+}

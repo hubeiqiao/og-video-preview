@@ -4,8 +4,9 @@
  "kinds": {
   "stroke": 1,
   "icon": 3,
+  "logo": 1,
+  "headline": 1,
   "illustration": 1,
-  "headline": 2,
   "pill": 1
  },
  "background": "graded",
@@ -14,9 +15,9 @@
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
- "motion": 15.25,
- "mp4_kb": 532,
+ "motion": 16.25,
+ "mp4_kb": 531,
  "jpg_kb": 92,
- "seconds": 124.0,
+ "seconds": 178.9,
  "pass": true
 }

@@ -1,0 +1,6 @@
+{"note": "A portrait between two windows of Calendly: Callie's email and the Q2 Hiring Review recap. Each window is one piece, and a pointer clicks Share recap.",
+ "units": [
+  {"box": [877, 336, 213, 66], "role": "button", "note": "Share recap"},
+  {"box": [850, 68, 270, 300], "role": "window", "note": "the recap card"},
+  {"box": [66, 238, 366, 240], "role": "window", "note": "Callie's email"}
+ ]}

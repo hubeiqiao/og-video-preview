@@ -1,0 +1,8 @@
+{
+ "note": "The Pika wordmark beside a portrait in green feathers: the portrait holds still, and a green light runs through the white wordmark, which stays one shape.",
+ "accent": "#9ee86a",
+ "fx": {"headline": "sheen"},
+ "units": [
+  {"box": [60, 240, 470, 150], "role": "headline", "note": "the Pika wordmark"}
+ ]
+}

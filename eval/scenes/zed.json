@@ -1,0 +1,4 @@
+{"note": "The Zed editor below the headline: a line of code is deleted and typed again with a caret, as in the editor.",
+ "units": [
+  {"box": [696, 432, 148, 22], "role": "typing", "caret": "#7aa2f7", "note": "window.remove_window();"}
+ ]}

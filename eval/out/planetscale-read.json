@@ -1,0 +1,24 @@
+{
+ "name": "planetscale-read",
+ "layers": 15,
+ "kinds": {
+  "photo": 1,
+  "headline": 1,
+  "text": 3,
+  "logo": 5,
+  "label": 2,
+  "shape": 2,
+  "icon": 1
+ },
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 0.374,
+ "frame0_local_pct": 0.0,
+ "seam": 1,
+ "step": 2,
+ "motion": 13.02,
+ "mp4_kb": 951,
+ "jpg_kb": 62,
+ "seconds": 116.6,
+ "pass": true
+}

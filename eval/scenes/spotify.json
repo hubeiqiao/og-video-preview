@@ -1,0 +1,4 @@
+{"note": "The Spotify app on a laptop: the play button is the call to action, so a pointer clicks it.",
+ "units": [
+  {"box": [582, 522, 30, 30], "role": "button", "note": "the play button"}
+ ]}

@@ -1,0 +1,8 @@
+{"note": "The VITE wordmark over purple light streaks: the streaks flow along their own direction as one surface, and a yellow light runs through the white wordmark, which stays one shape.",
+ "surface": {"form": "silk", "amp": 2.4, "angle": -28},
+ "accent": "#ffd23f",
+ "fx": {"headline": "sheen"},
+ "only": true,
+ "units": [
+  {"box": [468, 248, 266, 52], "role": "headline", "note": "the VITE wordmark"}
+ ]}

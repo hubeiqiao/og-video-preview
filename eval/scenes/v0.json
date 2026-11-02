@@ -1,0 +1,6 @@
+{
+ "note": "The v0 mark above a line of text with a caret at its end, like a prompt: the line is deleted and typed again.",
+ "units": [
+  {"box": [232, 266, 738, 98], "role": "typing", "caret": "#ffffff", "note": "Think it. Build it. Ship it. and its caret"}
+ ]
+}

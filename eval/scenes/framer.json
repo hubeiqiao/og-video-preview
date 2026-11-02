@@ -1,0 +1,54 @@
+{
+ "note": "Columns of portfolio sites made in Framer around the Framer mark: four whole tiles drift gently in place like prints on a board; the mark and the rest hold.",
+ "units": [
+  {
+   "box": [
+    205,
+    60,
+    257,
+    250
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "Bonded",
+   "idle": 0.4
+  },
+  {
+   "box": [
+    205,
+    318,
+    257,
+    252
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "the golden flower",
+   "idle": 0.4
+  },
+  {
+   "box": [
+    738,
+    60,
+    258,
+    250
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "tinyPod",
+   "idle": 0.4
+  },
+  {
+   "box": [
+    738,
+    320,
+    258,
+    252
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "i-D",
+   "idle": 0.4
+  }
+ ],
+ "only": true
+}

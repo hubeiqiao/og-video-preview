@@ -1,16 +1,19 @@
 {
  "name": "cloudflare",
- "layers": 0,
- "kinds": {},
+ "layers": 3,
+ "kinds": {
+  "headline": 2,
+  "shape": 1
+ },
  "background": "detailed",
  "style": "living",
- "frame0_mean": 0.358,
+ "frame0_mean": 0.359,
  "frame0_local_pct": 0.0,
  "seam": 0,
- "step": 1,
- "motion": 6.39,
- "mp4_kb": 1085,
+ "step": 2,
+ "motion": 6.42,
+ "mp4_kb": 1074,
  "jpg_kb": 149,
- "seconds": 151.5,
+ "seconds": 156.4,
  "pass": true
 }

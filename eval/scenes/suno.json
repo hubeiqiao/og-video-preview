@@ -1,0 +1,9 @@
+{
+ "note": "Two lines of serif type over a grainy warm gradient: the gradient ripples like sound, and the letters hop in turn, line by line.",
+ "surface": {"form": "ripple", "amp": 2.5},
+ "fx": {"headline": "hop"},
+ "units": [
+  {"box": [318, 196, 572, 118], "role": "headline", "note": "Make any song"},
+  {"box": [296, 340, 608, 92], "role": "headline", "note": "you can imagine"}
+ ]
+}

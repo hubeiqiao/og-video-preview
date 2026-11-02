@@ -1,0 +1,20 @@
+{
+ "name": "retool-read",
+ "layers": 5,
+ "kinds": {
+  "text": 2,
+  "label": 1,
+  "headline": 2
+ },
+ "background": "detailed",
+ "style": "living",
+ "frame0_mean": 0.38,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 2,
+ "motion": 12.71,
+ "mp4_kb": 717,
+ "jpg_kb": 86,
+ "seconds": 127.7,
+ "pass": true
+}

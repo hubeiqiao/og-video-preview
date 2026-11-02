@@ -60,6 +60,22 @@ async def main():
         size = await page.evaluate("window.OG ? [OG.width, OG.height] : [1200, 630]")
         await page.set_viewport_size({"width": size[0], "height": size[1]})
         await page.wait_for_timeout(1200)  # let images decode
+        # frame 0 is the approved card: until it matches, something has not painted yet (under load a layer's
+        # background image can paint seconds after it decoded, and every frame went out without that layer)
+        still = os.path.join(os.path.dirname(os.path.abspath(a.card)), "card.jpg")
+        if os.path.exists(still):
+            import io
+            import numpy as np
+            from PIL import Image
+            ref = np.asarray(Image.open(still).convert("RGB"), np.float32)
+            for _ in range(15):
+                await page.evaluate("render(0)")
+                shot = Image.open(io.BytesIO(await page.screenshot())).convert("RGB").resize((ref.shape[1], ref.shape[0]))
+                if float(np.abs(np.asarray(shot, np.float32) - ref).mean()) <= 3:
+                    break
+                await page.wait_for_timeout(1000)
+            else:
+                print("warning: frame 0 still differs from card.jpg after 15 s; rendering anyway")
         edges = await page.evaluate(
             "[...document.querySelectorAll('.el')].map(e => [e.id, Math.round(e.getBoundingClientRect().right)])"
         )

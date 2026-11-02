@@ -1,0 +1,20 @@
+{
+ "name": "obsidian-read",
+ "layers": 3,
+ "kinds": {
+  "photo": 1,
+  "headline": 1,
+  "text": 1
+ },
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 0.157,
+ "frame0_local_pct": 0.0,
+ "seam": 1,
+ "step": 3,
+ "motion": 6.14,
+ "mp4_kb": 331,
+ "jpg_kb": 38,
+ "seconds": 61.2,
+ "pass": true
+}

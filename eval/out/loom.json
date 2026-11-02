@@ -2,10 +2,11 @@
  "name": "loom",
  "layers": 10,
  "kinds": {
-  "icon": 5,
+  "icon": 4,
   "headline": 3,
   "illustration": 1,
-  "shape": 1
+  "shape": 1,
+  "label": 1
  },
  "background": "graded",
  "style": "living",
@@ -16,6 +17,6 @@
  "motion": 10.07,
  "mp4_kb": 495,
  "jpg_kb": 60,
- "seconds": 49.7,
+ "seconds": 113.4,
  "pass": true
 }

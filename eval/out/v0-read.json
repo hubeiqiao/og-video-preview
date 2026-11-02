@@ -1,0 +1,19 @@
+{
+ "name": "v0-read",
+ "layers": 2,
+ "kinds": {
+  "headline": 1,
+  "illustration": 1
+ },
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 0.116,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 0,
+ "motion": 10.67,
+ "mp4_kb": 74,
+ "jpg_kb": 21,
+ "seconds": 26.1,
+ "pass": true
+}

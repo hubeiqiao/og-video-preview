@@ -11,13 +11,13 @@
  },
  "background": "flat",
  "style": "rebuild",
- "frame0_mean": 0.457,
+ "frame0_mean": 0.455,
  "frame0_local_pct": 0.0,
  "seam": 94,
  "step": 94,
- "motion": 26.04,
- "mp4_kb": 769,
+ "motion": 25.35,
+ "mp4_kb": 866,
  "jpg_kb": 122,
- "seconds": 64.1,
+ "seconds": 82.4,
  "pass": true
 }

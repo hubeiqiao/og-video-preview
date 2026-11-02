@@ -1,19 +1,19 @@
 {
  "name": "cohere",
- "layers": 2,
+ "layers": 6,
  "kinds": {
-  "label": 1,
-  "headline": 1
+  "headline": 2,
+  "label": 4
  },
  "background": "detailed",
  "style": "living",
- "frame0_mean": 0.399,
+ "frame0_mean": 0.403,
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
  "motion": 7.28,
- "mp4_kb": 1773,
+ "mp4_kb": 1758,
  "jpg_kb": 123,
- "seconds": 95.9,
+ "seconds": 120.7,
  "pass": true
 }

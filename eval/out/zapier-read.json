@@ -1,0 +1,20 @@
+{
+ "name": "zapier-read",
+ "layers": 5,
+ "kinds": {
+  "headline": 3,
+  "pill": 1,
+  "text": 1
+ },
+ "background": "detailed",
+ "style": "living",
+ "frame0_mean": 0.315,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 2,
+ "motion": 10.0,
+ "mp4_kb": 337,
+ "jpg_kb": 45,
+ "seconds": 49.0,
+ "pass": true
+}

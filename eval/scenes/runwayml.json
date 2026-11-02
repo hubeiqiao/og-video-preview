@@ -1,0 +1,8 @@
+{"note": "A headline and the runway wordmark over a cloudy field of light: the light field drifts as one surface, and a pale light runs through the white headline.",
+ "surface": {"form": "silk", "amp": 2.5, "angle": 20},
+ "accent": "#cfe6f0",
+ "fx": {"headline": "sheen"},
+ "units": [
+  {"box": [130, 260, 940, 80], "role": "headline", "note": "Building Real-World Intelligence"},
+  {"box": [500, 505, 200, 50], "role": "logo", "note": "the runway wordmark"}
+ ]}

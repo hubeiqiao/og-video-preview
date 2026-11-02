@@ -1,0 +1,4 @@
+{"note": "Email for Developers over a code editor: a line of the code is deleted and typed again, a caret at its end.",
+ "units": [
+  {"box": [304, 562, 420, 26], "role": "typing", "caret": "#ffffff", "note": "export default async function send(req, res) {"}
+ ]}

@@ -1,20 +1,19 @@
 {
  "name": "deno",
- "layers": 9,
+ "layers": 5,
  "kinds": {
-  "text": 1,
-  "headline": 7,
-  "illustration": 1
+  "text": 4,
+  "headline": 1
  },
  "background": "flat",
  "style": "rebuild",
  "frame0_mean": 0.191,
  "frame0_local_pct": 0.0,
- "seam": 0,
- "step": 1,
- "motion": 4.26,
- "mp4_kb": 182,
+ "seam": 2,
+ "step": 5,
+ "motion": 8.06,
+ "mp4_kb": 412,
  "jpg_kb": 51,
- "seconds": 46.6,
+ "seconds": 91.6,
  "pass": true
 }

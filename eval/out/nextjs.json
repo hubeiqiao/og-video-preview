@@ -3,17 +3,17 @@
  "layers": 2,
  "kinds": {
   "headline": 1,
-  "icon": 1
+  "text": 1
  },
  "background": "flat",
  "style": "rebuild",
  "frame0_mean": 0.049,
  "frame0_local_pct": 0.0,
- "seam": 46,
- "step": 45,
- "motion": 4.02,
- "mp4_kb": 36,
+ "seam": 1,
+ "step": 2,
+ "motion": 3.66,
+ "mp4_kb": 113,
  "jpg_kb": 15,
- "seconds": 21.2,
+ "seconds": 24.0,
  "pass": true
 }

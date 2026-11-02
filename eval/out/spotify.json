@@ -1,9 +1,10 @@
 {
  "name": "spotify",
- "layers": 3,
+ "layers": 5,
  "kinds": {
   "illustration": 2,
-  "shape": 1
+  "stroke": 1,
+  "shape": 2
  },
  "background": "graded",
  "style": "living",
@@ -14,6 +15,6 @@
  "motion": 13.99,
  "mp4_kb": 1087,
  "jpg_kb": 99,
- "seconds": 60.7,
+ "seconds": 138.5,
  "pass": true
 }

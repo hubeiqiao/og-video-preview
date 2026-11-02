@@ -1,0 +1,23 @@
+{
+ "name": "raycast-read",
+ "layers": 17,
+ "kinds": {
+  "logo": 1,
+  "text": 1,
+  "headline": 1,
+  "illustration": 2,
+  "label": 5,
+  "icon": 7
+ },
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 0.284,
+ "frame0_local_pct": 0.0,
+ "seam": 2,
+ "step": 4,
+ "motion": 17.12,
+ "mp4_kb": 700,
+ "jpg_kb": 59,
+ "seconds": 83.8,
+ "pass": true
+}

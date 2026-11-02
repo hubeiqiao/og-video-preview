@@ -1,20 +1,20 @@
 {
  "name": "spline",
- "layers": 4,
+ "layers": 3,
  "kinds": {
-  "label": 2,
   "illustration": 1,
+  "label": 1,
   "stroke": 1
  },
  "background": "flat",
  "style": "rebuild",
- "frame0_mean": 0.071,
+ "frame0_mean": 0.07,
  "frame0_local_pct": 0.0,
  "seam": 1,
  "step": 2,
- "motion": 2.52,
- "mp4_kb": 147,
+ "motion": 4.68,
+ "mp4_kb": 209,
  "jpg_kb": 28,
- "seconds": 117.7,
+ "seconds": 106.1,
  "pass": true
 }

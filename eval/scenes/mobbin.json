@@ -1,0 +1,61 @@
+{
+ "note": "A headline beside two columns of app screenshots, as in a gallery: each screenshot tile drifts on its own path, whole; the headline, the Mobbin mark and the tall Airbnb tile (its photo smeared when cut) hold still.",
+ "units": [
+  {
+   "box": [
+    708,
+    0,
+    210,
+    290
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "the mindfulness app"
+  },
+  {
+   "box": [
+    708,
+    305,
+    210,
+    155
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "Twitch"
+  },
+  {
+   "box": [
+    708,
+    470,
+    210,
+    160
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "the account screen"
+  },
+  {
+   "box": [
+    934,
+    10,
+    210,
+    148
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "ChatGPT"
+  },
+  {
+   "box": [
+    934,
+    488,
+    210,
+    142
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "Shop"
+  }
+ ],
+ "only": true
+}

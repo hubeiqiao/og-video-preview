@@ -1,0 +1,10 @@
+{
+ "note": "Download Devin Desktop over a brushed grey texture, the Devin mark and the three platform icons, beside the app window: the type and the window hold still; the mark and the platform icons pop in turn.",
+ "only": true,
+ "units": [
+  {"box": [56, 48, 108, 120], "role": "logo", "turn": "pop", "note": "the Devin mark"},
+  {"box": [64, 292, 48, 50], "role": "icon", "turn": "pop", "note": "Apple"},
+  {"box": [142, 294, 46, 46], "role": "icon", "turn": "pop", "note": "Windows"},
+  {"box": [218, 292, 50, 52], "role": "icon", "turn": "pop", "note": "Linux"}
+ ]
+}

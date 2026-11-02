@@ -1,0 +1,6 @@
+{"note": "The cohere wordmark over a painted canvas, above the North app: the brush strokes of the painting sway as one surface, the app holds still and a pointer clicks New agent.",
+ "surface": {"form": "wind", "amp": 2, "angle": 0},
+ "units": [
+  {"box": [975, 287, 82, 26], "role": "button", "note": "New agent"},
+  {"box": [422, 118, 356, 66], "role": "logo", "note": "the cohere mark and wordmark, one shape"}
+ ]}

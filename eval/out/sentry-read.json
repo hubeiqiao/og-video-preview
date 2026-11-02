@@ -1,0 +1,18 @@
+{
+ "name": "sentry-read",
+ "layers": 1,
+ "kinds": {
+  "logo": 1
+ },
+ "background": "detailed",
+ "style": "living",
+ "frame0_mean": 0.261,
+ "frame0_local_pct": 0.0,
+ "seam": 1,
+ "step": 2,
+ "motion": 6.37,
+ "mp4_kb": 642,
+ "jpg_kb": 86,
+ "seconds": 89.0,
+ "pass": true
+}

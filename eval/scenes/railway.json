@@ -1,0 +1,7 @@
+{
+ "note": "Service cards of a Railway project joined by purple connections: a light swells where each connection meets a card, like a pulse arriving.",
+ "units": [
+  {"box": [808, 80, 40, 40], "role": "shine", "note": "the purple node above Backend"},
+  {"box": [722, 370, 40, 40], "role": "shine", "note": "the purple node above Frontend"}
+ ]
+}

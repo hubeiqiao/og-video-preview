@@ -1,0 +1,50 @@
+{
+ "note": "The Canva lettering with design tiles scattered around it: the lettering holds still as one shape and each standalone tile drifts on its own path, whole. The Company Updates and chart tiles overlap, and the giveaway card sits under the lettering, so they hold still.",
+ "only": true,
+ "units": [
+  {
+   "box": [
+    82,
+    38,
+    160,
+    270
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "New release"
+  },
+  {
+   "box": [
+    495,
+    0,
+    210,
+    200
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "Design inspo"
+  },
+  {
+   "box": [
+    958,
+    0,
+    242,
+    225
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "Top picks"
+  },
+  {
+   "box": [
+    647,
+    465,
+    448,
+    165
+   ],
+   "role": "float",
+   "cut": "rect",
+   "note": "Product launch"
+  }
+ ]
+}

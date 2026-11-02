@@ -1,19 +1,19 @@
 {
  "name": "a16z",
- "layers": 3,
+ "layers": 4,
  "kinds": {
   "headline": 1,
-  "text": 2
+  "text": 3
  },
  "background": "detailed",
  "style": "living",
- "frame0_mean": 0.523,
+ "frame0_mean": 0.525,
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
  "motion": 14.35,
- "mp4_kb": 1258,
+ "mp4_kb": 1250,
  "jpg_kb": 149,
- "seconds": 118.8,
+ "seconds": 729.4,
  "pass": true
 }

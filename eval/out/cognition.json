@@ -8,13 +8,13 @@
  },
  "background": "flat",
  "style": "rebuild",
- "frame0_mean": 0.274,
+ "frame0_mean": 0.273,
  "frame0_local_pct": 0.0,
  "seam": 2,
- "step": 3,
+ "step": 4,
  "motion": 7.26,
- "mp4_kb": 547,
+ "mp4_kb": 544,
  "jpg_kb": 80,
- "seconds": 130.4,
+ "seconds": 133.2,
  "pass": true
 }

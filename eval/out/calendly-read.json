@@ -1,0 +1,21 @@
+{
+ "name": "calendly-read",
+ "layers": 5,
+ "kinds": {
+  "logo": 1,
+  "headline": 1,
+  "panel": 2,
+  "pill": 1
+ },
+ "background": "graded",
+ "style": "living",
+ "frame0_mean": 0.281,
+ "frame0_local_pct": 0.0,
+ "seam": 1,
+ "step": 2,
+ "motion": 8.37,
+ "mp4_kb": 693,
+ "jpg_kb": 83,
+ "seconds": 97.0,
+ "pass": true
+}

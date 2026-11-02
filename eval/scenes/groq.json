@@ -1,0 +1,8 @@
+{"note": "Put inference to work, over a big red bolt; the groq lockup below. The big bolt flashes with light, the small bolt of the logo beats, and the headline's letters hop in turn.",
+ "fx": {"headline": "hop"},
+ "units": [
+  {"box": [48, 512, 50, 72], "role": "logo", "turn": "beat", "note": "the bolt in the groq lockup"},
+  {"box": [52, 55, 830, 120], "role": "headline", "note": "Put inference"},
+  {"box": [52, 180, 460, 125], "role": "headline", "note": "to work"},
+  {"box": [760, 180, 280, 280], "role": "shine", "note": "the big bolt flashes"}
+ ]}

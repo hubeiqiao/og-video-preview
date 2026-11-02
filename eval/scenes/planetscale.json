@@ -1,0 +1,29 @@
+{
+ "note": "The PlanetScale lockup over a grid of customer logos: the round planet mark leans in while light glides across it, and a light runs through the white wordmark, which stays one shape.",
+ "accent": "#cfd8ff",
+ "fx": {
+  "headline": "sheen"
+ },
+ "units": [
+  {
+   "box": [
+    338,
+    86,
+    86,
+    86
+   ],
+   "role": "medallion",
+   "note": "the planet mark"
+  },
+  {
+   "box": [
+    440,
+    96,
+    422,
+    70
+   ],
+   "role": "headline",
+   "note": "the PlanetScale wordmark"
+  }
+ ]
+}

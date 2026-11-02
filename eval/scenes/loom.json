@@ -1,0 +1,5 @@
+{"note": "Better communication with a click: a recording bubble over a calendar, with its control bar. The Loom mark turns, and a pointer clicks the orange record button.",
+ "units": [
+  {"box": [790, 427, 46, 46], "role": "button", "note": "the orange record square"},
+  {"box": [42, 48, 64, 64], "role": "logo", "turn": "spin", "note": "the Loom sunburst"}
+ ]}

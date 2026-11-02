@@ -40,6 +40,94 @@ def read_config(d):
     return json.loads(body)
 
 
+def edge_step(img, fill, region, hole):
+    """How far a fill inside a hole sits from the card just outside it, along the hole's border: local means a few
+    pixels in against a few pixels out, so a hard edge (a box) scores high and a soft join low."""
+    r = region.astype(np.uint8)
+    k = np.ones((7, 7), np.uint8)
+    inner = (r > 0) & ~(cv2.erode(r, k) > 0)
+    outer = (cv2.dilate(r, k) > 0) & ~hole
+    w_in, w_out = cv2.blur(inner.astype(np.float32), (15, 15)), cv2.blur(outer.astype(np.float32), (15, 15))
+    both = (w_in > 0.1) & (w_out > 0.1)
+    if not both.any():
+        return 0.0
+    m_in = cv2.blur(fill.astype(np.float32) * inner[..., None], (15, 15)) / np.maximum(w_in, 1e-6)[..., None]
+    m_out = cv2.blur(img.astype(np.float32) * outer[..., None], (15, 15)) / np.maximum(w_out, 1e-6)[..., None]
+    return float(np.abs(m_in - m_out).max(2)[both].mean())
+
+
+def carry_lines(img, plate, hole):
+    """A thin straight line in the background (a grid, a guide, a hairline) runs on through a hole: the refill had no
+    way to know it, so whatever left took a piece of the line with it (Tailwind's grid, Rive's diagonals). Where a line
+    goes into a hole and comes out the other side, its own pixels from further along it are laid across the gap, as a
+    difference from the background, so its dashes and soft edges match and the refill under it stays. Returns how many
+    lines were carried."""
+    H, W = hole.shape
+    lw = np.array([0.2126, 0.7152, 0.0722], np.float32)
+    f = img.astype(np.float32)
+    delta = f - cv2.medianBlur(img, 9).astype(np.float32)  # the card without its thin lines, subtracted
+    dl = np.abs(delta @ lw)
+    on = dl > 8
+    near = cv2.dilate(hole.astype(np.uint8), np.ones((7, 7), np.uint8)) > 0
+    segs = cv2.HoughLinesP((on & ~near).astype(np.uint8) * 255, 1, np.pi / 360, 80, minLineLength=90, maxLineGap=8)
+    if segs is None:
+        return 0
+    base, n_ = plate.copy(), 0
+    for x0, y0, x1, y1 in segs[:, 0]:
+        u = np.array([x1 - x0, y1 - y0], np.float32); u /= np.linalg.norm(u); nv = np.array([-u[1], u[0]])
+        s = np.arange(-1600, 1600, dtype=np.float32)
+        px, py = x0 + s * u[0], y0 + s * u[1]
+        ok = (px >= 2) & (px < W - 2) & (py >= 2) & (py < H - 2)
+        s, px, py = s[ok], px[ok], py[ok]
+        ix, iy = px.round().astype(int), py.round().astype(int)
+        inside = hole[iy, ix]
+        # the line is there where any pixel across its width shows it
+        lit = np.zeros(len(s), bool)
+        for o in (-1, 0, 1):
+            lit |= on[(py + o * nv[1]).round().astype(int).clip(0, H - 1), (px + o * nv[0]).round().astype(int).clip(0, W - 1)]
+        k = 0
+        while k < len(s):
+            if not inside[k]:
+                k += 1; continue
+            a = k
+            while k < len(s) and inside[k]:
+                k += 1
+            b = k - 1
+            L = b - a + 1
+            # judged on the next 40 pixels where the card shows the background, however far: beside a word the next
+            # letter's hole, and past a numeral the next one's, is not a gap in the line
+            bg_ = np.flatnonzero(~inside)
+            pre, post = bg_[(bg_ < a - 3) & (bg_ >= a - 400)][-40:], bg_[(bg_ > b + 4) & (bg_ <= b + 400)][:40]
+            before, after = lit[pre], lit[post]
+            # it must run into the hole and out of it: a line that ends at the element (a connector, a box's edge) stops
+            if L > 420 or len(before) < 12 or len(after) < 12 or before.mean() < 0.6 or after.mean() < 0.6:
+                continue
+            # and stand clear of what lies beside it: film grain and texture light up as often a few pixels away, and
+            # carrying them through a hole leaves specks (Vite, Ideogram), and a word's neighbours are not a line (Cohere)
+            sup = np.concatenate([pre, post])
+            def across(o):
+                return dl[(py[sup] + o * nv[1]).round().astype(int).clip(0, H - 1), (px[sup] + o * nv[0]).round().astype(int).clip(0, W - 1)]
+            on_line = np.maximum(np.maximum(across(-1), across(0)), across(1))
+            # the brightest of a few pixels either side: a row of text lights up there too, a hairline does not
+            beside = np.max([across(o) for o in (-6, -5, -4, -3, 3, 4, 5, 6)], axis=0)
+            if np.median(on_line) < 12 or np.median(on_line) < 2.5 * np.median(beside):
+                continue
+            shift = L + 10
+            for j in range(max(0, a - 2), min(len(s), b + 3)):
+                for src in (j - shift, j + shift):
+                    if 0 <= src < len(s) and not inside[src]:
+                        break
+                else:
+                    continue
+                for o in (-2, -1, 0, 1, 2):
+                    dx, dy = int(round(px[j] + o * nv[0])), int(round(py[j] + o * nv[1]))
+                    sx, sy = int(round(px[src] + o * nv[0])), int(round(py[src] + o * nv[1]))
+                    if 0 <= dx < W and 0 <= dy < H and 0 <= sx < W and 0 <= sy < H and hole[dy, dx] and not hole[sy, sx]:
+                        plate[dy, dx] = base[dy, dx] + delta[sy, sx]
+            n_ += 1
+    return n_
+
+
 def main():
     d = sys.argv[1]
     cfg = read_config(d)
@@ -65,12 +153,14 @@ def main():
     if base.mean() > 0.05:
         B = pushpull(img, base)
     faint = dist(img, B)
+    boxy = []
     for L in cfg["layers"]:
         x, y, w, h = L["box"]
         x0, y0, x1, y1 = max(0, x), max(0, y), min(W, x + w), min(H, y + h)
         own = owner[y0:y1, x0:x1]
         # only this layer's own pixels; a layer added by hand has none, so it is cut as a rectangle (or a disc)
         sub = (own == L["mask"]).astype(np.uint8) if "mask" in L else np.zeros_like(own)
+        sub_own = None
         m = np.zeros((y1 - y0, x1 - x0), np.uint8)
         kind = L.get("kind", "")
         if L.get("cut") == "disc" or kind == "avatar":
@@ -81,7 +171,16 @@ def main():
             # faint strokes too: inside its own line, anything clearly off the line's surroundings is type
             box_img = img[y0:y1, x0:x1]
             ring = np.concatenate([box_img[:2].reshape(-1, 3), box_img[-2:].reshape(-1, 3), box_img[:, :2].reshape(-1, 3), box_img[:, -2:].reshape(-1, 3)])
-            faint_ink = (dist(box_img, np.median(ring, 0)) > 22) & ((own == 0) | (own == L.get("mask", -1)))
+            # against what lies behind: one colour on a flat card; on a gradient the background model, which follows it
+            # (one median colour there marks whole stretches of gradient as ink, and they travelled with the words as a box)
+            # ink differs from both the line's surroundings and the background model: on a gradient the model follows
+            # the background (one median colour there marked whole stretches of gradient as ink), on a collage the
+            # surroundings do (the model there is meaningless, and a whole tile became "ink", a box for the sweep)
+            far = dist(box_img, np.median(ring, 0)) > 22
+            if not flat:
+                far &= dist(box_img, B[y0:y1, x0:x1]) > 22
+            faint_ink = far & ((own == 0) | (own == L.get("mask", -1)))
+            sub_own = sub.copy()  # the letters as found, for the sweep's mask: faint ink on silk reached into the silk
             sub = np.maximum(sub, faint_ink.astype(np.uint8))
             # antialiasing and JPEG ringing go too; on a gradient or picture also a soft shadow or glow
             k = 7 if flat else 13
@@ -116,7 +215,26 @@ def main():
             m[others] = 0
         cut[y0:y1, x0:x1] |= m
         own_cut.append((L.get("id", f"layer{len(own_cut) + 1}"), x0, y0, x1, y1, m, L.get("cut") == "ink"))
-        glyph[y0:y1, x0:x1] |= sub if sub.sum() else m
+        g_ = sub_own if (kind in TEXT_KINDS and not flat and sub_own is not None and sub_own.sum()) else sub
+        if kind in TEXT_KINDS and not flat and L.get("ink"):
+            # the letters by their own ink colour, where they also stand off the background: on grain or silk the pixels
+            # found for a line can be the grain around the letters, and the sweep lit a box with the letters cut out
+            ink_ = np.array([int(L["ink"][i:i + 2], 16) for i in (1, 3, 5)], np.float32)
+            bi_ = img[y0:y1, x0:x1]
+            by_ink = (dist(bi_, ink_[None, None, :]) < 60) & (dist(bi_, B[y0:y1, x0:x1]) > 40)
+            if by_ink.sum() > 30:
+                g_ = by_ink.astype(np.uint8)
+        if kind in TEXT_KINDS and g_.sum():
+            # stray pixels of a patterned card beside the letters are not letters: lit by the sweep they were specks
+            # around the type (Conviction)
+            n_c, lab, st, _ = cv2.connectedComponentsWithStats(g_.astype(np.uint8), connectivity=8)
+            big = np.zeros(n_c, bool); big[1:] = st[1:, cv2.CC_STAT_AREA] >= max(12, 0.002 * g_.sum())
+            if big.any():
+                g_ = big[lab].astype(np.uint8)
+        glyph[y0:y1, x0:x1] |= g_ if g_.sum() else m
+        # a sweep's mask that fills its box is not letters (grain, a dark field, a tile read as ink): no sweep for it
+        if kind in TEXT_KINDS and (g_ if g_.sum() else m).mean() > 0.55:
+            boxy.append(L.get("id"))
 
     hole = cv2.dilate(cut, np.ones((3, 3), np.uint8)) > 0
     plate = pushpull(img, ~hole)
@@ -127,6 +245,24 @@ def main():
     w_ = wide > 0
     smooth_fill = plate.copy()  # the refill from the surroundings, before the background model replaces it
     plate[w_] = B[w_]  # a large hole filled from its neighbours smears them in; the background model does not
+    # but the model is smooth, and where the card around a hole is not (a glow, the rim of a mark the words overlap) it
+    # leaves a flat patch with a hard edge (Clerk's headline cut a dark box out of the emblem's glow). What the card
+    # differs from the model by, around the hole, can be carried in across it; that is wrong where the surroundings
+    # are another element's rim (Linear's emblem), so each hole keeps whichever fill meets the card more softly
+    lifted = B + pushpull(img.astype(np.float32) - B, ~hole)
+    n_, comp = cv2.connectedComponents(w_.astype(np.uint8))
+    for i in range(1, n_):
+        c_ = comp == i
+        if edge_step(img, lifted, c_, hole) < edge_step(img, B, c_, hole):
+            plate[c_] = lifted[c_]
+    # a float only ever uncovers a band along its own edge, where the fill from the neighbours matches them; the
+    # background model there took the scene's glow (a pink patch above Discord's mascot as it drifted)
+    for lid, x0, y0, x1, y1, m, _ in own_cut:
+        if next((L for L in cfg["layers"] if L.get("id") == lid), {}).get("role") != "float":
+            continue
+        full = np.zeros((H, W), np.uint8); full[y0:y1, x0:x1] = m
+        f_ = (cv2.dilate(full, np.ones((15, 15), np.uint8)) > 0) & w_
+        plate[f_] = smooth_fill[f_]
     # an element on a flat surface of its own (type on a notepad, a mark on a card inside the card): the background
     # model is the whole card's, so there it is the wrong colour; the surface's own colour, just around it, is right
     for lid, x0, y0, x1, y1, m, _ in own_cut:
@@ -134,8 +270,13 @@ def main():
             continue
         full = np.zeros((H, W), np.uint8); full[y0:y1, x0:x1] = m
         ring = (cv2.dilate(full, np.ones((11, 11), np.uint8)) > 0) & ~(cv2.dilate(cut, np.ones((3, 3), np.uint8)) > 0)
+        inner = cv2.dilate(full, np.ones((3, 3), np.uint8)) > 0
+        # and only where that colour meets the card more softly than the fill already there: words over the rim of a
+        # mark or a glow sit on a ring that is mostly plain card, and one colour for all of it was a dark box (Clerk)
         if ring.sum() > 60 and img[ring].astype(np.float32).std(0).max() < 6:
-            plate[(cv2.dilate(full, np.ones((3, 3), np.uint8)) > 0)] = np.median(img[ring], 0)
+            one = plate.copy(); one[inner] = np.median(img[ring], 0)
+            if edge_step(img, one, inner, hole) <= edge_step(img, plate, inner, hole):
+                plate[inner] = one[inner]
     # text typed into an input: behind it is the input's own flat fill, the median just around the text
     for lid, x0, y0, x1, y1, m, _ in own_cut:
         L = next((L for L in cfg["layers"] if L.get("id") == lid), {})
@@ -165,6 +306,9 @@ def main():
             text = lum_(bar) < lum_(bar_c[None, None, :].astype(np.float32)) - 10  # its own text, darker than the bar
             text = cv2.dilate(text.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
             plate[by:by + bh, bx:bx + bw] = np.where(text[..., None], bar_c, bar)
+    carried = carry_lines(img, plate, hole)
+    if carried:
+        print(f"lines carried through the holes: {carried}")
     clean = os.path.join(d, "plate-clean.png")
     if cfg.get("cleanPlate") and os.path.exists(clean):  # a clean background from an image-edit tool beats any refill
         cp = cv2.cvtColor(cv2.imread(clean), cv2.COLOR_BGR2RGB)
@@ -318,6 +462,19 @@ def main():
                         L["settle"] = True
                 open(os.path.join(d, "layers.js"), "w").write(src[:i] + json.dumps(body, indent=1) + src[j:])
                 print("stays in place (its hole would show): " + ", ".join(poor))
+    if boxy:
+        src = open(os.path.join(d, "layers.js")).read()
+        i, j = src.index("{"), src.rindex("}") + 1
+        try:
+            body = json.loads(src[i:j])
+        except ValueError:
+            body = None
+        if body is not None:
+            for L in body["layers"]:
+                if L.get("id") in boxy:
+                    L["fx"] = "none"
+            open(os.path.join(d, "layers.js"), "w").write(src[:i] + json.dumps(body, indent=1) + src[j:])
+            print("no sweep (its mask is a box, not letters): " + ", ".join(boxy))
     print(f"plate, layers and glyphs written ({int(hole.sum())} px refilled)")
 
 

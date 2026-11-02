@@ -1,0 +1,9 @@
+{
+ "note": "The bolt.new wordmark over a blue horizon glowing up from below: the glow surges in waves as one surface, and a pale blue light runs through the white wordmark, which stays one shape.",
+ "surface": {"form": "wind", "amp": 3},
+ "accent": "#8fd0ff",
+ "fx": {"headline": "sheen"},
+ "units": [
+  {"box": [445, 265, 310, 100], "role": "headline", "note": "the bolt.new wordmark"}
+ ]
+}

@@ -1,0 +1,18 @@
+{
+ "name": "mobbin-read",
+ "layers": 5,
+ "kinds": {
+  "illustration": 5
+ },
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 0.316,
+ "frame0_local_pct": 0.0,
+ "seam": 145,
+ "step": 140,
+ "motion": 7.2,
+ "mp4_kb": 343,
+ "jpg_kb": 70,
+ "seconds": 88.3,
+ "pass": true
+}

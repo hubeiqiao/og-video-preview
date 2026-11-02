@@ -1,0 +1,18 @@
+{
+ "name": "vite-read",
+ "layers": 1,
+ "kinds": {
+  "headline": 1
+ },
+ "background": "detailed",
+ "style": "living",
+ "frame0_mean": 0.525,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 1,
+ "motion": 14.38,
+ "mp4_kb": 1363,
+ "jpg_kb": 177,
+ "seconds": 214.9,
+ "pass": true
+}

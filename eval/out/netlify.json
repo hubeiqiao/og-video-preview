@@ -1,23 +1,22 @@
 {
  "name": "netlify",
- "layers": 11,
+ "layers": 16,
  "kinds": {
-  "icon": 1,
+  "icon": 6,
   "text": 1,
-  "illustration": 1,
-  "headline": 2,
+  "headline": 3,
   "avatar": 5,
   "shape": 1
  },
  "background": "graded",
  "style": "rebuild",
- "frame0_mean": 0.273,
+ "frame0_mean": 0.272,
  "frame0_local_pct": 0.0,
- "seam": 1,
+ "seam": 0,
  "step": 3,
- "motion": 9.99,
- "mp4_kb": 468,
+ "motion": 16.24,
+ "mp4_kb": 598,
  "jpg_kb": 60,
- "seconds": 269.2,
+ "seconds": 85.3,
  "pass": true
 }

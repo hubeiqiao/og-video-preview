@@ -1,20 +1,18 @@
 {
  "name": "stability",
- "layers": 3,
+ "layers": 1,
  "kinds": {
-  "label": 1,
-  "text": 1,
   "headline": 1
  },
  "background": "detailed",
  "style": "living",
- "frame0_mean": 0.416,
+ "frame0_mean": 0.414,
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
- "motion": 12.48,
- "mp4_kb": 1019,
- "jpg_kb": 129,
- "seconds": 135.5,
+ "motion": 12.19,
+ "mp4_kb": 1020,
+ "jpg_kb": 128,
+ "seconds": 175.6,
  "pass": true
 }

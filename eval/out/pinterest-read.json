@@ -1,0 +1,19 @@
+{
+ "name": "pinterest-read",
+ "layers": 8,
+ "kinds": {
+  "illustration": 7,
+  "logo": 1
+ },
+ "background": "graded",
+ "style": "rebuild",
+ "frame0_mean": 0.425,
+ "frame0_local_pct": 0.0,
+ "seam": 227,
+ "step": 228,
+ "motion": 23.94,
+ "mp4_kb": 894,
+ "jpg_kb": 125,
+ "seconds": 111.2,
+ "pass": true
+}

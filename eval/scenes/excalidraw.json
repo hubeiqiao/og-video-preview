@@ -1,0 +1,6 @@
+{"note": "A hand-drawn whiteboard around the Excalidraw lockup: the heart and the dashed arrow are drawn by hand, so they draw themselves (the arrow from its tail to its head); the rest of the card holds still.",
+ "only": true,
+ "units": [
+  {"box": [792, 92, 60, 52], "role": "scribble", "ink": "#d9534f", "dir": [1, 0], "note": "the heart"},
+  {"box": [182, 474, 145, 125], "role": "scribble", "ink": "#6c63d9", "dir": [1, -1], "tol": 150, "note": "the dashed arrow, from its tail to its head"}
+ ]}

@@ -1,0 +1,11 @@
+{"note": "A masonry wall of photo pins with the red Pinterest badge in the middle: the badge pops, and the pins that stand apart drift gently on their own paths.",
+ "fx": {"mark": "pop"},
+ "units": [
+  {"box": [506, 223, 184, 184], "role": "logo", "turn": "pop", "note": "the red Pinterest badge"},
+  {"box": [17, 0, 181, 466], "role": "float", "cut": "rect", "note": "the plant pin"},
+  {"box": [215, 0, 181, 221], "role": "float", "cut": "rect", "note": "the house pin"},
+  {"box": [215, 237, 181, 334], "role": "float", "cut": "rect", "note": "the woman in a hat"},
+  {"box": [806, 0, 181, 189], "role": "float", "cut": "rect", "note": "the canyon road"},
+  {"box": [1002, 0, 182, 228], "role": "float", "cut": "rect", "note": "the typewriter"},
+  {"box": [1002, 243, 182, 310], "role": "float", "cut": "rect", "note": "the hot spring"}
+ ]}

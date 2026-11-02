@@ -1,0 +1,5 @@
+{"note": "The ThriveCap mark, three red 3D bars on black: the mark is one shape, so it swings as one and settles.",
+ "only": true,
+ "units": [
+  {"box": [450, 172, 300, 276], "role": "logo", "turn": "wobble", "note": "the three bars, one mark"}
+ ]}

@@ -1,0 +1,4 @@
+{"note": "A PostHog window with the headline and its call to action, the hedgehog pointing at it: a pointer clicks Get started.",
+ "units": [
+  {"box": [116, 449, 295, 78], "role": "button", "note": "Get started- free"}
+ ]}

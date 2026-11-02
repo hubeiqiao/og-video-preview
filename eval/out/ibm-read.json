@@ -1,0 +1,18 @@
+{
+ "name": "ibm-read",
+ "layers": 1,
+ "kinds": {
+  "stroke": 1
+ },
+ "background": "flat",
+ "style": "rebuild",
+ "frame0_mean": 0.164,
+ "frame0_local_pct": 0.0,
+ "seam": 1,
+ "step": 3,
+ "motion": 20.59,
+ "mp4_kb": 146,
+ "jpg_kb": 52,
+ "seconds": 67.3,
+ "pass": true
+}

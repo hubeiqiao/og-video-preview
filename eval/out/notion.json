@@ -1,12 +1,12 @@
 {
  "name": "notion",
- "layers": 7,
+ "layers": 6,
  "kinds": {
   "logo": 1,
   "headline": 2,
-  "illustration": 2,
+  "illustration": 1,
   "stroke": 1,
-  "label": 1
+  "text": 1
  },
  "background": "flat",
  "style": "living",
@@ -15,8 +15,8 @@
  "seam": 1,
  "step": 3,
  "motion": 14.09,
- "mp4_kb": 736,
+ "mp4_kb": 720,
  "jpg_kb": 72,
- "seconds": 73.9,
+ "seconds": 50.2,
  "pass": true
 }

@@ -14,9 +14,9 @@ An open-source agent skill for Claude Code, OpenAI Codex, Cursor and every agent
 
 ![On the left a still og:image, on the right the og:video the skill made from that same image, playing](social/hero.gif)
 
-The og:images of nine well-known sites, each turned into an og:video by the skill (Y Combinator's and OpenAI's after its reading step, which says what a card shows before anything is cut):
+The og:images of nine well-known sites, each turned into an og:video by the skill (Y Combinator's, Deno's, v0's and Lovable's after its reading step, which says what a card shows before anything is cut):
 
-![The og:videos the skill made from the og:images of ycombinator.com, x.ai, shopify.com, gumroad.com, openai.com, notion.com, intercom.com, github.com and huggingface.co, playing together](social/showcase.gif)
+![The og:videos the skill made from the og:images of ycombinator.com, x.ai, deno.com, v0.app, lovable.dev, supabase.com, intercom.com, github.com and slack.com, playing together](social/showcase.gif)
 
 </div>
 
@@ -185,17 +185,17 @@ python3 eval/run.py --only stripe,github --keep  # a few cards, keeping their in
 
 ## Examples
 
-Each pair is the site's own `og:image` on the left and the `og:video` the skill made from it on the right. ycombinator.com and chatbase.co went through the reading step: Y Combinator's rows of logos are a carousel, and Chatbase's coloured tiles are pieces on a board.
+Each pair is the site's own `og:image` on the left and the `og:video` the skill made from it on the right. ycombinator.com, deno.com, lovable.dev, v0.app and chatbase.co went through the reading step: Y Combinator's rows of logos are a carousel, Deno's words are a list that scrolls, Lovable's prompt and v0's line are typed, and Chatbase's coloured tiles are pieces on a board.
 
 | ![ycombinator.com: og:image and og:video](social/pairs/ycombinator.gif) | ![x.ai: og:image and og:video](social/pairs/x.gif) |
 |---|---|
 | **ycombinator.com** | **x.ai** |
-| ![shopify.com: og:image and og:video](social/pairs/shopify.gif) | ![gumroad.com: og:image and og:video](social/pairs/gumroad.gif) |
-| **shopify.com**: the globe turns | **gumroad.com** |
+| ![deno.com: og:image and og:video](social/pairs/deno.gif) | ![lovable.dev: og:image and og:video](social/pairs/lovable.gif) |
+| **deno.com**: the list scrolls | **lovable.dev**: the prompt is typed |
 | ![intercom.com: og:image and og:video](social/pairs/intercom.gif) | ![notion.com: og:image and og:video](social/pairs/notion.gif) |
 | **intercom.com** | **notion.com** |
-| ![huggingface.co: og:image and og:video](social/pairs/huggingface.gif) | ![chatbase.co: og:image and og:video](social/pairs/chatbase.gif) |
-| **huggingface.co** | **chatbase.co**: the tiles slide on their lattice |
+| ![v0.app: og:image and og:video](social/pairs/v0.gif) | ![chatbase.co: og:image and og:video](social/pairs/chatbase.gif) |
+| **v0.app**: the line is typed | **chatbase.co**: the tiles slide on their lattice |
 
 These cards are from the [eval](eval/); their images belong to their owners and are used only as test inputs. Regenerate the GIFs with `python3 tools/readme_gifs.py`.
 

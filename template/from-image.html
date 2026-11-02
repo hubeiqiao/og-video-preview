@@ -458,7 +458,8 @@ function build() {
     // only a relief the reading names takes light running through it: on anything else that holds still, a sweep
     // clipped to its cut showed hard edges and dark blocks where the refill sat
     const picture = l.role === 'medallion';
-    if ((L.fx === 'sheen' || broad || picture || (L.tone && TEXT.has(L.kind))) && !(lightInk && !ACCENT && !broad && !picture)) {
+    // a reading may turn the sweep off (fx headline "none"): on grain or silk its mask can be ragged
+    if (L.fx !== 'none' && (L.fx === 'sheen' || broad || picture || (L.tone && TEXT.has(L.kind))) && !(lightInk && !ACCENT && !broad && !picture)) {
       const s = document.createElement('div'); s.className = 'sheen';
       Object.assign(s.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', backgroundSize: '320% 100%' });
       glyphMask(s, x, y);
@@ -518,8 +519,8 @@ function build() {
   schedule(style);
 
   // a lone mark (one visual on an empty card: a logo, a symbol) becomes the hero. A compact light mark alone on a black
-  // card (x.ai) is cut into slices that assemble and a strong light rises behind it; elsewhere it
-  // assembles in one piece out of a blur, with a soft glow on a dark card or a shadow under it on a light one. Then it
+  // card (x.ai) has a strong light rise behind it as it lands; elsewhere it
+  // assembles out of a blur, with a soft glow on a dark card or a shadow under it on a light one. Then it
   // turns slowly in 3D
   const marks = layers.filter(l => !TEXT.has(l.kind) && !['photo', 'panel'].includes(l.kind) && !l.settle);
   // beside a line of type only a real mark qualifies (an underline or a pill keeps its own motion)
@@ -537,10 +538,10 @@ function build() {
     const paper = hexRgb(C.paper || '#000000').split(',').reduce((m, v) => m + +v, 0) / 3;
     const ink = L.ink ? hexRgb(L.ink).split(',').reduce((m, v) => m + +v, 0) / 3 : 255;
     const lit = ink > paper + 30;  // a light mark on a darker card
-    // an empty black stage with one compact symbol on it: the mark can make an entrance. Bands across a wordmark or a
-    // line of type tear its letters apart
+    // an empty black stage with one compact symbol on it: the mark can make an entrance, with the strong light. It
+    // stays one piece: cut into bands, it read as torn halfway in (X, GV), and on a wordmark bands tear the letters
     const stage = lit && layers.length === 1 && L.w <= 3 * L.h && C.background === 'flat' && paper < 30;
-    const N = stage ? 7 : 1;
+    const N = 1;
     const ew = L.w + 2 * pad, eh = L.h + 2 * pad;
     L.parts = Array.from({ length: N }, (_, k) => {
       const el = el0.cloneNode(true); el0.parentNode.insertBefore(el, el0);
@@ -715,10 +716,10 @@ function enter(l, u, k) {
     const e = EASE.smooth(clamp(u / 1.1));
     return { o: EASE.smooth(clamp(u / 0.8)), s: 1.06 - 0.06 * e, b: 10 * (1 - e) };
   }
-  if (l.hero) {  // a lone mark assembles: its slices slide in from alternate sides, out of a blur, and it settles on a spring
-    const v = u - k * 0.05, e2 = EASE.smooth(clamp(v / 0.6)), dir = k % 2 ? 1 : -1, s2 = spring(u, z, f * 0.9);
-    const off = 70 * D * (1 - e2) * dir;
-    return { o: clamp(v / 0.18), x: l.bandsH ? off : 0, y: l.bandsH ? 0 : off, s: 0.93 + 0.07 * s2, b: 7 * (1 - e2) };
+  if (l.hero) {  // a lone mark arrives in one piece out of a blur and settles on a spring; slices sliding in from
+    // alternate sides read as a torn glitch halfway (X, GV), and the light rising behind it carries the moment
+    const e2 = EASE.smooth(clamp(u / 0.6)), s2 = spring(u, z, f * 0.9);
+    return { o: clamp(u / 0.18), y: 18 * D * (1 - e2), s: 0.93 + 0.07 * s2, b: 7 * (1 - e2) };
   }
   const sp = spring(u, z, f), e = EASE.smooth(clamp(u / 0.42)), fast = EASE.out(clamp(u / 0.16));
   const blur = (n) => u < 0.4 ? n * (1 - EASE.smooth(u / 0.4)) : 0;
@@ -747,8 +748,7 @@ function enter(l, u, k) {
 // exit: v runs 0 to 1 over the exit; softer than the entrance
 function exit(l, v, k = 0) {
   if (l.calm) { const a = away(v); return { o: 1 - a, s: 1 + 0.03 * a, b: 8 * a }; }
-  if (l.hero) { const a = away(v), dir = k % 2 ? 1 : -1;  // the slices part, alternate ways
-    return l.bandsH ? { o: 1 - a, x: dir * 40 * a, b: 4 * a } : { o: 1 - a, y: dir * 40 * a, b: 4 * a }; }
+  if (l.hero) { const a = away(v); return { o: 1 - a, s: 1 - 0.05 * a, b: 4 * a }; }  // it fades back into the blur, whole
   const a = away(v);
   if (l.settle) return {};  // it never leaves, and nothing behind it shows
   switch (l.kind) {
@@ -846,9 +846,10 @@ window.render = function (t) {
     l.parts.forEach((p, k) => {
       let st;
       if (l.role === 'typing') {
-        // deleted a character at a time from 0.6 s (30 ms each), a pause, then typed again (65 ms each); whole by 3.4 s
-        const n = l.chars, d0 = 0.6, d1 = d0 + n * 0.03, t0 = d1 + 0.35, t1 = t0 + n * 0.065;
-        const left = t < d0 || t >= t1 ? n : t < d1 ? n - Math.floor((t - d0) / 0.03) : t < t0 ? 0 : Math.floor((t - t0) / 0.065);
+        // deleted a character at a time from 0.6 s (30 ms each), a pause, then typed again (65 ms each); whole by 3.4 s.
+        // A long line changes only its last 24 characters: the whole of one ran past the end of the loop (resend)
+        const n = l.chars, m = Math.min(n, 24), d0 = 0.6, d1 = d0 + m * 0.03, t0 = d1 + 0.35, t1 = t0 + m * 0.065;
+        const left = t < d0 || t >= t1 ? n : t < d1 ? n - Math.floor((t - d0) / 0.03) : t < t0 ? n - m : n - m + Math.floor((t - t0) / 0.065);
         const busy = t >= d0 - 0.1 && t < t1 + 0.45, blink = t >= d1 && t < t0 ? (Math.floor((t - d1) / 0.4) % 2 === 0) : true;
         // while the drawn caret shows, the card's own caret (inside the box, after the last letter) is clipped off: two
         // carets stood side by side before the deleting began and after the typing ended

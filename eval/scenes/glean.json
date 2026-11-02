@@ -1,0 +1,25 @@
+{
+ "note": "The glean wordmark over a blue textured ridge: the ridge flows along its own sweep as one surface, and a light runs through the wordmark, which stays one shape.",
+ "surface": {
+  "form": "silk",
+  "amp": 3,
+  "angle": -35
+ },
+ "accent": "#9fd0ff",
+ "fx": {
+  "headline": "sheen"
+ },
+ "units": [
+  {
+   "box": [
+    425,
+    240,
+    350,
+    145
+   ],
+   "role": "headline",
+   "note": "the glean wordmark"
+  }
+ ],
+ "only": true
+}

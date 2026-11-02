@@ -1,0 +1,19 @@
+{
+ "name": "groq-read",
+ "layers": 4,
+ "kinds": {
+  "headline": 3,
+  "logo": 1
+ },
+ "background": "detailed",
+ "style": "living",
+ "frame0_mean": 0.133,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 2,
+ "motion": 16.97,
+ "mp4_kb": 379,
+ "jpg_kb": 55,
+ "seconds": 53.3,
+ "pass": true
+}

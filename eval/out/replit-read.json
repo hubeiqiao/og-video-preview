@@ -1,0 +1,22 @@
+{
+ "name": "replit-read",
+ "layers": 6,
+ "kinds": {
+  "illustration": 1,
+  "icon": 2,
+  "pill": 1,
+  "shape": 1,
+  "headline": 1
+ },
+ "background": "graded",
+ "style": "rebuild",
+ "frame0_mean": 0.236,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 1,
+ "motion": 5.61,
+ "mp4_kb": 515,
+ "jpg_kb": 69,
+ "seconds": 161.1,
+ "pass": true
+}

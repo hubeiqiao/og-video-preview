@@ -1,0 +1,18 @@
+{
+ "name": "canva-read",
+ "layers": 4,
+ "kinds": {
+  "illustration": 4
+ },
+ "background": "graded",
+ "style": "rebuild",
+ "frame0_mean": 0.275,
+ "frame0_local_pct": 0.0,
+ "seam": 96,
+ "step": 97,
+ "motion": 19.13,
+ "mp4_kb": 664,
+ "jpg_kb": 88,
+ "seconds": 76.0,
+ "pass": true
+}

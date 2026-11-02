@@ -1,0 +1,5 @@
+{"note": "A robot debugging between Replays, Traces and the Seer panel: the lamp on its scanner and the red dot on its gauge glow.",
+ "units": [
+  {"box": [392, 172, 60, 52], "role": "shine", "note": "the pink lamp on the scanner"},
+  {"box": [645, 362, 40, 40], "role": "shine", "note": "the red button on the gauge"}
+ ]}

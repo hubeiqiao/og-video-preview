@@ -1,8 +1,12 @@
 {
  "name": "lovable-read",
- "layers": 1,
+ "layers": 5,
  "kinds": {
-  "illustration": 1
+  "logo": 1,
+  "headline": 1,
+  "text": 1,
+  "illustration": 1,
+  "pill": 1
  },
  "background": "detailed",
  "style": "living",
@@ -10,9 +14,9 @@
  "frame0_local_pct": 0.0,
  "seam": 0,
  "step": 2,
- "motion": 5.67,
- "mp4_kb": 706,
+ "motion": 5.84,
+ "mp4_kb": 726,
  "jpg_kb": 93,
- "seconds": 114.8,
+ "seconds": 117.7,
  "pass": true
 }

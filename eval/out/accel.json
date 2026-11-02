@@ -1,18 +1,19 @@
 {
  "name": "accel",
- "layers": 1,
+ "layers": 3,
  "kinds": {
-  "illustration": 1
+  "headline": 1,
+  "text": 2
  },
  "background": "flat",
  "style": "rebuild",
- "frame0_mean": 0.17,
+ "frame0_mean": 0.163,
  "frame0_local_pct": 0.0,
  "seam": 1,
  "step": 3,
- "motion": 5.47,
- "mp4_kb": 317,
+ "motion": 10.86,
+ "mp4_kb": 414,
  "jpg_kb": 33,
- "seconds": 195.9,
+ "seconds": 769.1,
  "pass": true
 }

@@ -527,8 +527,8 @@ async function stageLoop(boxes) {
 }
 const json = u => fetch(u).then(r => r.json()).catch(() => null);
 // the hero plays only cards whose motion reads at a glance; the full 104 stay in the grid below
-const HERO = ['ycombinator', 'openai', 'github', 'gumroad', 'intercom', 'salesforce', 'granola', 'huggingface', 'x', 'shopify', 'notion',
-  'tldraw', 'miro', 'chatbase', 'framer', 'cloudflare'].filter(n => SITES[n]);
+const HERO = ['ycombinator', 'deno', 'github', 'v0', 'intercom', 'salesforce', 'granola', 'supabase', 'x', 'lovable', 'notion',
+  'tldraw', 'miro', 'chatbase', 'slack', 'cloudflare'].filter(n => SITES[n]);
 const shuffled = HERO.map(n => [Math.random(), n]).sort((a, b) => a[0] - b[0]).map(([, n]) => ({ key: n, domain: SITES[n], still: `eval/${n}.jpg`, video: `eval/${n}.mp4` }));
 playlist = [...own, ...shuffled];
 painted.then(() => json('media/boxes.json')).then(boxes => {

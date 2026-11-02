@@ -1,0 +1,49 @@
+{
+ "note": "The AMD lockup over a close-up of a chip: the lit dot fields of the circuit glow like signals passing, and a warm light runs through the white wordmark, which stays one shape.",
+ "accent": "#ff7a45",
+ "fx": {
+  "headline": "sheen"
+ },
+ "units": [
+  {
+   "box": [
+    676,
+    258,
+    240,
+    56
+   ],
+   "role": "headline",
+   "note": "the AMD wordmark and arrow"
+  },
+  {
+   "box": [
+    620,
+    130,
+    180,
+    120
+   ],
+   "role": "shine",
+   "note": "the orange dot field on the chip"
+  },
+  {
+   "box": [
+    800,
+    150,
+    160,
+    120
+   ],
+   "role": "shine",
+   "note": "the cyan dot field on the chip"
+  },
+  {
+   "box": [
+    100,
+    190,
+    120,
+    80
+   ],
+   "role": "shine",
+   "note": "the blue readout on the left"
+  }
+ ]
+}

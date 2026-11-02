@@ -1,0 +1,4 @@
+{"note": "A booking page with a month of dates: a date is the thing to click, so a pointer picks the 8th.",
+ "units": [
+  {"box": [910, 510, 70, 68], "role": "button", "note": "the 8th"}
+ ]}

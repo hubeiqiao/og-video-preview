@@ -1,0 +1,6 @@
+{"note": "The Obsidian app icon, a purple crystal on a dark tile, beside the wordmark: the crystal leans in while light glides across its facets (the tile holds), and a purple light runs through the wordmark.",
+ "accent": "#b9a2ff",
+ "fx": {"headline": "sheen"},
+ "units": [
+  {"box": [184, 196, 182, 224], "role": "medallion", "center": [275, 308], "note": "the crystal"}
+ ]}

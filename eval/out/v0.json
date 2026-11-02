@@ -2,18 +2,17 @@
  "name": "v0",
  "layers": 2,
  "kinds": {
-  "headline": 1,
-  "illustration": 1
+  "headline": 2
  },
  "background": "flat",
  "style": "rebuild",
  "frame0_mean": 0.116,
  "frame0_local_pct": 0.0,
- "seam": 174,
- "step": 173,
- "motion": 20.29,
- "mp4_kb": 250,
+ "seam": 2,
+ "step": 4,
+ "motion": 13.2,
+ "mp4_kb": 223,
  "jpg_kb": 21,
- "seconds": 35.9,
+ "seconds": 270.2,
  "pass": true
 }

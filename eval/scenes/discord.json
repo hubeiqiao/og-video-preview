@@ -1,0 +1,67 @@
+{
+ "note": "The Discord lockup, a monitor and phone running Discord, two mascots in front and soft blurred trinkets floating in the dark: the mascots and the trinkets drift on their own paths, the Discord mark swings once; the screens hold still.",
+ "only": true,
+ "units": [
+  {
+   "box": [
+    122,
+    240,
+    90,
+    70
+   ],
+   "role": "logo",
+   "turn": "wobble",
+   "note": "the Discord mark"
+  },
+  {
+   "box": [
+    285,
+    345,
+    165,
+    285
+   ],
+   "role": "float",
+   "note": "the blue mascot with its leaf hat"
+  },
+  {
+   "box": [
+    135,
+    478,
+    108,
+    124
+   ],
+   "role": "float",
+   "note": "the little robot"
+  },
+  {
+   "box": [
+    168,
+    56,
+    82,
+    62
+   ],
+   "role": "float",
+   "note": "a blurred trinket"
+  },
+  {
+   "box": [
+    482,
+    108,
+    46,
+    80
+   ],
+   "role": "float",
+   "note": "a blurred trinket"
+  },
+  {
+   "box": [
+    1100,
+    28,
+    82,
+    92
+   ],
+   "role": "float",
+   "note": "a blurred trinket"
+  }
+ ]
+}

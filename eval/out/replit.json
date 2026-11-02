@@ -1,23 +1,21 @@
 {
  "name": "replit",
- "layers": 13,
+ "layers": 6,
  "kinds": {
   "illustration": 2,
-  "label": 6,
   "icon": 2,
   "shape": 1,
-  "headline": 1,
-  "text": 1
+  "headline": 1
  },
  "background": "graded",
- "style": "living",
- "frame0_mean": 0.236,
+ "style": "rebuild",
+ "frame0_mean": 0.235,
  "frame0_local_pct": 0.0,
- "seam": 1,
+ "seam": 0,
  "step": 1,
- "motion": 5.63,
- "mp4_kb": 488,
+ "motion": 5.53,
+ "mp4_kb": 500,
  "jpg_kb": 69,
- "seconds": 131.5,
+ "seconds": 141.1,
  "pass": true
 }

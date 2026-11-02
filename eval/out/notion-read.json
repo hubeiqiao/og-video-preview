@@ -1,0 +1,23 @@
+{
+ "name": "notion-read",
+ "layers": 6,
+ "kinds": {
+  "logo": 1,
+  "headline": 1,
+  "pill": 1,
+  "illustration": 1,
+  "stroke": 1,
+  "text": 1
+ },
+ "background": "flat",
+ "style": "living",
+ "frame0_mean": 0.376,
+ "frame0_local_pct": 0.0,
+ "seam": 1,
+ "step": 3,
+ "motion": 14.32,
+ "mp4_kb": 693,
+ "jpg_kb": 72,
+ "seconds": 142.7,
+ "pass": true
+}

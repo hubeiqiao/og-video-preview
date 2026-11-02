@@ -9,11 +9,11 @@
  "style": "rebuild",
  "frame0_mean": 0.275,
  "frame0_local_pct": 0.0,
- "seam": 0,
- "step": 11,
- "motion": 9.11,
- "mp4_kb": 430,
+ "seam": 2,
+ "step": 13,
+ "motion": 11.96,
+ "mp4_kb": 666,
  "jpg_kb": 77,
- "seconds": 70.8,
+ "seconds": 78.5,
  "pass": true
 }

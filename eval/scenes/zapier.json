@@ -1,0 +1,7 @@
+{"note": "A headline beside a model picker floating over a photo: a pointer clicks the model selector, and the two headline lines hop word by word.",
+ "fx": {"headline": "hop"},
+ "units": [
+  {"box": [703, 227, 226, 33], "role": "button", "note": "the Claude Opus 4.6 selector"},
+  {"box": [58, 78, 245, 52], "role": "headline", "note": "Your tools."},
+  {"box": [58, 145, 402, 55], "role": "headline", "note": "Your rules. Any AI."}
+ ]}

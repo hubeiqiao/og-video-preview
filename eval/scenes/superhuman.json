@@ -1,0 +1,7 @@
+{"note": "The Superhuman lockup beside a document with a suggestion: a pointer clicks the accept tick of the suggestion, and a light runs through the white wordmark.",
+ "accent": "#ffd0e0",
+ "fx": {"headline": "sheen"},
+ "units": [
+  {"box": [1050, 340, 34, 34], "role": "button", "note": "the accept tick"},
+  {"box": [175, 250, 350, 42], "role": "headline", "note": "SUPERHUMAN wordmark"}
+ ]}

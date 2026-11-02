@@ -1,0 +1,19 @@
+{
+ "name": "zed-read",
+ "layers": 4,
+ "kinds": {
+  "logo": 1,
+  "illustration": 3
+ },
+ "background": "graded",
+ "style": "living",
+ "frame0_mean": 0.379,
+ "frame0_local_pct": 0.0,
+ "seam": 0,
+ "step": 2,
+ "motion": 5.82,
+ "mp4_kb": 1313,
+ "jpg_kb": 82,
+ "seconds": 81.3,
+ "pass": true
+}

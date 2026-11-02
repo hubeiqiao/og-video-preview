@@ -1,0 +1,21 @@
+{
+ "name": "resend-read",
+ "layers": 5,
+ "kinds": {
+  "headline": 1,
+  "label": 1,
+  "illustration": 2,
+  "shape": 1
+ },
+ "background": "flat",
+ "style": "living",
+ "frame0_mean": 0.2,
+ "frame0_local_pct": 0.0,
+ "seam": 4,
+ "step": 4,
+ "motion": 4.94,
+ "mp4_kb": 723,
+ "jpg_kb": 42,
+ "seconds": 166.3,
+ "pass": true
+}
